@@ -1,5 +1,7 @@
 
-/datum/extension/interactive/ntos/proc/update_host_icon()
+/datum/extension/interactive/ntos/proc/update_host_icon(datum/computer_file/program/program, was_interacted = TRUE)
+	if (was_interacted)
+		last_interacted_program = program
 	var/atom/A = holder
 	if(istype(A))
 		A.update_icon()
@@ -11,8 +13,8 @@
 		var/atom/A = holder
 		if(istype(A))
 			screen_icon_file = A.icon
-	if(active_program)
-		return image(screen_icon_file, active_program.program_icon_state)
+	if(last_interacted_program)
+		return image(screen_icon_file, last_interacted_program.program_icon_state)
 	else
 		return image(screen_icon_file, menu_icon)
 
@@ -23,18 +25,24 @@
 		var/atom/A = holder
 		if(istype(A))
 			screen_icon_file = A.icon
+	if(last_interacted_program && last_interacted_program.program_key_state)
+		return image(screen_icon_file, last_interacted_program.program_key_state)
+
+/datum/extension/interactive/ntos/proc/get_keyboard_state()
+	if(!on)
+		return
 	if(active_program && active_program.program_key_state)
-		return image(screen_icon_file, active_program.program_key_state)
-	
+		return active_program.program_key_state
+
 /datum/extension/interactive/ntos/proc/visible_error(message)
 	var/atom/A = holder
 	if(istype(A))
-		A.visible_message("<span class='warning'>\The [A]'s screen displays an error: \"[message]\"</span>", range = 1)
+		A.visible_message(SPAN_WARNING("\The [A]'s screen displays an error: \"[message]\""), range = 1)
 
 /datum/extension/interactive/ntos/proc/visible_notification(message)
 	var/atom/A = holder
 	if(istype(A))
-		A.visible_message("<span class='notice'>\The [A] screen displays a notification: \"[message]\"</span>", range = 1)
+		A.visible_message(SPAN_NOTICE("\The [A] screen displays a notification: \"[message]\""), range = 1)
 
 /datum/extension/interactive/ntos/proc/audible_notification(notification)
 	var/atom/A = holder
@@ -42,4 +50,4 @@
 		playsound(A, notification, 5, falloff = 1)
 
 /datum/extension/interactive/ntos/proc/show_error(user, message)
-	to_chat(user, "<span class='warning'>[message]</span>")
+	to_chat(user, SPAN_WARNING("[message]"))

@@ -11,10 +11,13 @@
 	turf_flags = TURF_DISALLOW_BLOB
 
 	z_eventually_space = TRUE
+	var/starlit = FALSE
 
 /turf/space/Initialize()
 	. = ..()
-	update_starlight()
+	AMBIENT_LIGHT_QUEUE_TURF(src) //Doesnt really matter if we're considered outside or not
+
+	set_extension(src, /datum/extension/support_lattice)
 
 	appearance = SSskybox.space_appearance_cache[(((x + y) ^ ~(x * y) + z) % 25) + 1]
 
@@ -36,10 +39,12 @@
 	if (above)
 		var/turf/T = src
 		while ((T = GetAbove(T)))
+			if (istype(T, /turf/space))
+				break
 			T.z_eventually_space = FALSE
 	return ..()
 
-/turf/space/LateInitialize()
+/turf/space/LateInitialize(mapload)
 	if(GLOB.using_map.base_floor_area)
 		var/area/new_area = locate(GLOB.using_map.base_floor_area) || new GLOB.using_map.base_floor_area
 		ChangeArea(src, new_area)
@@ -53,40 +58,12 @@
 /turf/space/is_solid_structure()
 	return locate(/obj/structure/lattice, src) || locate(/obj/structure/catwalk, src) //counts as solid structure if it has a lattice or catwalk
 
-/turf/space/proc/update_starlight()
-	if(!config.starlight)
-		return
-	if(locate(/turf/simulated) in orange(src,1)) //Let's make sure not to break everything if people use a crazy setting.
-		set_light(min(0.1*config.starlight, 1), 1, 3, l_color = SSskybox.background_color)
-	else
-		set_light(0)
+/turf/space/use_tool(obj/item/C, mob/living/user, list/click_params)
+	var/datum/extension/support_lattice/sl = get_extension(src, /datum/extension/support_lattice)
+	if (sl.try_construct(C, user, click_params))
+		return TRUE
 
-/turf/space/attackby(obj/item/C as obj, mob/user as mob)
-
-	if (istype(C, /obj/item/stack/material/rods))
-		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
-		if(L)
-			return L.attackby(C, user)
-		var/obj/item/stack/material/rods/R = C
-		if (R.use(1))
-			to_chat(user, "<span class='notice'>Constructing support lattice ...</span>")
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
-			ReplaceWithLattice(R.material.name)
-		return
-
-	if (istype(C, /obj/item/stack/tile/floor))
-		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
-		if(L)
-			var/obj/item/stack/tile/floor/S = C
-			if (!S.use(1))
-				return
-			qdel(L)
-			playsound(src, 'sound/weapons/Genhit.ogg', 50, 1)
-			ChangeTurf(/turf/simulated/floor/airless, keep_air = TRUE)
-			return
-		else
-			to_chat(user, "<span class='warning'>The plating is going to need some support.</span>")
-	return
+	return ..()
 
 
 // Ported from unstable r355
@@ -96,9 +73,6 @@
 	if(A && A.loc == src)
 		if (A.x <= TRANSITIONEDGE || A.x >= (world.maxx - TRANSITIONEDGE + 1) || A.y <= TRANSITIONEDGE || A.y >= (world.maxy - TRANSITIONEDGE + 1))
 			A.touch_map_edge()
-
-/turf/space/ChangeTurf(turf/N, tell_universe = TRUE, force_lighting_update = FALSE, keep_air = FALSE)
-	return ..(N, tell_universe, TRUE, keep_air)
 
 /turf/space/is_open()
 	return TRUE

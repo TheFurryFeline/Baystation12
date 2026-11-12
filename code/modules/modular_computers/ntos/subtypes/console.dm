@@ -1,11 +1,11 @@
 /datum/extension/interactive/ntos/console
 	expected_type = /obj/machinery
-	screen_icon_file = 'icons/obj/modular_console.dmi'
-	
+	screen_icon_file = 'icons/obj/machines/modular_console.dmi'
+
 /datum/extension/interactive/ntos/console/get_hardware_flag()
 	return PROGRAM_CONSOLE
 
-/datum/extension/interactive/ntos/console/get_component(var/part_type)
+/datum/extension/interactive/ntos/console/get_component(part_type)
 	var/obj/machinery/M = holder
 	return M.get_component_of_type(part_type)
 
@@ -38,25 +38,30 @@
 
 /datum/extension/interactive/ntos/console/host_status()
 	var/obj/machinery/M = holder
-	return !(M.stat & NOPOWER)
+	return M.is_powered()
 
-/datum/extension/interactive/ntos/console/extension_act(href, href_list, user)
+/datum/extension/interactive/ntos/console/extension_act(href, href_list, mob/user)
 	. = ..()
 	var/obj/machinery/M = holder
-	if(istype(M) && M.clicksound && CanPhysicallyInteractWith(user, M))
-		playsound(M, M.clicksound, 40)
+	if(istype(M))
+		if (CanPhysicallyInteractWith(user, M))
+			if (M.clicksound)
+				playsound(M, M.clicksound, 40)
+			user.set_machine(M)
+		else
+			user.unset_machine(M)
 
 // Hack to make status bar work
 
-/obj/machinery/initial_data()
+/obj/machinery/initial_data(datum/computer_file/program/program)
 	. = ..()
 	var/datum/extension/interactive/ntos/os = get_extension(src, /datum/extension/interactive/ntos)
 	if(os)
-		. += os.get_header_data()
+		. += os.get_header_data(program)
 
-/obj/machinery/check_eye()
+/obj/machinery/check_eye(mob/user)
 	var/datum/extension/interactive/ntos/os = get_extension(src, /datum/extension/interactive/ntos)
 	if(os)
-		return os.check_eye()
-	else 
+		return os.check_eye(user)
+	else
 		return ..()

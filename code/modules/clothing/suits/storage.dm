@@ -1,6 +1,7 @@
 /obj/item/clothing/suit/storage
 	var/obj/item/storage/internal/pockets/pockets
 	var/slots = 2
+	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA, ACCESSORY_SLOT_RANK, ACCESSORY_SLOT_MEDAL)
 
 /obj/item/clothing/suit/storage/Initialize()
 	. = ..()
@@ -18,6 +19,8 @@
 	if (pockets.handle_mousedrop(usr, over_object))
 		..(over_object)
 
+/obj/item/clothing/suit/storage/use_in_world(mob/user)
+	pockets.handle_mousedrop(usr, user)
 
 /obj/item/clothing/suit/storage/emp_act(severity)
 	pockets.emp_act(severity)

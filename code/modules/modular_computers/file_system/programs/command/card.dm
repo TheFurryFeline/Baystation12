@@ -1,6 +1,6 @@
 /datum/computer_file/program/card_mod
 	filename = "cardmod"
-	filedesc = "ID card modification program"
+	filedesc = "ID Card Modification Program"
 	nanomodule_path = /datum/nano_module/program/card_mod
 	program_icon_state = "id"
 	program_key_state = "id_key"
@@ -15,9 +15,10 @@
 	var/mod_mode = 1
 	var/is_centcom = 0
 	var/show_assignments = 0
+	var/selected_branch = null // Track currently selected branch for rank selection
 
-/datum/nano_module/program/card_mod/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+/datum/nano_module/program/card_mod/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
+	var/list/data = host.initial_data(program)
 	var/obj/item/stock_parts/computer/card_slot/card_slot = program.computer.get_component(PART_CARD)
 
 	data["src"] = "\ref[src]"
@@ -38,6 +39,11 @@
 		data["id_rank"] = id_card && id_card.assignment ? id_card.assignment : "Unassigned"
 		data["id_owner"] = id_card && id_card.registered_name ? id_card.registered_name : "-----"
 		data["id_name"] = id_card ? id_card.name : "-----"
+		data["id_military_branch"] = id_card && id_card.military_branch ? id_card.military_branch.name : "Unset"
+		data["id_military_rank"] = id_card && id_card.military_rank ? id_card.military_rank.name : "Unset"
+		// Initialize selected_branch based on the card's military_branch
+		if(id_card && id_card.military_branch)
+			selected_branch = id_card.military_branch.name
 	data["mmode"] = mod_mode
 	data["centcom_access"] = is_centcom
 
@@ -52,6 +58,8 @@
 	data["supply_jobs"] = format_jobs(SSjobs.titles_by_department(SUP))
 	data["civilian_jobs"] = format_jobs(SSjobs.titles_by_department(CIV))
 	data["centcom_jobs"] = format_jobs(get_all_centcom_jobs())
+	data["military_branches"] = format_military_branches()
+	data["military_ranks"] = selected_branch ? format_military_ranks(selected_branch) : list()
 
 	data["all_centcom_access"] = is_centcom ? get_accesses(1) : null
 	data["regions"] = get_accesses()
@@ -97,10 +105,37 @@
 			"display_name" = replacetext(job, " ", "&nbsp"),
 			"target_rank" = id_card && id_card.assignment ? id_card.assignment : "Unassigned",
 			"job" = job)))
-
 	return formatted
 
-/datum/nano_module/program/card_mod/proc/get_accesses(var/is_centcom = 0)
+/datum/nano_module/program/card_mod/proc/format_military_branches()
+	var/list/branches = list()
+	branches |= "Unset"
+	for(var/B in GLOB.mil_branches.branches)
+		var/datum/mil_branch/BR = GLOB.mil_branches.branches[B]
+		branches |= BR.name
+	var/list/formatted = list()
+	for(var/branch in branches)
+		formatted.Add(list(list(
+			"display_name" = html_encode(branch),
+			"branch" = branch)))
+	return formatted
+
+/datum/nano_module/program/card_mod/proc/format_military_ranks(branch_name)
+	var/list/ranks = list()
+	ranks |= "Unset"
+	var/datum/mil_branch/branch = GLOB.mil_branches.get_branch(branch_name)
+	if(branch)
+		for(var/rank in branch.ranks)
+			var/datum/mil_rank/RA = branch.ranks[rank]
+			ranks |= RA.name
+	var/list/formatted = list()
+	for(var/rank in ranks)
+		formatted.Add(list(list(
+			"display_name" = html_encode(rank),
+			"rank" = rank)))
+	return formatted
+
+/datum/nano_module/program/card_mod/proc/get_accesses(is_centcom = 0)
 	return null
 
 
@@ -129,7 +164,7 @@
 				module.show_assignments = 1
 		if("print")
 			if(!authorized(user_id_card))
-				to_chat(usr, "<span class='warning'>Access denied.</span>")
+				to_chat(usr, SPAN_WARNING("Access denied."))
 				return
 			if(computer.has_component(PART_PRINTER)) //This option should never be called if there is no printer
 				if(module.mod_mode)
@@ -139,6 +174,8 @@
 									<u>For:</u> [id_card.registered_name ? id_card.registered_name : "Unregistered"]<br>
 									<hr>
 									<u>Assignment:</u> [id_card.assignment]<br>
+									<u>Branch:</u> [id_card.military_branch ? id_card.military_branch.name : "Unset"]<br>
+									<u>Rank:</u> [id_card.military_rank ? id_card.military_rank.name : "Unset"]<br>
 									<u>Account Number:</u> #[id_card.associated_account_number]<br>
 									<u>Email account:</u> [id_card.associated_email_login["login"]]
 									<u>Email password:</u> [stars(id_card.associated_email_login["password"], 0)]
@@ -152,16 +189,16 @@
 								contents += "  [get_access_desc(A)]"
 
 						if(!computer.print_paper(contents,"access report"))
-							to_chat(usr, "<span class='notice'>Hardware error: Printer was unable to print the file. It may be out of paper.</span>")
+							to_chat(usr, SPAN_NOTICE("Hardware error: Printer was unable to print the file. It may be out of paper."))
 							return
-				else
-					var/contents = {"<h4>Crew Manifest</h4>
-									<br>
-									[html_crew_manifest()]
-									"}
-					if(!computer.print_paper(contents, "crew manifest ([stationtime2text()])"))
-						to_chat(usr, "<span class='notice'>Hardware error: Printer was unable to print the file. It may be out of paper.</span>")
-						return
+					else
+						var/contents = {"<h4>Crew Manifest</h4>
+										<br>
+										[html_crew_manifest()]
+										"}
+						if(!computer.print_paper(contents, "crew manifest ([stationtime2text()])"))
+							to_chat(usr, SPAN_NOTICE("Hardware error: Printer was unable to print the file. It may be out of paper."))
+							return
 		if("eject")
 			var/obj/item/stock_parts/computer/card_slot/card_slot = computer.get_component(PART_CARD)
 			if(computer.get_inserted_id())
@@ -170,15 +207,17 @@
 				card_slot.insert_id(user.get_active_hand(), user)
 		if("terminate")
 			if(!authorized(user_id_card))
-				to_chat(usr, "<span class='warning'>Access denied.</span>")
+				to_chat(usr, SPAN_WARNING("Access denied."))
 				return
 			if(computer && can_run(user, 1))
 				id_card.assignment = "Terminated"
+				id_card.military_branch = null
+				id_card.military_rank = null
 				remove_nt_access(id_card)
 				callHook("terminate_employee", list(id_card))
 		if("edit")
 			if(!authorized(user_id_card))
-				to_chat(usr, "<span class='warning'>Access denied.</span>")
+				to_chat(usr, SPAN_WARNING("Access denied."))
 				return
 			if(computer && can_run(user, 1))
 				if(href_list["name"])
@@ -200,7 +239,7 @@
 					id_card.associated_email_login["password"] = email_password
 		if("assign")
 			if(!authorized(user_id_card))
-				to_chat(usr, "<span class='warning'>Access denied.</span>")
+				to_chat(usr, SPAN_WARNING("Access denied."))
 				return
 			if(computer && can_run(user, 1) && id_card)
 				var/t1 = href_list["assign_target"]
@@ -216,7 +255,7 @@
 					else
 						var/datum/job/jobdatum = SSjobs.get_by_title(t1)
 						if(!jobdatum)
-							to_chat(usr, "<span class='warning'>No log exists for this job: [t1]</span>")
+							to_chat(usr, SPAN_WARNING("No log exists for this job: [t1]"))
 							return
 
 						access = jobdatum.get_access()
@@ -227,6 +266,48 @@
 					id_card.rank = t1
 
 				callHook("reassign_employee", list(id_card))
+		if("set_military_branch")
+			if(!authorized(user_id_card))
+				to_chat(usr, SPAN_WARNING("Access denied."))
+				return
+			if(computer && can_run(user, 1) && id_card)
+				var/new_branch = href_list["branch_target"]
+				if(new_branch == "Unset")
+					id_card.military_branch = null
+					id_card.military_rank = null
+					module.selected_branch = null
+				else
+					var/datum/mil_branch/branch = GLOB.mil_branches.get_branch(new_branch)
+					if(branch)
+						id_card.military_branch = branch
+						id_card.military_rank = null // Reset rank when changing branch
+						module.selected_branch = new_branch
+					else
+						to_chat(usr, SPAN_WARNING("Invalid military branch: [new_branch]"))
+						return
+				callHook("update_military_branch", list(id_card))
+		if("set_military_rank")
+			if(!authorized(user_id_card))
+				to_chat(usr, SPAN_WARNING("Access denied."))
+				return
+			if(computer && can_run(user, 1) && id_card && id_card.military_branch)
+				var/new_rank = href_list["rank_target"]
+				if(new_rank == "Unset")
+					id_card.military_rank = null
+				else
+					var/datum/mil_branch/branch = id_card.military_branch
+					var/datum/mil_rank/rank_datum = null
+					for(var/rank in branch.ranks)
+						var/datum/mil_rank/RA = branch.ranks[rank]
+						if(RA.name == new_rank)
+							rank_datum = RA
+							break
+					if(rank_datum)
+						id_card.military_rank = rank_datum
+					else
+						to_chat(usr, SPAN_WARNING("Invalid military rank: [new_rank]"))
+						return
+				callHook("update_military_rank", list(id_card))
 		if("access")
 			if(href_list["allowed"] && computer && can_run(user, 1) && id_card)
 				var/access_type = href_list["access_target"]
@@ -240,16 +321,16 @@
 								id_card.access += access_type
 							break
 	if(id_card)
-		id_card.SetName(text("[id_card.registered_name]'s ID Card ([id_card.assignment])"))
+		id_card.SetName("[id_card.registered_name]'s ID Card ([id_card.assignment])")
 
 	SSnano.update_uis(NM)
 	return 1
 
-/datum/computer_file/program/card_mod/proc/remove_nt_access(var/obj/item/card/id/id_card)
+/datum/computer_file/program/card_mod/proc/remove_nt_access(obj/item/card/id/id_card)
 	id_card.access -= get_access_ids(ACCESS_TYPE_STATION|ACCESS_TYPE_CENTCOM)
 
-/datum/computer_file/program/card_mod/proc/apply_access(var/obj/item/card/id/id_card, var/list/accesses)
+/datum/computer_file/program/card_mod/proc/apply_access(obj/item/card/id/id_card, list/accesses)
 	id_card.access |= accesses
 
-/datum/computer_file/program/card_mod/proc/authorized(var/obj/item/card/id/id_card)
+/datum/computer_file/program/card_mod/proc/authorized(obj/item/card/id/id_card)
 	return id_card && (access_change_ids in id_card.access)

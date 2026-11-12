@@ -21,7 +21,7 @@ a, a:link, a:visited, a:active, .linkOn, .linkOff, input
 	background: #40628a;
 	border: 1px solid #161616;
 	padding: 1px 4px 1px 4px;
-	margin: 0 2px 0 0;
+	margin: 0 1px 0 1px;
 	cursor:default;
 	white-space:nowrap;
 }
@@ -83,6 +83,10 @@ ul
 	padding: 4px 0 0 10px;
 	margin: 0;
 	list-style-type: none;
+}
+
+dl dt {
+    font-weight: bold;
 }
 
 li
@@ -330,4 +334,53 @@ div.notice
 	border: 1px solid #40628a;
 	padding: 4px;
 	margin: 3px 0;
+}
+
+
+/* Data tables */
+table.data {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+table.data thead th {
+	border-bottom: 2px solid #161616;
+	background: #383838;
+	color: #98B0C3;
+}
+
+table.data tbody th {
+	border-right: 2px solid #161616;
+	background: #383838;
+	color: #98B0C3;
+}
+
+table.data tbody td,
+table.data tbody th {
+	border-bottom: #40628a 1px solid;
+	vertical-align: top;
+}
+
+
+/* Hover tables */
+table.hover tr:hover,
+table tr.hover:hover,
+table tr.forcehover {
+	background: #294059;
+}
+
+
+/* Striped tables */
+table tr.stripe {
+	background: #383838;
+}
+
+
+/* Other misc table styles */
+table tr.disabled td,
+table tr.disabled th,
+table td.disabled,
+table th.disabled {
+	color: #999999;
+	font-style: italic;
 }

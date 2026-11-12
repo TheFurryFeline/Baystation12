@@ -4,7 +4,7 @@
 	icon_state = "leukosuite"
 	desc = "These stimulators augment the immune system and promote the growth of hunter-killer cells in the presence of a foreign invader, effectively boosting the body's immunity to parasites and disease."
 	action_button_name = "Toggle leukocyte breeder"
-	augment_flags = AUGMENT_BIOLOGICAL
+	augment_flags = AUGMENT_BIOLOGICAL | AUGMENT_SCANNABLE
 	origin_tech = list(TECH_DATA = 2, TECH_BIO = 4)
 	var/active = FALSE
 
@@ -18,7 +18,7 @@
 /obj/item/organ/internal/augment/active/leukocyte_breeder/emp_act(severity)
 	. = ..()
 	if (owner && active)
-		if (prob(100 - (20 * severity))) // 40% chance for 3, 60% chance for 2, and 80% chance for 1 severity, respectively
+		if (prob(100 - (20 * severity))) // 60% chance for EMP_ACT_LIGHT and 80% chance for EMP_ACT_HEAVY severity, respectively
 			to_chat(owner, SPAN_WARNING("You feel a wave of nausea as your [name] deactivates."))
 			active = FALSE
 

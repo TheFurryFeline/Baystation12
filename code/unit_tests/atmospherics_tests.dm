@@ -15,7 +15,7 @@
 		var/datum/gas_mixture/gas_mix = new (CELL_VOLUME, mix_data["temperature"])
 
 		var/list/initial_gas = mix_data["initial_gas"]
-		if(initial_gas.len)
+		if(length(initial_gas))
 			var/list/gas_args = list()
 			for(var/gasid in initial_gas)
 				gas_args += gasid
@@ -25,7 +25,7 @@
 		gas_mixes[mix_name] = gas_mix
 	return gas_mixes
 
-/datum/unit_test/atmos_machinery/proc/gas_amount_changes(var/list/before_gas_mixes, var/list/after_gas_mixes)
+/datum/unit_test/atmos_machinery/proc/gas_amount_changes(list/before_gas_mixes, list/after_gas_mixes)
 	var/list/result = list()
 	for(var/mix_name in before_gas_mixes & after_gas_mixes)
 		var/change = list()
@@ -41,7 +41,7 @@
 
 	return result
 
-/datum/unit_test/atmos_machinery/proc/check_moles_conserved(var/case_name, var/list/before_gas_mixes, var/list/after_gas_mixes)
+/datum/unit_test/atmos_machinery/proc/check_moles_conserved(case_name, list/before_gas_mixes, list/after_gas_mixes)
 	var/failed = FALSE
 	for(var/gasid in gas_data.gases)
 		var/before = 0
@@ -260,7 +260,7 @@
 		var/list/mix_sources = list()
 		for(var/gasid in ALL_GASIDS)
 			var/datum/gas_mixture/mix_source = after_gas_mixes["sink"]
-			mix_sources[mix_source] = 1.0/gas_data.gases.len //doesn't work as a macro for some reason
+			mix_sources[mix_source] = 1.0/length(gas_data.gases) //doesn't work as a macro for some reason
 
 		mix_gas(null, mix_sources, after_gas_mixes["sink"], null, INFINITY)
 
@@ -275,13 +275,12 @@
 	var/list/checked_pipes = list()
 	var/list/bad_pipelines = list()
 	for(var/datum/pipeline/P)
-		for(var/thing in P.members)
-			var/obj/machinery/atmospherics/pipe/pipe = thing
-			if(!checked_pipes[thing])
-				checked_pipes[thing] = P
+		for(var/obj/machinery/atmospherics/pipe/pipe in P.members)
+			if(!checked_pipes[pipe])
+				checked_pipes[pipe] = P
 				continue
 			LAZYDISTINCTADD(bad_pipelines[P], pipe)
-			LAZYDISTINCTADD(bad_pipelines[checked_pipes[thing]], pipe) // Missed it the first time; thought it was good.
+			LAZYDISTINCTADD(bad_pipelines[checked_pipes[pipe]], pipe) // Missed it the first time; thought it was good.
 
 	if(length(bad_pipelines))
 		for(var/datum/pipeline/badboy in bad_pipelines)
@@ -299,7 +298,7 @@
 
 /datum/unit_test/atmos_machinery_shall_not_have_conflicting_connections/start_test()
 	var/fail = FALSE
-	for(var/obj/machinery/atmospherics/machine in SSmachines.machinery)
+	for(var/obj/machinery/atmospherics/machine as anything in MACHINES_OF(/obj/machinery/atmospherics))
 		for(var/obj/machinery/atmospherics/M in machine.loc)
 			if(M == machine)
 				continue

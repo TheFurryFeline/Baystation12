@@ -48,13 +48,30 @@
 		)
 	modifystate = "energyrevolverstun"
 	item_state = null
+	projectile_type = /obj/item/projectile/beam/stun
+	manufacturer = MANUFACTURER_LAWSON_ARMS
 	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun, modifystate="energyrevolverstun"),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock, modifystate="energyrevolvershock"),
-		list(mode_name="kill", projectile_type=/obj/item/projectile/beam, modifystate="energyrevolverkill"),
+		list(
+			"mode_name" = "stun",
+			"projectile_type" = /obj/item/projectile/beam/stun,
+			"modifystate" = "energyrevolverstun"
+		),
+		list(
+			"mode_name" = "shock",
+			"projectile_type" = /obj/item/projectile/beam/stun/shock,
+			"modifystate" = "energyrevolvershock"
+		),
+		list(
+			"mode_name" = "kill",
+			"projectile_type" = /obj/item/projectile/beam,
+			"modifystate" = "energyrevolverkill"
 		)
+	)
 	req_access = list(list(access_brig, access_heads))
 	authorized_modes = list(ALWAYS_AUTHORIZED, AUTHORIZED)
+
+/obj/item/gun/energy/revolver/secure/preauthorized
+	authorized_modes = list(ALWAYS_AUTHORIZED, AUTHORIZED, AUTHORIZED)
 
 /obj/item/gun/energy/gun/secure/mounted
 	name = "robot energy gun"

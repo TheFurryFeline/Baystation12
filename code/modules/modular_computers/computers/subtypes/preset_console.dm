@@ -49,7 +49,6 @@
 		/datum/computer_file/program/records,
 		/datum/computer_file/program/wordprocessor
 	)
-	autorun_program = /datum/computer_file/program/suit_sensors
 
 /obj/machinery/computer/modular/preset/aislot/research
 	default_software = list(
@@ -92,7 +91,34 @@
 		/datum/computer_file/program/docking,
 		/datum/computer_file/program/wordprocessor,
 		/datum/computer_file/program/digitalwarrant,
-		/datum/computer_file/program/forceauthorization
+		/datum/computer_file/program/forceauthorization,
+		/datum/computer_file/program/munitions
+	)
+
+/obj/machinery/computer/modular/preset/munitions
+	default_software = list(
+		/datum/computer_file/program/munitions
+	)
+
+/obj/machinery/computer/modular/preset/munitions/syndicate
+	default_software = list(
+		/datum/computer_file/program/munitions/syndicate
+	)
+
+/obj/machinery/computer/modular/preset/cardslot/command_eng
+	default_software = list(
+		/datum/computer_file/program/comm,
+		/datum/computer_file/program/camera_monitor,
+		/datum/computer_file/program/email_client,
+		/datum/computer_file/program/records,
+		/datum/computer_file/program/docking,
+		/datum/computer_file/program/wordprocessor,
+		/datum/computer_file/program/power_monitor,
+		/datum/computer_file/program/supermatter_monitor,
+		/datum/computer_file/program/alarm_monitor,
+		/datum/computer_file/program/atmos_control,
+		/datum/computer_file/program/rcon_console,
+		/datum/computer_file/program/shields_monitor
 	)
 
 /obj/machinery/computer/modular/preset/security
@@ -116,10 +142,12 @@
 /obj/machinery/computer/modular/preset/dock
 	default_software = list(
 		/datum/computer_file/program/reports,
+		/datum/computer_file/program/camera_monitor,
 		/datum/computer_file/program/records,
 		/datum/computer_file/program/email_client,
 		/datum/computer_file/program/supply,
-		/datum/computer_file/program/docking
+		/datum/computer_file/program/docking,
+		/datum/computer_file/program/deck_management
 	)
 
 /obj/machinery/computer/modular/preset/supply_public
@@ -130,14 +158,19 @@
 
 /obj/machinery/computer/modular/preset/full/ert
 	default_software = list(
-		/datum/computer_file/program/nttransfer,
-		/datum/computer_file/program/camera_monitor/ert,
-		/datum/computer_file/program/email_client,
-		/datum/computer_file/program/alarm_monitor,
 		/datum/computer_file/program/comm,
-		/datum/computer_file/program/aidiag,
+		/datum/computer_file/program/camera_monitor/ert,
+		/datum/computer_file/program/alarm_monitor,
+		/datum/computer_file/program/docking,
+		/datum/computer_file/program/suit_sensors,
+		/datum/computer_file/program/forceauthorization,
+		/datum/computer_file/program/digitalwarrant,
 		/datum/computer_file/program/records,
-		/datum/computer_file/program/wordprocessor
+		/datum/computer_file/program/atmos_control,
+		/datum/computer_file/program/rcon_console,
+		/datum/computer_file/program/shields_monitor,
+		/datum/computer_file/program/ntnetmonitor,
+		/datum/computer_file/program/card_mod
 	)
 
 /obj/machinery/computer/modular/preset/full/merc
@@ -171,3 +204,33 @@
 		/datum/computer_file/program/wordprocessor
 	)
 	autorun_program = /datum/computer_file/program/filemanager
+
+/obj/machinery/computer/modular/preset/helm
+	default_software = list(
+		/datum/computer_file/program/ship/engine_control
+	)
+	uncreated_component_parts = list(
+		/obj/item/stock_parts/computer/ship_interface
+	)
+	autorun_program = /datum/computer_file/program/ship/engine_control
+
+/obj/machinery/computer/modular/preset/navigation
+	default_software = list(
+		/datum/computer_file/program/ship/sensors
+	)
+	autorun_program = /datum/computer_file/program/ship/sensors
+
+/obj/machinery/computer/modular/preset/sensors
+	default_software = list(
+		/datum/computer_file/program/ship/sensors
+	)
+	uncreated_component_parts = list(
+		/obj/item/stock_parts/computer/ship_interface
+	)
+	autorun_program = /datum/computer_file/program/ship/sensors
+
+/obj/machinery/computer/modular/preset/sensors/spacer
+	default_software = list(
+		/datum/computer_file/program/ship/sensors/spacer
+	)
+	autorun_program = /datum/computer_file/program/ship/sensors/spacer

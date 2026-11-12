@@ -20,14 +20,17 @@
 /datum/nano_module/program/merchant
 	name = "Merchant's List"
 
-/datum/computer_file/program/merchant/proc/get_merchant(var/num)
-	if(num > SStrade.traders.len)
-		num = SStrade.traders.len
-	if(num)
-		return SStrade.traders[num]
+/datum/computer_file/program/merchant/proc/get_merchant(index)
+	if (!index)
+		return
+	var/count = length(GLOB.trader_types)
+	if (!count)
+		return
+	var/trader_type = GLOB.trader_types[clamp(index, 1, count)]
+	return GLOB.traders[trader_type]
 
-/datum/nano_module/program/merchant/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+/datum/nano_module/program/merchant/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
+	var/list/data = host.initial_data(program)
 	var/show_trade = 0
 	var/hailed = 0
 	var/datum/trader/T
@@ -48,8 +51,8 @@
 		data["hailed"]     = hailed
 		if(show_trade)
 			var/list/trades = list()
-			if(T.trading_items.len)
-				for(var/i in 1 to T.trading_items.len)
+			if(length(T.trading_items))
+				for(var/i in 1 to length(T.trading_items))
 					trades += T.print_trading_items(i)
 			data["trades"] = trades
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
@@ -69,12 +72,12 @@
 		return TRUE
 	return FALSE
 
-/datum/computer_file/program/merchant/proc/get_response(var/datum/trade_response/tr)
+/datum/computer_file/program/merchant/proc/get_response(datum/trade_response/tr)
 	last_comms = tr.text
 	bank += tr.money_delta
 	return tr.success
 
-/datum/computer_file/program/merchant/proc/offer_money(var/datum/trader/T, var/num, skill)
+/datum/computer_file/program/merchant/proc/offer_money(datum/trader/T, num, skill)
 	var/quantity = 1
 	if(pad)
 		get_response(T.offer_money_for_bulk(quantity, num, bank, get_turf(pad), skill))
@@ -94,13 +97,13 @@
 	else
 		last_comms = "PAD NOT CONNECTED"
 
-/datum/computer_file/program/merchant/proc/bribe(var/datum/trader/T, var/amt)
+/datum/computer_file/program/merchant/proc/bribe(datum/trader/T, amt)
 	if(bank < amt)
 		last_comms = "ERROR: NOT ENOUGH FUNDS."
 		return
 	get_response(T.bribe_to_stay_longer(amt))
 
-/datum/computer_file/program/merchant/proc/offer_item(var/datum/trader/T, var/num, skill)
+/datum/computer_file/program/merchant/proc/offer_item(datum/trader/T, num, skill)
 	var/quantity = 1
 	if(pad)
 		var/list/targets = pad.get_targets()
@@ -130,7 +133,7 @@
 	else
 		last_comms = "PAD NOT CONNECTED"
 
-/datum/computer_file/program/merchant/proc/sell_items(var/datum/trader/T, skill)
+/datum/computer_file/program/merchant/proc/sell_items(datum/trader/T, skill)
 	if(pad)
 		var/list/targets = pad.get_targets()
 		get_response(T.sell_items(targets, skill))
@@ -179,7 +182,7 @@
 		. = TOPIC_HANDLED
 		current_merchant = 0
 	if(href_list["PRG_merchant_list"])
-		if(SStrade.traders.len == 0)
+		if (!length(GLOB.trader_types))
 			. = TOPIC_NOACTION
 			temp = "Cannot find any traders within broadcasting range."
 		else
@@ -201,7 +204,7 @@
 				scrolled = 1
 			if("left")
 				scrolled = -1
-		var/new_merchant  = Clamp(current_merchant + scrolled, 1, SStrade.traders.len)
+		var/new_merchant  = clamp(current_merchant + scrolled, 1, length(GLOB.trader_types))
 		if(new_merchant != current_merchant)
 			hailed_merchant = FALSE
 			last_comms = null

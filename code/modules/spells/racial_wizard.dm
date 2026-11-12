@@ -3,7 +3,7 @@
 /obj/item/magic_rock
 	name = "magical rock"
 	desc = "Legends say that this rock will unlock the true potential of anyone who touches it."
-	icon = 'icons/obj/wizard.dmi'
+	icon = 'icons/obj/cult.dmi'
 	icon_state = "magic rock"
 	w_class = ITEM_SIZE_SMALL
 	throw_speed = 1
@@ -52,14 +52,14 @@
 /spell/messa_shroud/choose_targets()
 	return list(get_turf(holder))
 
-/spell/messa_shroud/cast(var/list/targets, mob/user)
+/spell/messa_shroud/cast(list/targets, mob/user)
 	var/turf/T = targets[1]
 
 	if(!istype(T))
 		return
 
 	var/obj/O = new /obj(T)
-	O.set_light(-10, 0.1, 10, 2, "#ffffff")
+	O.set_light(10, -10, "#ffffff")
 
 	spawn(duration)
 		qdel(O)
@@ -89,6 +89,8 @@
 
 	drop_items = 0
 
+/spell/targeted/shapeshift/true_form/check_valid_targets(list/targets)
+	return TRUE
 
 //UNATHI
 /spell/moghes_blessing
@@ -107,13 +109,13 @@
 
 /spell/moghes_blessing/choose_targets(mob/user = usr)
 	var/list/hands = list()
-	for(var/obj/item/I in list(user.l_hand, user.r_hand))
+	for (var/obj/item/item as anything in user.GetAllHeld())
 		//make sure it's not already blessed
-		if(istype(I) && !has_extension(I, /datum/extension/moghes_blessing))
-			hands += I
+		if (!has_extension(item, /datum/extension/moghes_blessing))
+			hands += item
 	return hands
 
-/spell/moghes_blessing/cast(var/list/targets, mob/user)
+/spell/moghes_blessing/cast(list/targets, mob/user)
 	for(var/obj/item/I in targets)
 		set_extension(I, /datum/extension/moghes_blessing)
 
@@ -122,7 +124,7 @@
 	expected_type = /obj/item
 	flags = EXTENSION_FLAG_IMMEDIATE
 
-/datum/extension/moghes_blessing/New(var/datum/holder)
+/datum/extension/moghes_blessing/New(datum/holder)
 	..(holder)
 	apply_blessing(holder)
 
@@ -160,23 +162,23 @@
 	color = "#3366ff"
 	contract_spells = list(/spell/contract/return_master) //somewhat of a necessity due to how many spells they would have after a while.
 
-/obj/item/contract/apprentice/skrell/New(var/newloc,var/spellbook, var/owner)
+/obj/item/contract/apprentice/skrell/New(newloc,spellbook, owner)
 	..()
 	if(istype(spellbook,/obj/item/spellbook))
 		linked = spellbook
-	if(istype(owner,/mob))
+	if(ismob(owner))
 		contract_master = owner
 
 /obj/item/contract/apprentice/skrell/attack_self(mob/user as mob)
 	if(!linked)
-		to_chat(user, "<span class='warning'>This contract requires a link to a spellbook.</span>")
+		to_chat(user, SPAN_WARNING("This contract requires a link to a spellbook."))
 		return
 	..()
 
 /obj/item/contract/apprentice/skrell/afterattack(atom/A, mob/user as mob, proximity)
 	if(!linked && istype(A,/obj/item/spellbook))
 		linked = A
-		to_chat(user, "<span class='notice'>You've linked \the [A] to \the [src]</span>")
+		to_chat(user, SPAN_NOTICE("You've linked \the [A] to \the [src]"))
 		return
 	..()
 
@@ -222,15 +224,15 @@
 		return null
 	return list(holder)
 
-/spell/camera_connection/cast(var/list/targets, mob/user)
+/spell/camera_connection/cast(list/targets, mob/user)
 	var/mob/living/L = targets[1]
 
 	vision.possess(L)
-	GLOB.destroyed_event.register(L, src, /spell/camera_connection/proc/release)
-	GLOB.logged_out_event.register(L, src, /spell/camera_connection/proc/release)
+	GLOB.destroyed_event.register(L, src, PROC_REF(release))
+	GLOB.logged_out_event.register(L, src, PROC_REF(release))
 	L.verbs += /mob/living/proc/release_eye
 
-/spell/camera_connection/proc/release(var/mob/living/L)
+/spell/camera_connection/proc/release(mob/living/L)
 	vision.release(L)
 	L.verbs -= /mob/living/proc/release_eye
 	GLOB.destroyed_event.unregister(L, src)
@@ -239,9 +241,11 @@
 /mob/observer/eye/wizard_eye
 	name_sufix = "Wizard Eye"
 
-/mob/observer/eye/wizard_eye/New() //we dont use the Ai one because it has AI specific procs imbedded in it.
-	..()
+
+/mob/observer/eye/wizard_eye/Initialize(mapload) //we dont use the Ai one because it has AI specific procs imbedded in it.
+	. = ..()
 	visualnet = cameranet
+
 
 /mob/living/proc/release_eye()
 	set name = "Release Vision"

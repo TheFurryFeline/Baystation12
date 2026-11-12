@@ -1,16 +1,18 @@
 #define DEBUG
 // Turf-only flags.
-#define TURF_FLAG_NOJAUNT FLAG(0) // This is used in literally one place, turf.dm, to block ethereal jaunt.
-#define TURF_FLAG_NORUINS FLAG(1)
+#define TURF_FLAG_NOJAUNT FLAG_01 // This is used in literally one place, turf.dm, to block ethereal jaunt.
+#define TURF_FLAG_NORUINS FLAG_02
 
 #define TRANSITIONEDGE 7 // Distance from edge to move to another z-level.
 #define RUIN_MAP_EDGE_PAD 15
 #define LANDING_ZONE_RADIUS 15 // Used for autoplacing landmarks on exoplanets
 
 // Invisibility constants.
+#define INVISIBILITY_NONE        0
 #define INVISIBILITY_LIGHTING    20
 #define INVISIBILITY_LEVEL_ONE   35
 #define INVISIBILITY_LEVEL_TWO   45
+#define INVISIBILITY_OVERMAP     50
 #define INVISIBILITY_OBSERVER    60
 #define INVISIBILITY_EYE         61
 #define INVISIBILITY_SYSTEM      99
@@ -62,7 +64,7 @@
 #define MAX_BOOK_MESSAGE_LEN  18432
 #define MAX_LNAME_LEN         64
 #define MAX_NAME_LEN          26
-#define MAX_DESC_LEN          128
+#define MAX_DESC_LEN          256
 #define MAX_TEXTFILE_LENGTH 128000		// 512GQ file
 
 // Event defines.
@@ -77,21 +79,22 @@
 #define DEFAULT_JOB_TYPE /datum/job/assistant
 
 //Area flags, possibly more to come
-#define AREA_FLAG_RAD_SHIELDED         FLAG(0)  // shielded from radiation, clearly
-#define AREA_FLAG_EXTERNAL             FLAG(1)  // External as in exposed to space, not outside in a nice, green, forest
-#define AREA_FLAG_ION_SHIELDED         FLAG(2)  // shielded from ionospheric anomalies as an FBP / IPC
-#define AREA_FLAG_IS_NOT_PERSISTENT    FLAG(3)  // SSpersistence will not track values from this area.
-#define AREA_FLAG_NO_MODIFY            FLAG(4)  // turf in this area cannot be dismantled.
+#define AREA_FLAG_RAD_SHIELDED         FLAG_01  // shielded from radiation, clearly
+#define AREA_FLAG_EXTERNAL             FLAG_02  // External as in exposed to space, not outside in a nice, green, forest
+#define AREA_FLAG_ION_SHIELDED         FLAG_03  // shielded from ionospheric anomalies as an FBP / IPC
+#define AREA_FLAG_IS_NOT_PERSISTENT    FLAG_04  // SSpersistence will not track values from this area.
+#define AREA_FLAG_NO_MODIFY            FLAG_05  // turf in this area cannot be dismantled.
+#define AREA_FLAG_HIDE_FROM_HOLOMAP    FLAG_06 // if we shouldn't be drawn on station holomaps
 
 //Map template flags
-#define TEMPLATE_FLAG_ALLOW_DUPLICATES    FLAG(0)  // Lets multiple copies of the template to be spawned
-#define TEMPLATE_FLAG_SPAWN_GUARANTEED    FLAG(1)  // Makes it ignore away site budget and just spawn (only for away sites)
-#define TEMPLATE_FLAG_CLEAR_CONTENTS      FLAG(2)  // if it should destroy objects it spawns on top of
-#define TEMPLATE_FLAG_NO_RUINS            FLAG(3)  // if it should forbid ruins from spawning on top of it
-#define TEMPLATE_FLAG_NO_RADS             FLAG(4)  // Removes all radiation from the template after spawning.
+#define TEMPLATE_FLAG_ALLOW_DUPLICATES    FLAG_01  // Lets multiple copies of the template to be spawned
+#define TEMPLATE_FLAG_SPAWN_GUARANTEED    FLAG_02  // Makes it ignore away site budget and just spawn (only for away sites)
+#define TEMPLATE_FLAG_CLEAR_CONTENTS      FLAG_03  // if it should destroy objects it spawns on top of
+#define TEMPLATE_FLAG_NO_RUINS            FLAG_04  // if it should forbid ruins from spawning on top of it
+#define TEMPLATE_FLAG_NO_RADS             FLAG_05  // Removes all radiation from the template after spawning.
 
 //Ruin map template flags
-#define TEMPLATE_FLAG_RUIN_STARTS_DISALLOWED FLAG(5)  // Ruin is not available during spawning unless another ruin permits it.
+#define TEMPLATE_FLAG_RUIN_STARTS_DISALLOWED FLAG_06  // Ruin is not available during spawning unless another ruin permits it.
 
 // Convoluted setup so defines can be supplied by Bay12 main server compile script.
 // Should still work fine for people jamming the icons into their repo.
@@ -102,22 +105,19 @@
 #define CUSTOM_ITEM_SYNTH_CONFIG "config/custom_sprites.txt"
 #endif
 #ifndef CUSTOM_ITEM_OBJ
-#define CUSTOM_ITEM_OBJ 'icons/obj/custom_items_obj.dmi'
+#define CUSTOM_ITEM_OBJ 'icons/obj/unused.dmi'
 #endif
 #ifndef CUSTOM_ITEM_MOB
-#define CUSTOM_ITEM_MOB 'icons/mob/custom_items_mob.dmi'
+#define CUSTOM_ITEM_MOB 'icons/obj/unused.dmi'
 #endif
 #ifndef CUSTOM_ITEM_SYNTH
-#define CUSTOM_ITEM_SYNTH 'icons/mob/custom_synthetic.dmi'
+#define CUSTOM_ITEM_SYNTH 'icons/obj/unused.dmi'
 #endif
 
 #define WALL_CAN_OPEN 1
 #define WALL_OPENING 2
 
-#define BOMBCAP_DVSTN_RADIUS (config.max_explosion_range / 4)
-#define BOMBCAP_HEAVY_RADIUS (config.max_explosion_range / 2)
-#define BOMBCAP_LIGHT_RADIUS (config.max_explosion_range)
-#define BOMBCAP_FLASH_RADIUS (config.max_explosion_range * 1.5)
+#define BOMBCAP_RADIUS (config.max_explosion_range * 1.75)
 									// NTNet module-configuration values. Do not change these. If you need to add another use larger number (5..6..7 etc)
 #define NTNET_SOFTWAREDOWNLOAD 1 	// Downloads of software from NTNet
 #define NTNET_PEERTOPEER 2			// P2P transfers of files between devices
@@ -131,11 +131,12 @@
 #define NTNETSPEED_DOS_AMPLIFICATION 5	// Multiplier for Denial of Service program. Resulting load on NTNet relay is this multiplied by NTNETSPEED of the device
 
 // Program bitflags
-#define PROGRAM_CONSOLE       FLAG(0)
-#define PROGRAM_LAPTOP        FLAG(1)
-#define PROGRAM_TABLET        FLAG(2)
-#define PROGRAM_TELESCREEN    FLAG(3)
-#define PROGRAM_PDA           FLAG(4)
+#define PROGRAM_CONSOLE       FLAG_01
+#define PROGRAM_LAPTOP        FLAG_02
+#define PROGRAM_TABLET        FLAG_03
+#define PROGRAM_TELESCREEN    FLAG_04
+#define PROGRAM_PDA           FLAG_05
+#define PROGRAM_NO_KILL       FLAG_06 //Not included in PROGRAM_ALL
 #define PROGRAM_ALL ( PROGRAM_CONSOLE | PROGRAM_LAPTOP | PROGRAM_TABLET | PROGRAM_TELESCREEN | PROGRAM_PDA )
 
 #define PROGRAM_STATE_KILLED 0
@@ -151,6 +152,7 @@
 #define PROG_UTIL 		"Utility"
 #define PROG_SEC 		"Security"
 #define PROG_MONITOR	"Monitoring"
+#define PROG_HELM  		"Helm"
 
 // Caps for NTNet logging. Less than 10 would make logging useless anyway, more than 500 may make the log browser too laggy. Defaults to 100 unless user changes it.
 #define MAX_NTNET_LOGS 500
@@ -201,8 +203,6 @@
 
 #define DEFAULT_SPAWNPOINT_ID "Default"
 
-#define MIDNIGHT_ROLLOVER		864000	//number of deciseconds in a day
-
 //Virus badness defines
 #define VIRUS_MILD			1
 #define VIRUS_COMMON		2	//Random events don't go higher (mutations aside)
@@ -219,7 +219,7 @@
 
 #define RADIATION_THRESHOLD_CUTOFF 0.1	// Radiation will not affect a tile when below this value.
 
-#define LEGACY_RECORD_STRUCTURE(X, Y) GLOBAL_LIST_EMPTY(##X);/datum/computer_file/data/##Y/var/list/fields[0];/datum/computer_file/data/##Y/New(){..();GLOB.##X.Add(src);}/datum/computer_file/data/##Y/Destroy(){. = ..();GLOB.##X.Remove(src);}
+#define LEGACY_RECORD_STRUCTURE(X, Y) GLOBAL_LIST_EMPTY(##X);/datum/computer_file/data/##Y/var/list/fields=list();/datum/computer_file/data/##Y/New(){..();GLOB.##X.Add(src);}/datum/computer_file/data/##Y/Destroy(){. = ..();GLOB.##X.Remove(src);}
 
 #define SUPPLY_SECURITY_ELEVATED 1
 #define SUPPLY_SECURITY_HIGH 2
@@ -261,10 +261,13 @@
 //Lying animation
 #define ANIM_LYING_TIME 2
 
-//Planet habitability class
-#define HABITABILITY_IDEAL  1
-#define HABITABILITY_OKAY  2
-#define HABITABILITY_BAD  3
+
+//Planet habitability weight
+#define HABITABILITY_LOCKED			1
+#define HABITABILITY_TYPICAL		2
+#define HABITABILITY_BAD 			3
+#define HABITABILITY_EXTREME		4
+
 
 #ifndef WINDOWS_HTTP_POST_DLL_LOCATION
 #define WINDOWS_HTTP_POST_DLL_LOCATION "lib/byhttp.dll"
@@ -281,11 +284,130 @@
 //Misc text define. Does 4 spaces. Used as a makeshift tabulator.
 #define FOURSPACES "&nbsp;&nbsp;&nbsp;&nbsp;"
 
-#define INCREMENT_WORLD_Z_SIZE world.maxz++; if (SSzcopy.zlev_maximums.len) { SSzcopy.calculate_zstack_limits() }
+#define INCREMENT_WORLD_Z_SIZE world.maxz++; if (length(SSzcopy.zlev_maximums)) { SSzcopy.calculate_zstack_limits() }; if(SSweather?.weather_by_z) { LIST_RESIZE(SSweather.weather_by_z, world.maxz)}
 
 //-- Masks for /atom/var/init_flags --
 //- machinery
-#define INIT_MACHINERY_PROCESS_SELF       FLAG(0)
-#define INIT_MACHINERY_PROCESS_COMPONENTS FLAG(1)
-#define INIT_MACHINERY_PROCESS_ALL ( INIT_MACHINERY_PROCESS_SELF | INIT_MACHINERY_PROCESS_COMPONENTS )
+#define INIT_MACHINERY_START_PROCESSING FLAG_01
 //--
+
+
+// Options for /obj/item/device/soulstone/var/owner_flag
+#define SOULSTONE_OWNER_CULT   "cult"   /// The soulstone is owned by the cult faction.
+#define SOULSTONE_OWNER_WIZARD "wizard" /// The soulstone is owned by a wizard.
+#define SOULSTONE_OWNER_PURE   "pure"   /// The soulstone has been purified.
+
+
+// Severities for emp_act()
+#define EMP_ACT_HEAVY 1
+#define EMP_ACT_LIGHT 2
+
+
+// Severities for ex_act()
+#define EX_ACT_DEVASTATING 1 // Within devastation range - Destructive/deadly, unlikely to survive.
+#define EX_ACT_HEAVY 2 // Within heavy range - Heavy damage, very dangerous
+#define EX_ACT_LIGHT 3 // Within light range - Minor damage.
+
+#define EX_ACT_TO_STRING(X) (X == EX_ACT_DEVASTATING ? "Devastating" : X == EX_ACT_HEAVY ? "Heavy" : "Light")
+
+
+// Atom layering/visibility levels on turfs. See `/atom/var/level`.
+#define ATOM_LEVEL_UNDER_TILE 1 // Hidden under floor tiles, visible on plating
+#define ATOM_LEVEL_OVER_TILE 2 // Visible on all turf tiles
+
+
+// Atom flourescence
+#define ATOM_FLOURESCENCE_NONE 0 // Not flourescent
+#define ATOM_FLOURESCENCE_INACTIVE 1 // Flourescent but not actively lit
+#define ATOM_FLOURESCENCE_ACTVE 2 // Flourescent and actively lit. Helps prevent repeated processing on a flourescent atom by multiple UV lights
+
+
+// Helper macro for generating stringified name text for IDs located inside objects, i.e. PDAs or wallets. Used for feedback and interaction messages.
+#define GET_ID_NAME(ID, HOLDER) (ID == HOLDER ? "\the [ID]" : "\the [ID] in \the [HOLDER]")
+
+
+// Flags for `use_sanity_check()`
+/// Do not display user feedback messages.
+#define SANITY_CHECK_SILENT FLAG_01
+/// Verify the tool can be unequipped from user. Ignored if the tool is not an item.
+#define SANITY_CHECK_TOOL_UNEQUIP FLAG_02
+/// Verify the target can be unequipped from user. Includes `target.loc == src` check to allow items the user isn't holding.
+#define SANITY_CHECK_TARGET_UNEQUIP FLAG_03
+/// Verify the target and tool are adjacent to eachother. Ignored if there is no tool or if tool is held by user.
+#define SANITY_CHECK_BOTH_ADJACENT FLAG_04
+/// Verify the tool is in the user's active hand. Ignored if the tool is not an item.
+#define SANITY_CHECK_TOOL_IN_HAND FLAG_05
+/// Check `CanInteractWith(target, user)`. Only use this for Topic() revalidation. Functionally exclusive with `SANITY_CHECK_TOPIC_PHYSICALLY_INTERACT`.
+#define SANITY_CHECK_TOPIC_INTERACT FLAG_06
+/// Check `CanPhysicallyInteractWith(target, user)`. Only use this for Topic() revalidation. Functionally exclusive with `SANITY_CHECK_TOPIC_INTERACT`.
+#define SANITY_CHECK_TOPIC_PHYSICALLY_INTERACT FLAG_07
+
+#define SANITY_CHECK_DEFAULT (SANITY_CHECK_TOOL_IN_HAND | SANITY_CHECK_BOTH_ADJACENT)
+
+#define Z_ALL_TURFS(Z) block(locate(1, 1, Z), locate(world.maxx, world.maxy, Z))
+
+//Turf/area values for 'this space is outside' checks
+#define OUTSIDE_AREA null
+#define OUTSIDE_NO   FALSE
+#define OUTSIDE_YES  TRUE
+#define OUTSIDE_UNCERTAIN null
+
+// Weather exposure values for being rained on or hailed on.
+#define WEATHER_IGNORE   -1
+#define WEATHER_EXPOSED   0
+#define WEATHER_ROOFED    1
+#define WEATHER_PROTECTED 2
+
+// arbitrary low pressure bound for wind weather effects
+#define MIN_WIND_PRESSURE 10
+
+// /atom/proc/use_check flags.
+#define USE_ALLOW_NONLIVING 		FLAG_01
+#define USE_ALLOW_NON_ADV_TOOL_USR 	FLAG_02
+#define USE_ALLOW_DEAD 				FLAG_03
+#define USE_ALLOW_INCAPACITATED 	FLAG_04
+#define USE_ALLOW_NON_ADJACENT 		FLAG_05
+#define USE_FORCE_SRC_IN_USER 		FLAG_06
+#define USE_DISALLOW_SILICONS 		FLAG_07
+
+#define USE_SUCCESS 				0
+#define USE_FAIL_NON_ADJACENT 		1
+#define USE_FAIL_NONLIVING 			2
+#define USE_FAIL_NON_ADV_TOOL_USR 	3
+#define USE_FAIL_DEAD 				4
+#define USE_FAIL_INCAPACITATED		5
+#define USE_FAIL_NOT_IN_USER 		6
+#define USE_FAIL_IS_SILICON 		7
+#define USE_FAIL_IS_MOB_SPECIAL 	8
+
+// Cooking appliances.
+#define COOKING_APPLIANCE_MIX		FLAG_01
+#define COOKING_APPLIANCE_FRYER		FLAG_02
+#define COOKING_APPLIANCE_OVEN		FLAG_03
+#define COOKING_APPLIANCE_SKILLET	FLAG_04
+#define COOKING_APPLIANCE_SAUCEPAN	FLAG_05
+#define COOKING_APPLIANCE_POT		FLAG_06
+#define COOKING_APPLIANCE_GRILL		FLAG_07
+#define COOKING_APPLIANCE_MICROWAVE	FLAG_08
+#define COOKING_APPLIANCE_CHEESE	FLAG_09
+
+// Cooking misc.
+// can_insert return values
+#define COOKING_CANNOT_INSERT		0
+#define COOKING_CAN_INSERT			1
+#define COOKING_INSERT_GRABBED		2
+// check_contents return values
+#define COOKING_CONTAINER_EMPTY		0
+#define COOKING_CONTAINER_SINGLE	1
+#define COOKING_CONTAINER_MANY		2
+
+// check_items/check_reagents/check_fruits return values
+#define COOKING_CHECK_FAIL			-1
+#define COOKING_CHECK_EXTRA			0
+#define COOKING_CHECK_EXACT			1
+
+// used to define a paired produce item and seed datum, eg wheat
+#define PRODUCE_SEED(PATH, NAME) \
+/obj/item/reagent_containers/food/snacks/grown/PATH/plantname = NAME;\
+/datum/seed/PATH/name = NAME;\
+/datum/seed/PATH

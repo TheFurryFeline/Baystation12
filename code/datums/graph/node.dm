@@ -8,10 +8,10 @@
 /datum/node/physical
 	var/atom/holder
 
-/datum/node/physical/New(var/atom/holder)
+/datum/node/physical/New(atom/holder)
 	..()
 	if(!istype(holder))
-		CRASH("Invalid holder: [log_info_line(holder)]");
+		CRASH("Invalid holder: [log_info_line(holder)]")
 	src.holder = holder
 
 /datum/node/physical/Destroy()

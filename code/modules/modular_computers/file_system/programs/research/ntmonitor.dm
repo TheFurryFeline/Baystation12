@@ -10,7 +10,7 @@
 	required_access = access_network_admin
 	network_destination = "NTNet Statistics & Configuration" // This triggers logging when the program is opened and closed
 	available_on_ntnet = TRUE
-	nanomodule_path = /datum/nano_module/program/computer_ntnetmonitor/
+	nanomodule_path = /datum/nano_module/program/computer_ntnetmonitor
 	category = PROG_ADMIN
 
 /datum/nano_module/program/computer_ntnetmonitor
@@ -20,7 +20,7 @@
 /datum/nano_module/program/computer_ntnetmonitor/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
 	if(!ntnet_global)
 		return
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
 
 	data += "skill_fail"
 	if(!user.skill_check(SKILL_COMPUTER, SKILL_BASIC))
@@ -29,7 +29,7 @@
 	data["terminal"] = !!program
 
 	data["ntnetstatus"] = ntnet_global.check_function()
-	data["ntnetrelays"] = ntnet_global.relays.len
+	data["ntnetrelays"] = length(ntnet_global.relays)
 	data["idsstatus"] = ntnet_global.intrusion_detection_enabled
 	data["idsalarm"] = ntnet_global.intrusion_detection_alarm
 

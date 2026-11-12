@@ -4,8 +4,8 @@
 	icon_state = "spitter"
 	icon_living = "spitter"
 	icon_dead = "spitter_dead"
-	maxHealth = 90
-	health = 90
+	maxHealth = 55
+	health = 55
 	poison_per_bite = 15
 	ranged = TRUE
 	move_to_delay = 2
@@ -19,7 +19,7 @@
 
 	var/venom_charge = 16
 
-	ai_holder_type = /datum/ai_holder/simple_animal/spider/spitter
+	ai_holder = /datum/ai_holder/simple_animal/spider/spitter
 
 /datum/ai_holder/simple_animal/spider/spitter/post_ranged_attack(atom/A)
 	. = ..()

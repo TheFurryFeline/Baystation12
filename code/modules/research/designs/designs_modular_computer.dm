@@ -9,7 +9,7 @@
 	req_tech = list(TECH_DATA = 1, TECH_ENGINEERING = 1)
 	build_type = PROTOLATHE
 	materials = list(MATERIAL_STEEL = 400, MATERIAL_GLASS = 100)
-	build_path = /obj/item/stock_parts/computer/hard_drive/
+	build_path = /obj/item/stock_parts/computer/hard_drive
 	sort_string = "VBAAA"
 
 /datum/design/item/modularcomponent/disk/advanced
@@ -292,7 +292,7 @@
 	..()
 	name = "CPU design ([item_name])"
 
-/datum/design/item/modularcomponent/cpu/
+/datum/design/item/modularcomponent/cpu
 	name = "computer processor unit"
 	id = "cpu_normal"
 	req_tech = list(TECH_DATA = 3, TECH_ENGINEERING = 2)
@@ -331,3 +331,13 @@
 	chemicals = list(/datum/reagent/acid = 20)
 	build_path = /obj/item/stock_parts/computer/processor_unit/photonic/small
 	sort_string = "VBAFD"
+
+/datum/design/item/modularcomponent/ship_interface
+	name = "ship-linked control interface"
+	id = "ship_interface"
+	req_tech = list(TECH_DATA = 2, TECH_POWER = 2, TECH_ENGINEERING = 2)
+	build_type = IMPRINTER
+	materials = list(MATERIAL_PLASTIC = 1000, MATERIAL_ALUMINIUM = 1000)
+	chemicals = list(/datum/reagent/acid = 20)
+	build_path = /obj/item/stock_parts/computer/ship_interface
+	sort_string = "VBAGA"

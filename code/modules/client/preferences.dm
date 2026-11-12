@@ -1,17 +1,24 @@
 #define SAVE_RESET -1
 
-#define JOB_PRIORITY_HIGH   FLAG(0)
-#define JOB_PRIORITY_MEDIUM FLAG(1)
-#define JOB_PRIORITY_LOW    FLAG(2)
+#define JOB_PRIORITY_HIGH   FLAG_01
+#define JOB_PRIORITY_MEDIUM FLAG_02
+#define JOB_PRIORITY_LOW    FLAG_03
 #define JOB_PRIORITY_LIKELY (JOB_PRIORITY_HIGH | JOB_PRIORITY_MEDIUM)
 #define JOB_PRIORITY_PICKED (JOB_PRIORITY_HIGH | JOB_PRIORITY_MEDIUM | JOB_PRIORITY_LOW)
 
 #define MAX_LOAD_TRIES 5
 
-datum/preferences
+/datum/preferences_slot
+	var/slot
+	var/age
+
+/datum/preferences
 	//doohickeys for savefiles
 	var/is_guest = FALSE
 	var/default_slot = 1				//Holder so it doesn't default to slot 1, rather the last one used
+
+	var/use_slot_priority_list = FALSE
+	var/list/datum/preferences_slot/slot_priority_list = list()
 
 	// Cache, mapping slot record ids to character names
 	// Saves reading all the slot records when listing
@@ -29,11 +36,10 @@ datum/preferences
 	//game-preferences
 	var/lastchangelog = ""				//Saved changlog filesize to detect if there was a change
 
-	// Mob preview
-	var/icon/preview_icon = null
-
 	var/client/client = null
 	var/client_ckey = null
+
+	var/datum/browser/popup
 
 	var/datum/category_collection/player_setup_collection/player_setup
 	var/datum/browser/panel
@@ -51,7 +57,7 @@ datum/preferences
 
 /datum/preferences/proc/setup()
 	if(!length(GLOB.skills))
-		decls_repository.get_decl(/decl/hierarchy/skill)
+		GET_SINGLETON(/singleton/hierarchy/skill)
 	player_setup = new(src)
 	gender = pick(MALE, FEMALE)
 	real_name = random_name(gender,species)
@@ -109,7 +115,7 @@ datum/preferences
 
 	S.cd = "/torch"
 	for(var/slot = 1 to 40)
-		if(!list_find(S.dir, "character[slot]"))
+		if(!S.dir.Find("character[slot]"))
 			continue
 		S.cd = "/torch/character[slot]"
 		default_slot = slot
@@ -137,10 +143,10 @@ datum/preferences
 		dat += "Loading your savefile failed. Please adminhelp for assistance."
 	else
 		dat += "Slot - "
-		dat += "<a href='?src=\ref[src];load=1'>Load slot</a> - "
-		dat += "<a href='?src=\ref[src];save=1'>Save slot</a> - "
-		dat += "<a href='?src=\ref[src];resetslot=1'>Reset slot</a> - "
-		dat += "<a href='?src=\ref[src];reload=1'>Reload slot</a>"
+		dat += "<a href='byond://?src=\ref[src];load=1'>Load slot</a> - "
+		dat += "<a href='byond://?src=\ref[src];save=1'>Save slot</a> - "
+		dat += "<a href='byond://?src=\ref[src];resetslot=1'>Reset slot</a> - "
+		dat += "<a href='byond://?src=\ref[src];reload=1'>Reload slot</a>"
 
 	dat += "<br>"
 	dat += player_setup.header()
@@ -151,8 +157,7 @@ datum/preferences
 /datum/preferences/proc/open_setup_window(mob/user)
 	if (!SScharacter_setup.initialized)
 		return
-
-	var/datum/browser/popup = new(user, "preferences_browser", "Character Setup", 1200, 800, src)
+	popup = new (user, "preferences_browser", "Character Setup", 1200, 800, src)
 	var/content = {"
 	<script type='text/javascript'>
 		function update_content(data){
@@ -173,10 +178,10 @@ datum/preferences
 	if(isliving(user)) return
 
 	if(href_list["preference"] == "open_whitelist_forum")
-		if(config.forumurl)
-			send_link(user, config.forumurl)
+		if(config.forum_url)
+			send_link(user, config.forum_url)
 		else
-			to_chat(user, "<span class='danger'>The forum URL is not set in the server configuration.</span>")
+			to_chat(user, SPAN_DANGER("The forum URL is not set in the server configuration."))
 			return
 	update_setup_window(usr)
 	return 1
@@ -184,6 +189,11 @@ datum/preferences
 /datum/preferences/Topic(href, list/href_list)
 	if(..())
 		return 1
+
+	if (href_list["close"])
+		popup = null
+
+	. = 1
 
 	if(href_list["save"])
 		save_preferences()
@@ -195,7 +205,8 @@ datum/preferences
 	else if(href_list["load"])
 		if(!IsGuestKey(usr.key))
 			open_load_dialog(usr, href_list["details"])
-			return 1
+	else if (href_list["order_prefs"])
+		open_prefs_ordering_panel(usr)
 	else if(href_list["changeslot"])
 		load_character(text2num(href_list["changeslot"]))
 		sanitize_preferences()
@@ -204,61 +215,74 @@ datum/preferences
 		if (winget(usr, "preferences_browser", "is-visible") == "true")
 			open_setup_window(usr)
 
+	else if(href_list["resetslot"])
+		if(real_name != input("This will reset the current slot. Enter the character's full name to confirm."))
+			. = 0
+		else
+			load_character(SAVE_RESET)
+			sanitize_preferences()
+	else if(href_list["addslot"])
+		if(length(slot_priority_list) < config.maximum_queued_characters)
+			var/datum/preferences_slot/new_slot = new()
+			new_slot.slot = text2num(href_list["addslot"])
+			load_slot(new_slot)
+			slot_priority_list.Add(new_slot)
+			save_preferences()
+	else if(href_list["removeslot"])
+		var/slotnum = text2num(href_list["removeslot"])
+		for(var/datum/preferences_slot/slot in slot_priority_list)
+			if(slot.slot == slotnum)
+				slot_priority_list.Remove(slot)
+		save_preferences()
+	else if(href_list["moveslotup"])
+		var/slot = text2num(href_list["moveslotup"])
+		if(slot != 1)
+			slot_priority_list.Swap(slot, slot - 1)
+		save_preferences()
+	else if(href_list["moveslotdown"])
+		var/slot = text2num(href_list["moveslotdown"])
+		if(slot != length(slot_priority_list))
+			slot_priority_list.Swap(slot, slot + 1)
+		save_preferences()
+	else if (href_list["show_preferences_loaded"])
+		load_character(text2num(href_list["show_preferences_loaded"]))
+		open_setup_window(usr)
+	else
+		. = 0
+
+	if(href_list["refresh"])
 		if (istype(client.mob, /mob/new_player))
 			var/mob/new_player/M = client.mob
 			M.new_player_panel()
-
-		if (href_list["details"])
-			return 1
-	else if(href_list["resetslot"])
-		if(real_name != input("This will reset the current slot. Enter the character's full name to confirm."))
-			return 0
-		load_character(SAVE_RESET)
-		sanitize_preferences()
-	else
-		return 0
+	if(href_list["refreshslots"] && panel?.title == "Character Priorities")
+		open_prefs_ordering_panel(usr)
 
 	update_setup_window(usr)
-	return 1
 
 /datum/preferences/proc/copy_to(mob/living/carbon/human/character, is_preview_copy = FALSE)
 	// Sanitizing rather than saving as someone might still be editing when copy_to occurs.
 	player_setup.sanitize_setup()
 	character.set_species(species)
 
-	if(be_random_name)
-		var/decl/cultural_info/culture = SSculture.get_culture(cultural_info[TAG_CULTURE])
-		if(culture) real_name = culture.get_random_name(gender)
-
 	character.fully_replace_character_name(real_name)
 
 	character.gender = gender
+	character.pronouns = pronouns
 	character.age = age
 	character.b_type = b_type
 
-	character.r_eyes = r_eyes
-	character.g_eyes = g_eyes
-	character.b_eyes = b_eyes
+	character.eye_color = eye_color
 
-	character.h_style = h_style
-	character.r_hair = r_hair
-	character.g_hair = g_hair
-	character.b_hair = b_hair
+	character.head_hair_style = head_hair_style
+	character.head_hair_color = head_hair_color
 
-	character.f_style = f_style
-	character.r_facial = r_facial
-	character.g_facial = g_facial
-	character.b_facial = b_facial
+	character.facial_hair_style = facial_hair_style
+	character.facial_hair_color = facial_hair_color
 
-	character.r_skin = r_skin
-	character.g_skin = g_skin
-	character.b_skin = b_skin
+	character.skin_color = skin_color
 
-	character.s_tone = s_tone
-	character.s_base = s_base
-
-	character.h_style = h_style
-	character.f_style = f_style
+	character.skin_tone = skin_tone
+	character.base_skin = base_skin
 
 	// Replace any missing limbs.
 	for(var/name in BP_ALL_LIMBS)
@@ -372,6 +396,18 @@ datum/preferences
 	character.gen_record = gen_record
 	character.exploit_record = exploit_record
 
+	if(LAZYLEN(picked_traits))
+		for (var/picked_type as anything in picked_traits)
+			var/singleton/trait/selected = GET_SINGLETON(picked_type)
+			if (!selected || !istype(selected))
+				continue
+			if (length(selected.metaoptions))
+				var/list/temp_list = picked_traits[picked_type]
+				for (var/meta_option in temp_list)
+					character.SetTrait(picked_type, temp_list[meta_option], meta_option)
+			else
+				character.SetTrait(picked_type, picked_traits[picked_type])
+
 	if(LAZYLEN(character.descriptors))
 		for(var/entry in body_descriptors)
 			character.descriptors[entry] = body_descriptors[entry]
@@ -386,11 +422,13 @@ datum/preferences
 	dat += "<tt><center>"
 
 	dat += "<b>Select a character slot to load</b><hr>"
-	for(var/i=1, i<= config.character_slots, i++)
-		var/name = (slot_names && slot_names[get_slot_key(i)]) || "Character[i]"
-		if(i==default_slot)
+	for(var/i = 1 to config.character_slots)
+		var/name = slot_names?[get_slot_key(i)]
+		if (!name)
+			name = "Character [i]"
+		if (i == default_slot)
 			name = "<b>[name]</b>"
-		dat += "<a href='?src=\ref[src];changeslot=[i];[details?"details=1":""]'>[name]</a><br>"
+		dat += "<a href='byond://?src=\ref[src];changeslot=[i];[details?"details=1":""];refresh=1'>[name]</a><br>"
 
 	dat += "<hr>"
 	dat += "</center></tt>"
@@ -403,6 +441,50 @@ datum/preferences
 		panel.close()
 		panel = null
 	close_browser(user, "window=saves")
+
+/datum/preferences/proc/open_prefs_ordering_panel(mob/user)
+	if (!client)
+		return
+	if (!SScharacter_setup.initialized)
+		return
+	var/list/dat = list()
+	dat += "<div align='center'><b>Select your character priorities (up to [config.maximum_queued_characters])</b><hr>"
+
+	dat += "<div align='right' style='width:45%;float:left;'><b>Inactive</b><br>"
+	for(var/i = 1 to config.character_slots)
+		var/active = FALSE
+		for(var/datum/preferences_slot/slot in slot_priority_list)
+			if(slot.slot == i)
+				active = TRUE
+				break
+		if(!active)
+			var/name = slot_names?[get_slot_key(i)]
+			if (!name)
+				name = "Character [i]"
+			dat += "<a href='byond://?src=\ref[src];show_preferences_loaded=[i]'>[name]</a>"
+			if(length(slot_priority_list) < config.maximum_queued_characters)
+				dat += "<a href='byond://?src=\ref[src];addslot=[i];refreshslots=1;refresh=1'>&gt;</a>"
+			dat += "<br>"
+	dat += "</div><div style='width:10%;float:center;'>   </div>"
+	dat += "<div align='left' style='width:45%;float:right;'><b>Active</b><br>"
+	for(var/i = 1 to length(slot_priority_list))
+		var/datum/preferences_slot/pref = client.prefs.slot_priority_list[i]
+		if(length(slot_priority_list) != 1)
+			dat += "<a href='byond://?src=\ref[src];removeslot=[pref.slot];refreshslots=1;refresh=1'>&lt;</a>"
+		var/name = slot_names?[get_slot_key(pref.slot)]
+		if (!name)
+			name = "Character [i]"
+		dat += "<a href='byond://?src=\ref[src];show_preferences_loaded=[i]'>[name]</a>"
+		if(i != 1)
+			dat += "<a href='byond://?src=\ref[src];moveslotup=[i];refreshslots=1;refresh=1'>&uarr;</a>"
+		if(i != length(slot_priority_list))
+			dat += "<a href='byond://?src=\ref[src];moveslotdown=[i];refreshslots=1;refresh=1'>&darr;</a>"
+		dat += "<br>"
+	dat += "</div></div>"
+
+	panel = new(user, "Character Priorities", "Character Priorities", 350, 390, src)
+	panel.set_content(dat.Join())
+	panel.open()
 
 /datum/preferences/proc/selected_jobs_titles(priority = JOB_PRIORITY_PICKED)
 	. = list()
@@ -435,7 +517,7 @@ datum/preferences
 		var/name = branches[job.title]
 		if (!name)
 			continue
-		. |= mil_branches.get_branch(name)
+		. |= GLOB.mil_branches.get_branch(name)
 
 /datum/preferences/proc/selected_branches_assoc(priority = JOB_PRIORITY_PICKED)
 	. = list()
@@ -443,7 +525,7 @@ datum/preferences
 		var/name = branches[job.title]
 		if (!name || .[name])
 			continue
-		.[name] = mil_branches.get_branch(name)
+		.[name] = GLOB.mil_branches.get_branch(name)
 
 /datum/preferences/proc/for_each_selected_job(datum/callback/callback, priority = JOB_PRIORITY_LIKELY)
 	. = list()
@@ -451,7 +533,7 @@ datum/preferences
 		priority = selected_jobs_assoc(priority)
 	for (var/title in priority)
 		var/datum/job/job = priority[title]
-		.[title] = callback.Invoke(job)
+		.[title] = invoke(callback, job)
 
 /datum/preferences/proc/for_each_selected_job_multi(list/callbacks, priority = JOB_PRIORITY_LIKELY)
 	. = list()
@@ -466,7 +548,7 @@ datum/preferences
 		priority = selected_branches_assoc(priority)
 	for (var/name in priority)
 		var/datum/mil_branch/branch = priority[name]
-		.[name] = callback.Invoke(branch)
+		.[name] = invoke(callback, branch)
 
 /datum/preferences/proc/for_each_selected_branch_multi(list/callbacks, priority = JOB_PRIORITY_LIKELY)
 	. = list()

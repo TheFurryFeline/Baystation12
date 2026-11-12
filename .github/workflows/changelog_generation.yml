@@ -1,23 +1,26 @@
 name: Compile changelogs
 
+permissions:
+  contents: read
+
 on:
-  schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # this workflow can only be manually triggered, see make_changelogs.yml for full flow
 
 jobs:
   CompileCL:
-    runs-on: ubuntu-latest
+    permissions:
+      contents: write # required to push the updated changelog commit
+    runs-on: ubuntu-22.04
     if: github.repository == 'Baystation12/Baystation12' # to prevent this running on forks
     steps:
       - name: Checkout
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0 # Otherwise, we will fail to push refs
           ref: dev
           token: ${{ secrets.BOT_TOKEN }}
       - name: Python setup
-        uses: actions/setup-python@0066b88440aa9562be742e2c60ee750fc57d8849
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.x'
       - name: Install depends
@@ -32,5 +35,5 @@ jobs:
           git config --global user.email "${{ secrets.BOT_EMAIL }}"
           git config --global user.name "${{ secrets.BOT_NAME }}"
           git diff --quiet --exit-code && echo "No changes found, abort." && exit 0
-          git commit -m "Automatic changelog generation" -a
+          git commit -m "Automatic changelog generation [ci skip]" -a
           git push

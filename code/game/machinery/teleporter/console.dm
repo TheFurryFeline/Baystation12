@@ -1,5 +1,5 @@
 /obj/machinery/computer/teleporter
-	name = "Teleporter Control Console"
+	name = "teleporter control console"
 	desc = "Used to control a linked teleportation hub and station."
 	icon_keyboard = "teleport_key"
 	icon_screen = "teleport"
@@ -11,7 +11,8 @@
 	var/atom/target
 	var/active
 	var/id
-
+	/// The timer ID for any active online timers, for stopping the timer if the teleporter is manually shut off, or dies before the timer ends.
+	var/active_timer
 
 /obj/machinery/computer/teleporter/Destroy()
 	clear_target()
@@ -26,11 +27,18 @@
 
 /obj/machinery/computer/teleporter/Initialize()
 	. = ..()
-	underlays.Cut()
-	underlays += image('icons/obj/stationobjs.dmi', icon_state = "telecomp-wires")
 	id = "[random_id(/obj/machinery/computer/teleporter, 1000, 9999)]"
 	update_refs()
 
+/obj/machinery/computer/teleporter/examine(mob/user, distance)
+	. = ..()
+	var/adjacent = distance <= 2 || isobserver(user)
+	if (!adjacent || GET_FLAGS(stat, MACHINE_STAT_NOSCREEN))
+		return
+	if (id)
+		to_chat(user, SPAN_NOTICE("The console screen displays:") + " ID: [id]")
+	else
+		to_chat(user, SPAN_NOTICE("The console screen displays:") + " ID: " + SPAN_WARNING("<i>UNDEFINED</i>"))
 
 /obj/machinery/computer/teleporter/proc/update_refs()
 	for (var/dir in GLOB.cardinal)
@@ -55,7 +63,7 @@
 /obj/machinery/computer/teleporter/proc/clear_projector()
 	if (!projector)
 		return
-	GLOB.destroyed_event.unregister(projector, src, /obj/machinery/computer/teleporter/proc/lost_projector)
+	GLOB.destroyed_event.unregister(projector, src, PROC_REF(lost_projector))
 	projector = null
 	set_active(FALSE)
 
@@ -70,13 +78,13 @@
 		return
 	clear_projector()
 	projector = _projector
-	GLOB.destroyed_event.register(projector, src, /obj/machinery/computer/teleporter/proc/lost_projector)
+	GLOB.destroyed_event.register(projector, src, PROC_REF(lost_projector))
 
 
 /obj/machinery/computer/teleporter/proc/clear_pad()
 	if (!pad)
 		return
-	GLOB.destroyed_event.unregister(pad, src, /obj/machinery/computer/teleporter/proc/lost_pad)
+	GLOB.destroyed_event.unregister(pad, src, PROC_REF(lost_pad))
 	pad = null
 	set_active(FALSE)
 
@@ -91,19 +99,20 @@
 		return
 	clear_pad()
 	pad = _pad
-	GLOB.destroyed_event.register(pad, src, /obj/machinery/computer/teleporter/proc/lost_pad)
+	GLOB.destroyed_event.register(pad, src, PROC_REF(lost_pad))
 
 
 /obj/machinery/computer/teleporter/proc/clear_target()
 	if (!target)
 		return
 	var/old_target = target
-	GLOB.destroyed_event.unregister(target, src, /obj/machinery/computer/teleporter/proc/lost_target)
+	GLOB.destroyed_event.unregister(target, src, PROC_REF(lost_target))
 	target = null
 	if (istype(old_target, /obj/machinery/tele_beacon))
 		var/obj/machinery/tele_beacon/beacon = old_target
 		beacon.disconnect_computer(src)
 	set_active(FALSE)
+	set_timer(TRUE)
 
 
 /obj/machinery/computer/teleporter/proc/lost_target()
@@ -120,7 +129,23 @@
 		if (!beacon.connect_computer(src))
 			return FALSE
 	target = _target
-	GLOB.destroyed_event.register(target, src, /obj/machinery/computer/teleporter/proc/lost_target)
+
+	if (GLOB.using_map.use_overmap && GLOB.using_map.use_bluespace_interlude)
+		var/obj/overmap/overmap_target = map_sectors["[get_z(target)]"]
+		var/obj/overmap/overmap_source = map_sectors["[get_z(src)]"]
+		if (overmap_target && overmap_source)
+			var/distance = get_dist(overmap_target, overmap_source)
+			if (distance > GLOB.minimum_safe_teleport_distance)
+				var/interlude_prob = max(100, (distance / GLOB.maximum_safe_teleport_distance) * 100)
+				playsound(loc, 'sound/machines/twobeep.ogg', 75, 1)
+				if (interlude_prob > 80)
+					visible_message(SPAN_WARNING("WARNING! Maximum range reached! Interference exceeds safe limits!"))
+				else
+					visible_message(SPAN_WARNING("Warning: Safe range limit exceeded. Interference probability: [interlude_prob]%."))
+
+				pad.interlude_chance = interlude_prob
+
+	GLOB.destroyed_event.register(target, src, PROC_REF(lost_target))
 	return TRUE
 
 
@@ -129,6 +154,9 @@
 	if (active == effective)
 		return
 	active = effective
+	if (!active && !locate(/datum/event/bsd_instability) in SSevent.active_events)
+		pad.interlude_chance = initial(pad.interlude_chance)
+	set_timer(!active)
 	if (notify && effective)
 		if (active)
 			visible_message(SPAN_NOTICE("The teleporter sparks and hums to life."))
@@ -138,6 +166,15 @@
 		projector.queue_icon_update()
 	if (pad)
 		pad.queue_icon_update()
+
+
+/obj/machinery/computer/teleporter/proc/set_timer(clear = FALSE)
+	if (clear)
+		if (active_timer)
+			deltimer(active_timer)
+			active_timer = null
+	else
+		active_timer = addtimer(new Callback(src, PROC_REF(clear_target)), 1 MINUTE, TIMER_UNIQUE | TIMER_OVERRIDE | TIMER_STOPPABLE)
 
 
 /obj/machinery/computer/teleporter/proc/get_targets()
@@ -154,9 +191,10 @@
 		if (QDELETED(T) || !T.implanted || !ismob(T.loc))
 			continue
 		var/mob/M = T.loc
-		if (M.stat == DEAD && world.time > M.timeofdeath + 15 MINUTES)
+		var/turf/TT = get_turf(M)
+		if (M.is_dead() && world.time > M.timeofdeath + 15 MINUTES)
 			continue
-		if (!isPlayerLevel(M.z))
+		if (!isPlayerLevel(TT.z))
 			continue
 		result["[M.name] \[[++ids[M.name]]\]"] = T
 	return result
@@ -166,7 +204,7 @@
 	. = ..()
 	if (!.)
 		return
-	if (stat & NOPOWER)
+	if (!is_powered())
 		clear_target()
 
 

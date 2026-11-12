@@ -2,10 +2,10 @@
 	name = "survey drone module"
 	display_name = "Surveyor"
 	channels = list(
-		"Science" = TRUE,
-		"Exploration" = TRUE
+		"Exploration" = TRUE,
+		"Science" = TRUE
 	)
-	networks = list(NETWORK_EXPEDITION)
+	networks = list(NETWORK_RESEARCH)
 	sprites = list(
 		"Drone"  = "drone-science",
 		"Eyebot" = "eyebot-science"
@@ -16,15 +16,16 @@
 		/obj/item/stack/flag/red
 	)
 	skills = list(
-		SKILL_ELECTRICAL          = SKILL_PROF,
-		SKILL_ATMOS               = SKILL_PROF,
-		SKILL_PILOT               = SKILL_EXPERT,
-		SKILL_BOTANY              = SKILL_PROF,
-		SKILL_EVA                 = SKILL_PROF,
+		SKILL_ELECTRICAL          = SKILL_MASTER,
+		SKILL_ATMOS               = SKILL_MASTER,
+		SKILL_PILOT               = SKILL_EXPERIENCED,
+		SKILL_BOTANY              = SKILL_MASTER,
+		SKILL_EVA                 = SKILL_MASTER,
 		SKILL_MECH                = HAS_PERK,
 	)
 
 	equipment = list(
+		/obj/item/device/flash,
 		/obj/item/material/hatchet/machete/unbreakable,
 		/obj/item/inducer/borg,
 		/obj/item/device/scanner/gas,
@@ -45,14 +46,29 @@
 		/obj/item/robot_harvester
 	)
 
-	emag = /obj/item/melee/energy/machete
+	emag_gear = list(
+		/obj/item/melee/baton/robot/electrified_arm,
+		/obj/item/gun/energy/gun
+	)
+	access = list(
+		access_emergency_storage,
+		access_eva,
+		access_expedition_shuttle,
+		access_explorer,
+		access_guppy,
+		access_hangar,
+		access_petrov,
+		access_research,
+		access_radio_exp,
+		access_radio_sci
+	)
 
 /obj/item/robot_module/flying/surveyor/finalize_synths()
 	. = ..()
 	for(var/flag_type in flag_types)
 		equipment += new flag_type(src)
 
-/obj/item/robot_module/flying/surveyor/respawn_consumable(var/mob/living/silicon/robot/R, var/amount)
+/obj/item/robot_module/flying/surveyor/respawn_consumable(mob/living/silicon/robot/R, amount)
 	var/obj/item/gun/launcher/net/borg/gun = locate() in equipment
 	if(!gun)
 		gun = new(src)
@@ -68,4 +84,3 @@
 		if(flag.amount < flag.max_amount)
 			flag.add(1)
 	..()
-

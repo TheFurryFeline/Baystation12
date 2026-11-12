@@ -4,6 +4,8 @@
 	Thick material will prevent injections, similar to other means of injections.
 */
 
+GLOBAL_VAR_AS(MAX_SPIDER_COUNT, 30)
+GLOBAL_VAR_AS(SPIDER_COUNT, 0)
 
 // The base spider, in the 'walking tank' family.
 /mob/living/simple_animal/hostile/giant_spider
@@ -14,14 +16,12 @@
 	icon_state = "generic"
 	icon_living = "generic"
 	icon_dead = "generic_dead"
-	// has_eye_glow = TRUE
 
 	faction = "spiders"
-	maxHealth = 125
-	health = 125
+	maxHealth = 70
+	health = 70
 	natural_weapon = /obj/item/natural_weapon/bite/spider
 	pass_flags = PASS_FLAG_TABLE
-	movement_cooldown = 10
 	poison_resist = 0.5
 
 	see_in_dark = 10
@@ -34,9 +34,11 @@
 
 	response_harm   = "punches"
 
-	pry_time = 8 SECONDS
+	pry_time = 6 SECONDS
 	pry_desc = "clawing"
 
+	movement_cooldown = 2
+	base_attack_cooldown = 1 SECOND
 
 	heat_damage_per_tick = 20
 	cold_damage_per_tick = 20
@@ -45,11 +47,13 @@
 	speak_emote = list("chitters")
 
 	say_list_type = /datum/say_list/spider
-	ai_holder_type = /datum/ai_holder/simple_animal/melee
+	ai_holder = /datum/ai_holder/simple_animal/melee
 
 	var/poison_type = /datum/reagent/toxin/venom	// The reagent that gets injected when it attacks.
-	var/poison_chance = 20			// Chance for injection to occur.
-	var/poison_per_bite = 5			// Amount added per injection.
+	/// Chance for injection to occur.
+	var/poison_chance = 20
+	/// Amount added per injection.
+	var/poison_per_bite = 5
 
 	var/image/eye_layer
 
@@ -68,18 +72,19 @@
 	// use_astar = FALSE
 
 /obj/item/natural_weapon/bite/spider
-	force = 20
+	force = 15
 
 /mob/living/simple_animal/hostile/giant_spider/Initialize(mapload, atom/parent)
-	get_light_and_color(parent)
+	copy_light_and_color(parent)
 	spider_randomify()
 	update_icon()
+	GLOB.SPIDER_COUNT += 1
 	. = ..()
 
 /mob/living/simple_animal/hostile/giant_spider/death(gibbed, deathmessage, show_dead_message)
 	. = ..()
-
-	overlays -= eye_layer
+	GLOB.SPIDER_COUNT -= 1
+	CutOverlays(eye_layer)
 
 /mob/living/simple_animal/hostile/giant_spider/proc/spider_randomify() //random math nonsense to get their damage, health and venomness values
 	maxHealth = rand(initial(maxHealth), (1.4 * initial(maxHealth)))
@@ -88,7 +93,8 @@
 	I.plane = EFFECTS_ABOVE_LIGHTING_PLANE
 	I.appearance_flags = DEFAULT_APPEARANCE_FLAGS | RESET_COLOR
 	eye_layer = I
-	overlays += I
+	AddOverlays(I)
+	z_flags |= ZMM_MANGLE_PLANES
 
 
 /mob/living/simple_animal/hostile/giant_spider/apply_melee_effects(atom/A)
@@ -101,13 +107,9 @@
 
 // Does actual poison injection, after all checks passed.
 /mob/living/simple_animal/hostile/giant_spider/proc/inject_poison(mob/living/L, target_zone)
+	if (isSynthetic())
+		return
+
 	if(prob(poison_chance))
 		to_chat(L, SPAN_WARNING("You feel a tiny prick."))
 		L.reagents.add_reagent(poison_type, poison_per_bite)
-
-/// Scale the spiders icon up or down.
-/mob/living/simple_animal/hostile/giant_spider/proc/scale(factor)
-	if (factor)
-		var/matrix/M = matrix()
-		M.Scale(factor)
-		src.transform = M

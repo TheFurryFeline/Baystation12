@@ -1,10 +1,10 @@
 #include "meatstation_areas.dm"
 
-/obj/effect/overmap/visitable/sector/meatstation
+/obj/overmap/visitable/sector/meatstation
 	name = "Unpowered Research Station"
 	desc = "An unpowered research station. A large quantity of nearby debris blocks more detail."
 	icon_state = "object"
-	known = 0
+
 	initial_generic_waypoints = list(
 		"nav_meatstation_1",
 		"nav_meatstation_2",
@@ -21,32 +21,32 @@
 	spawn_cost = 2
 	area_usage_test_exempted_root_areas = list(/area/meatstation)
 
-/obj/effect/shuttle_landmark/nav_meatstation/nav1
+/obj/shuttle_landmark/nav_meatstation/nav1
 	name = "Navpoint #1"
 	landmark_tag = "nav_meatstation_1"
 
-/obj/effect/shuttle_landmark/nav_meatstation/nav2
+/obj/shuttle_landmark/nav_meatstation/nav2
 	name = "Navpoint #2"
 	landmark_tag = "nav_meatstation_2"
 
-/obj/effect/shuttle_landmark/nav_meatstation/nav3
+/obj/shuttle_landmark/nav_meatstation/nav3
 	name = "Navpoint #3"
 	landmark_tag = "nav_meatstation_3"
 
-/obj/effect/shuttle_landmark/nav_meatstation/nav4
+/obj/shuttle_landmark/nav_meatstation/nav4
 	name = "Navpoint #4"
 	landmark_tag = "nav_meatstation_4"
 
-/obj/effect/shuttle_landmark/nav_meatstation/nav5
+/obj/shuttle_landmark/nav_meatstation/nav5
 	name = "Navpoint #5"
 	landmark_tag = "nav_meatstation_antag"
 
 //structural
 
-/obj/effect/paint/meatstation
+/obj/paint/meatstation
 	color = "#543333"
 
-/obj/effect/paint/meatstation/lab
+/obj/paint/meatstation/lab
 	color = "#301f1f"
 
 /obj/machinery/power/apc/meatstation
@@ -74,7 +74,7 @@
 	meat_amount = 1
 	can_escape = TRUE
 
-	ai_holder_type = /datum/ai_holder/simple_animal/melee/meatstation
+	ai_holder = /datum/ai_holder/simple_animal/melee/meatstation
 
 /mob/living/simple_animal/hostile/meatstation/meatworm
 	name = "flesh worm"
@@ -141,9 +141,9 @@
 	health = 60
 	natural_weapon = /obj/item/natural_weapon/wormguard
 	meat_amount = 3
-	projectilesound = 'sound/weapons/laser.ogg'
+	projectilesound = 'sound/weapons/Laser.ogg'
 	ranged = 1
-	projectiletype = /obj/item/projectile/beam/meatstation
+	projectiletype = /obj/item/projectile/beam/smalllaser
 
 	say_list_type = /datum/say_list/meatstation/meat_human
 /obj/item/natural_weapon/wormguard
@@ -171,47 +171,7 @@
 	sharp = TRUE
 	attack_verb = list("chomped")
 
-//projectile
-
-/obj/item/projectile/beam/meatstation
-	damage = 10
-	agony = 10
-	armor_penetration = 5
-
-	muzzle_type = /obj/effect/projectile/meatstation/muzzle
-	tracer_type = /obj/effect/projectile/meatstation/tracer
-	impact_type = /obj/effect/projectile/meatstation/impact
-
-/obj/effect/projectile/meatstation/
-	light_color = COLOR_RED_LIGHT
-	icon = 'maps/away/meatstation/meatstation_sprites.dmi'
-
-/obj/effect/projectile/meatstation/tracer
-	icon_state = "redstun"
-
-/obj/effect/projectile/meatstation/muzzle
-	icon_state = "muzzle_redstun"
-
-/obj/effect/projectile/meatstation/impact
-	icon_state = "impact_redstun"
-
 //items
-
-/obj/item/gun/energy/laser/meatstation
-	name = "LP76 carbine"
-	desc = "An outdated energy carbine, originally designed for peacekeeping operations. Fires super-heated stun beams."
-	icon = 'maps/away/meatstation/meatstation_sprites.dmi'
-	item_icons = list(
-		slot_l_hand_str = 'maps/away/meatstation/meatstation_left_hand.dmi',
-		slot_r_hand_str = 'maps/away/meatstation/meatstation_right_hand.dmi',
-		)
-	icon_state = "meatstationlaser"
-	item_state = "meatstationlaser"
-	projectile_type = /obj/item/projectile/beam/meatstation
-	slot_flags = null
-	wielded_item_state = "meatstationlaser-wielded"
-	fire_delay = 15
-	max_shots = 12
 
 /obj/item/reagent_containers/food/snacks/meat/meatstationmeat
 	name = "tainted meat"
@@ -254,7 +214,7 @@
 	name = "apology letter"
 	info = "Dear Chief Daniels,<br><br>I'm sorry I'm a brilliant scientist. I'm sorry I spent months of my life perfecting the genes of a highly volatile xenoflora sample. I'm sorry your idiot dockhand thought that xenoflora sample was a plum tree. I'm sorry that idiot dockhand decided to pick some fruit from the xenoflora sample. I'm sorry that Mr. Idiot Dockhand decided to consume said fruit while standing in the cargo airlock. I'm sorry you whined and cried about how it was all my fault. I'm sorry I'm now required to hand write you an apology letter. I'm sorry you've been avoiding me these past few days. Most of all, I'm sorry I haven't been able to share my thoughts with you on this matter in person, one on one.<br><br>Regards,<br><br>You know who I am, you little shit.<br><br><br>P.S.<br>I know you'll be at Robertson's demonstration tomorrow. Maybe we can have a little chat afterwards."
 
-obj/item/paper/meatstation/weapon_note//and this one's here to give players some mechanical knowledge about the gun unique to this away site
+/obj/item/paper/meatstation/weapon_note//and this one's here to give players some mechanical knowledge about the gun unique to this away site
 	name = "note"
 	info = "Okay, admittedly going with the LP76's wouldn't be all sunshine and rainbows, but it's still the right call. Yeah sure, maybe they've got a slower fire rate. And yes, you could argue that technically, since they were originally designed to be a non-lethal alternative, they might not pack the punch of today's weapons. But we're getting a hell of a deal here! If we go with the LP76's, we'll actually be able to afford enough of them to arm the entire security team, and then some! And just because they're non-lethal weapons doesn't mean they're not effective. They hurt like hell, and those stun beams are intense enough to burn flesh!<br>Look, let's be real here: the security team is pretty much just pirate deterrent. If some pirates do decide to raid us, once they see we're shooting back they'll go running back to whatever 'roid base they call home. I guarantee we won't need anything beefier than the LP76. Trust me."
 
@@ -294,7 +254,7 @@ obj/item/paper/meatstation/weapon_note//and this one's here to give players some
 
 /obj/random/single/meatstation/laser
 	icon_state = "laser50"
-	spawn_object = /obj/item/gun/energy/laser/meatstation
+	spawn_object = /obj/item/gun/energy/laser/xenofauna/broken
 
 /obj/random/single/meatstation/low/biocell
 	icon_state = "biocell10"

@@ -7,7 +7,7 @@
 	var/pulse = PULSE_NORM
 	var/heartbeat = 0
 	var/beat_sound = 'sound/effects/singlebeat.ogg'
-	var/tmp/next_blood_squirt = 0
+	var/next_blood_squirt = 0
 	damage_reduction = 0.7
 	relative_size = 5
 	max_damage = 45
@@ -36,6 +36,8 @@
 			if(pulse == PULSE_THREADY && prob(5))
 				take_internal_damage(0.5)
 		handle_blood()
+	else if(pulse)
+		stop() // heart was removed from the patient and the heart is still beating.. not anymore!
 	..()
 
 /obj/item/organ/internal/heart/proc/handle_pulse()
@@ -77,15 +79,14 @@
 		should_stop = should_stop || prob(max(0, owner.getBrainLoss() - owner.maxHealth * 0.75)) //brain failing to work heart properly
 		should_stop = should_stop || (prob(5) && pulse == PULSE_THREADY) //erratic heart patterns, usually caused by oxyloss
 		if(should_stop) // The heart has stopped due to going into traumatic or cardiovascular shock.
-			to_chat(owner, "<span class='danger'>Your heart has stopped!</span>")
-			pulse = PULSE_NONE
+			stop()
 			return
 
 	// Pulse normally shouldn't go above PULSE_2FAST, unless extreme amounts of bad stuff in blood
 	if (pulse_mod < 6)
-		pulse = Clamp(PULSE_NORM + pulse_mod, PULSE_SLOW, PULSE_2FAST)
+		pulse = clamp(PULSE_NORM + pulse_mod, PULSE_SLOW, PULSE_2FAST)
 	else
-		pulse = Clamp(PULSE_NORM + pulse_mod, PULSE_SLOW, PULSE_THREADY)
+		pulse = clamp(PULSE_NORM + pulse_mod, PULSE_SLOW, PULSE_THREADY)
 
 	// If fibrillation, then it can be PULSE_THREADY
 	var/fibrillation = oxy <= BLOOD_VOLUME_SURVIVE || (prob(30) && owner.shock_stage > 120)
@@ -98,6 +99,10 @@
 			pulse--
 		else
 			pulse++
+
+/obj/item/organ/internal/heart/proc/stop()
+	to_chat(owner, SPAN_DANGER("Your heart has stopped!"))
+	pulse = PULSE_NONE
 
 /obj/item/organ/internal/heart/proc/handle_heartbeat()
 	if(pulse >= PULSE_2FAST || owner.shock_stage >= 10 || is_below_sound_pressure(get_turf(owner)))
@@ -120,7 +125,7 @@
 		return
 
 	//Dead or cryosleep people do not pump the blood.
-	if(!owner || owner.InStasis() || owner.stat == DEAD || owner.bodytemperature < 170)
+	if(!owner || owner.InStasis() || owner.is_real_dead() || owner.bodytemperature < 170)
 		return
 
 	if(pulse != PULSE_NONE || BP_IS_ROBOTIC(src))
@@ -137,7 +142,7 @@
 
 				for(var/datum/wound/W in temp.wounds)
 
-					if(!open_wound && (W.damage_type == CUT || W.damage_type == PIERCE) && W.damage && !W.is_treated())
+					if (!open_wound && (W.damage_type == INJURY_TYPE_CUT || W.damage_type == INJURY_TYPE_PIERCE) && W.damage && !W.is_treated())
 						open_wound = TRUE
 
 					if(W.bleeding())
@@ -153,7 +158,7 @@
 							blood_max += W.damage / 40
 
 			if(temp.status & ORGAN_ARTERY_CUT)
-				var/bleed_amount = Floor((owner.vessel.total_volume / (temp.applied_pressure || !open_wound ? 400 : 250))*temp.arterial_bleed_severity)
+				var/bleed_amount = floor((owner.vessel.total_volume / (temp.applied_pressure || !open_wound ? 400 : 250))*temp.arterial_bleed_severity)
 				if(bleed_amount)
 					if(open_wound)
 						blood_max += bleed_amount
@@ -172,14 +177,12 @@
 		if(CE_STABLE in owner.chem_effects) // inaprovaline
 			blood_max *= 0.8
 
-		if(world.time >= next_blood_squirt && istype(owner.loc, /turf) && do_spray.len)
+		if(world.time >= next_blood_squirt && isturf(owner.loc) && length(do_spray))
 			var/spray_organ = pick(do_spray)
 			owner.visible_message(
 				SPAN_DANGER("Blood sprays out from \the [owner]'s [spray_organ]!"),
 				FONT_HUGE(SPAN_DANGER("Blood sprays out from your [spray_organ]!"))
 			)
-			owner.Stun(1)
-			owner.eye_blurry = 2
 
 			//AB occurs every heartbeat, this only throttles the visible effect
 			next_blood_squirt = world.time + 80

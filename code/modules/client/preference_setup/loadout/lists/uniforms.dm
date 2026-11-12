@@ -81,10 +81,22 @@
 	dresses += /obj/item/clothing/under/sundress
 	gear_tweaks += new/datum/gear_tweak/path/specified_types_list(dresses)
 
-/datum/gear/uniform/cheongsam
-	display_name = "cheongsam, colour select"
-	path = /obj/item/clothing/under/cheongsam
+/datum/gear/uniform/dress_c
+	display_name = "dresses, colour select"
+	path = /obj/item/clothing/under
 	flags = GEAR_HAS_COLOR_SELECTION
+
+/datum/gear/uniform/dress_c/New()
+	..()
+	var/dress_c = list()
+	dress_c += /obj/item/clothing/under/cheongsam
+	dress_c += /obj/item/clothing/under/skirt_c/dress
+	dress_c += /obj/item/clothing/under/skirt_c/dress_long
+	dress_c += /obj/item/clothing/under/skirt_c/dress_long/gown
+	dress_c += /obj/item/clothing/under/skirt_c/dress_elegant
+	dress_c += /obj/item/clothing/under/skirt_c/dress_stripes
+	dress_c += /obj/item/clothing/under/skirt_c/dress_flowers
+	gear_tweaks += new/datum/gear_tweak/path/specified_types_list(dress_c)
 
 /datum/gear/uniform/abaya
 	display_name = "abaya, colour select"
@@ -99,11 +111,6 @@
 /datum/gear/uniform/skirt_c
 	display_name = "short skirt, colour select"
 	path = /obj/item/clothing/under/skirt_c
-	flags = GEAR_HAS_COLOR_SELECTION
-
-/datum/gear/uniform/skirt_c/dress
-	display_name = "simple dress, colour select"
-	path = /obj/item/clothing/under/skirt_c/dress
 	flags = GEAR_HAS_COLOR_SELECTION
 
 /datum/gear/uniform/casual_pants
@@ -133,7 +140,7 @@
 
 /datum/gear/uniform/shorts/custom
 	display_name = "athletic shorts, colour select"
-	path = /obj/item/clothing/under/shorts/
+	path = /obj/item/clothing/under/shorts
 	flags = GEAR_HAS_COLOR_SELECTION
 
 /datum/gear/uniform/turtleneck
@@ -169,6 +176,8 @@
 	corps += /obj/item/clothing/under/morpheus
 	corps += /obj/item/clothing/under/skinner
 	corps += /obj/item/clothing/under/dais
+	corps += /obj/item/clothing/under/rank/roboticist/bishop
+	corps += /obj/item/clothing/under/slate
 	gear_tweaks += new/datum/gear_tweak/path/specified_types_list(corps)
 
 /datum/gear/uniform/corp_exec
@@ -203,3 +212,11 @@
 /datum/gear/uniform/frontier
 	display_name = "frontier clothes"
 	path = /obj/item/clothing/under/frontier
+
+/datum/gear/uniform/pj_red
+	display_name = "red pajamas"
+	path = /obj/item/clothing/under/redpyjamas
+
+/datum/gear/uniform/pj_blue
+	display_name = "blue pajamas"
+	path = /obj/item/clothing/under/bluepyjamas

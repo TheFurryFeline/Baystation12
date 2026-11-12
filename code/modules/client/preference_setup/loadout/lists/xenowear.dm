@@ -1,9 +1,9 @@
 // Alien clothing.
 
 // Unathi clothing
-/datum/gear/suit/unathi/
+/datum/gear/suit/unathi
 	sort_category = "Xenowear"
-	category = /datum/gear/suit/unathi/
+	category = /datum/gear/suit/unathi
 	whitelisted = list(SPECIES_UNATHI, SPECIES_YEOSA)
 
 /datum/gear/suit/unathi/mantle
@@ -34,42 +34,58 @@
 	cost = 2
 
 //Skrell Chains
-/datum/gear/ears/skrell/
+/datum/gear/ears/skrell
 	sort_category = "Xenowear"
-	category = /datum/gear/ears/skrell/
+	category = /datum/gear/ears/skrell
 	whitelisted = list(SPECIES_SKRELL)
+	path = /obj/item/clothing/ears/skrell
 
 /datum/gear/ears/skrell/chains
-	display_name = "headtail chain selection (Skrell)"
+	display_name = "Skrell female headtail chain selection"
+
+/datum/gear/ears/skrell/chains/New()
+	..()
+	var/list/options = list(
+		/obj/item/clothing/ears/skrell/chain_gold,
+		/obj/item/clothing/ears/skrell/chain_silver,
+		/obj/item/clothing/ears/skrell/chain_bluejewels,
+		/obj/item/clothing/ears/skrell/chain_redjewels,
+		/obj/item/clothing/ears/skrell/chain_ebony
+	)
+	gear_tweaks += new /datum/gear_tweak/path/specified_types_list (options)
+
+/datum/gear/ears/skrell/chains_colorable
+	display_name = "Skrell female headtail chain, colorable"
 	path = /obj/item/clothing/ears/skrell/chain
-	flags = GEAR_HAS_SUBTYPE_SELECTION
-
-/datum/gear/ears/skrell/colored/chain
-	display_name = "colored headtail chain, colour select (Skrell)"
-	path = /obj/item/clothing/ears/skrell/colored/chain
 	flags = GEAR_HAS_COLOR_SELECTION
 
-//Skrell Bands
+/datum/gear/ears/skrell/cloth_female
+	display_name = "Skrell female headtail cloth, colorable"
+	path = /obj/item/clothing/ears/skrell/cloth/female
+	flags = GEAR_HAS_COLOR_SELECTION
+
 /datum/gear/ears/skrell/bands
-	display_name = "headtail band selection (Skrell)"
+	display_name = "Skrell male headtail band selection"
+
+/datum/gear/ears/skrell/bands/New()
+	..()
+	var/list/options = list(
+		/obj/item/clothing/ears/skrell/band_gold,
+		/obj/item/clothing/ears/skrell/band_silver,
+		/obj/item/clothing/ears/skrell/band_bluejewels,
+		/obj/item/clothing/ears/skrell/band_redjewels,
+		/obj/item/clothing/ears/skrell/band_ebony
+	)
+	gear_tweaks += new /datum/gear_tweak/path/specified_types_list (options)
+
+/datum/gear/ears/skrell/bands_colorable
+	display_name = "Skrell male headtail band, colorable"
 	path = /obj/item/clothing/ears/skrell/band
-	flags = GEAR_HAS_SUBTYPE_SELECTION
-
-/datum/gear/ears/skrell/colored/band
-	display_name = "headtail bands, colour select (Skrell)"
-	path = /obj/item/clothing/ears/skrell/colored/band
 	flags = GEAR_HAS_COLOR_SELECTION
 
-//Skrell Cloth
-/datum/gear/ears/skrell/cloth/male
-	display_name = "male headtail cloth (Skrell)"
-	path = /obj/item/clothing/ears/skrell/cloth_male
-	flags = GEAR_HAS_COLOR_SELECTION
-
-
-/datum/gear/ears/skrell/cloth/female
-	display_name = "female headtail cloth (Skrell)"
-	path = /obj/item/clothing/ears/skrell/cloth_female
+/datum/gear/ears/skrell/cloth_male
+	display_name = "Skrell male headtail cloth, colorable"
+	path = /obj/item/clothing/ears/skrell/cloth/male
 	flags = GEAR_HAS_COLOR_SELECTION
 
 /datum/gear/head/skrell_helmet
@@ -86,13 +102,6 @@
 	sort_category = "Xenowear"
 
 // IPC clothing
-/datum/gear/mask/ipc_monitor
-	display_name = "display monitor (IPC)"
-	path = /obj/item/clothing/mask/monitor
-	sort_category = "Xenowear"
-	whitelisted = list(SPECIES_IPC)
-	cost = 0
-
 /datum/gear/suit/lab_xyn_machine
 	display_name = "Xynergy labcoat"
 	path = /obj/item/clothing/suit/storage/toggle/labcoat/xyn_machine
@@ -115,6 +124,17 @@
 /datum/gear/shoes/wrk_toeless
 	display_name = "toeless workboots"
 	path = /obj/item/clothing/shoes/workboots/toeless
+	sort_category = "Xenowear"
+
+/datum/gear/shoes/clogs_toeless
+	display_name = "toeless foam clogs"
+	path = /obj/item/clothing/shoes/foamclog/toeless
+	flags = GEAR_HAS_COLOR_SELECTION
+	sort_category = "Xenowear"
+
+/datum/gear/shoes/flipflobsters_toeless
+	display_name = "toeless flip flobsters"
+	path = /obj/item/clothing/shoes/foamclog/flipflobster/toeless
 	sort_category = "Xenowear"
 
 // Pre-modified gloves
@@ -161,9 +181,26 @@
 	sort_category = "Xenowear"
 	whitelisted = list(SPECIES_UNATHI, SPECIES_YEOSA)
 
+// Unathi Rings
+
+/datum/gear/unathi_ring
+	display_name = "unathi ring selection"
+	path = /obj/item/clothing/ring/seal/lhossekskull
+	sort_category = "Xenowear"
+	whitelisted = list(SPECIES_UNATHI, SPECIES_YEOSA)
+	cost = 2
+
+/datum/gear/unathi_ring/New()
+	..()
+	var/ringtype = list()
+	ringtype["grand stratagem ring"] = /obj/item/clothing/ring/seal/lhossekskull
+	ringtype["fruitful lights ring"] = /obj/item/clothing/ring/seal/lhossekskull/fruitfullights
+	gear_tweaks += new/datum/gear_tweak/path(ringtype)
+
+
 // Vox clothing
-/datum/gear/mask/gas/vox
+/datum/gear/vox_mask
 	display_name = "vox breathing mask"
 	path = /obj/item/clothing/mask/gas/vox
 	sort_category = "Xenowear"
-	whitelisted = list(SPECIES_VOX, SPECIES_VOX_ARMALIS)
+	whitelisted = list(SPECIES_VOX)

@@ -30,7 +30,7 @@ hr {
     height: 1px;
 }
 
-.link, .linkOn, .linkOff, .selected, .disabled, .yellowButton, .redButton {
+.link, .linkOn, .linkOff, .selected, .warning, .disabled, .yellowButton, .redButton {
     float: left;
     min-width: 15px;
     height: 16px;
@@ -82,6 +82,16 @@ a.white:hover {
     background: #2f943c;
 }
 
+.linkWarning, a.linkWarning:link, a.linkWarning:visited, a.linkWarning:active, a.linkWarning:hover, .warning, a.warning:link, a.warning:visited, a.warning:active, a.warning:hover {
+    color: #ffffff;
+    background: #ff5805;
+}
+
+.warning:hover {
+    color: #ffffff !important;
+    background: #cc7f58 !important;
+}
+
 .linkOff, a.linkOff:link, a.linkOff:visited, a.linkOff:active, a.linkOff:hover, .disabled, a.disabled:link, a.disabled:visited, a.disabled:active, a.disabled:hover {
     color: #ffffff;
     background: #999999;
@@ -115,6 +125,10 @@ ul {
     padding: 4px 0 0 10px;
     margin: 0;
     list-style-type: none;
+}
+
+dl dt {
+    font-weight: bold;
 }
 
 li {
@@ -514,6 +528,38 @@ div.notice {
 
 .floatRight {
     float: right;
+}
+
+.textInputRow {
+    display: flex;
+    gap: 4px;
+}
+
+.textInputSend {
+    height: 22px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 4px;
+    line-height: 20px;
+    border-color: #40628a;
+}
+
+.textInput {
+    flex: 1;
+    min-width: 0;
+    height: 22px;
+    box-sizing: border-box;
+    padding: 0 4px;
+    background: #000000;
+    color: #ffffff;
+    border: 1px solid #40628a;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.textInput:focus {
+    border-color: #507aac;
+    outline: none;
 }
 
 .floatLeft {

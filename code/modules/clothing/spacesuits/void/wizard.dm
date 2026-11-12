@@ -43,10 +43,6 @@
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS
 	cold_protection = UPPER_TORSO | LOWER_TORSO | LEGS | FEET | ARMS
 
-/obj/item/clothing/suit/space/void/wizard/New()
-	..()
-	slowdown_per_slot[slot_wear_suit] = 1
-
 /obj/item/clothing/gloves/wizard
 	name = "mystical gloves"
 	desc = "Reinforced, gem-studded gloves that radiate energy. They look like they go along with a matching voidsuit."
@@ -56,7 +52,7 @@
 	body_parts_covered = HANDS
 	cold_protection =    HANDS
 	min_cold_protection_temperature = SPACE_SUIT_MIN_COLD_PROTECTION_TEMPERATURE
-	species_restricted = null
+	species_restricted = list("exclude",SPECIES_NABBER)
 	gender = PLURAL
 	gas_transfer_coefficient = 0.01
 	permeability_coefficient = 0.02

@@ -7,8 +7,8 @@
 	icon_living = "spark"
 	icon_dead = "spark_dead"
 
-	maxHealth = 210
-	health = 210
+	maxHealth = 65
+	health = 65
 
 
 	base_attack_cooldown = 15
@@ -21,7 +21,7 @@
 
 	shock_resist = 0.75
 
-	ai_holder_type = /datum/ai_holder/simple_animal/ranged/electric_spider
+	ai_holder = /datum/ai_holder/simple_animal/ranged/electric_spider
 
 /obj/item/projectile/beam/stun/electric_spider
 	name = "stun beam"

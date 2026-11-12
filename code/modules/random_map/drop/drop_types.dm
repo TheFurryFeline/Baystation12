@@ -1,6 +1,7 @@
 var/global/list/datum/supply_drop_loot/supply_drop
 
 /proc/supply_drop_random_loot_types()
+	RETURN_TYPE(/list)
 	if(!supply_drop)
 		supply_drop = init_subtypes(/datum/supply_drop_loot)
 		supply_drop = dd_sortedObjectList(supply_drop)
@@ -97,7 +98,7 @@ var/global/list/datum/supply_drop_loot/supply_drop
 		/obj/item/reagent_containers/food/condiment/flour,
 		/obj/item/reagent_containers/food/drinks/milk,
 		/obj/item/reagent_containers/food/drinks/milk,
-		/obj/item/storage/fancy/egg_box,
+		/obj/item/storage/fancy/egg_box/full,
 		/obj/item/reagent_containers/food/snacks/tofu,
 		/obj/item/reagent_containers/food/snacks/tofu,
 		/obj/item/reagent_containers/food/snacks/meat,
@@ -149,10 +150,11 @@ var/global/list/datum/supply_drop_loot/supply_drop
 		/obj/item/storage/firstaid/fire,
 		/obj/item/storage/firstaid/toxin,
 		/obj/item/storage/firstaid/o2,
+		/obj/item/storage/firstaid/radiation,
 		/obj/item/storage/firstaid/adv,
-		/obj/item/reagent_containers/glass/bottle/antitoxin,
+		/obj/item/reagent_containers/glass/bottle/dylovene,
 		/obj/item/reagent_containers/glass/bottle/inaprovaline,
-		/obj/item/reagent_containers/glass/bottle/stoxin,
+		/obj/item/reagent_containers/glass/bottle/soporific,
 		/obj/item/storage/box/syringes,
 		/obj/item/storage/box/autoinjectors)
 

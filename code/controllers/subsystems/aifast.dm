@@ -2,37 +2,50 @@ SUBSYSTEM_DEF(aifast)
 	name = "AI (Fast)"
 	init_order = SS_INIT_AIFAST
 	priority = SS_PRIORITY_AI
-	wait = 0.25 SECONDS // Every quarter second
-
-	#ifdef UNIT_TEST
-	flags = SS_NO_FIRE|SS_NO_INIT
-	#else
+	wait = 0.5 SECONDS
+#ifdef UNIT_TEST
+	flags = SS_NO_INIT | SS_NO_FIRE
+#else
 	flags = SS_NO_INIT
-	#endif
+#endif
 
-	runlevels = RUNLEVEL_GAME | RUNLEVEL_POSTGAME
+	/// The set of all ai_holders currently being updated
+	var/static/list/datum/ai_holder/ai_holders = list()
 
-	var/list/processing = list()
-	var/list/currentrun = list()
+	/// The current queue of ai_holder instances to update
+	var/static/list/datum/ai_holder/queue = list()
 
-/datum/controller/subsystem/aifast/stat_entry(msg_prefix)
-	var/list/msg = list(msg_prefix)
-	msg += "P:[processing.len]"
-	..(msg.Join())
+	/// If the queue was not finished, the index to read from on the next run
+	var/static/saved_index
 
-/datum/controller/subsystem/aifast/fire(resumed = 0)
+
+/datum/controller/subsystem/aifast/UpdateStat(time)
+	if (PreventUpdateStat(time))
+		return ..()
+	..({"\
+		Active AI: [length(ai_holders)] \
+		Run Empty Levels: [config.run_empty_levels ? "Y" : "N"]\
+	"})
+
+
+/datum/controller/subsystem/aifast/fire(resumed, no_mc_tick)
 	if (!resumed)
-		src.currentrun = processing.Copy()
-
-	//cache for sanic speed (lists are references anyways)
-	var/list/currentrun = src.currentrun
-
-	while(currentrun.len)
-		var/datum/ai_holder/A = currentrun[currentrun.len]
-		--currentrun.len
-		if(!A || QDELETED(A) || A.busy || !A.holder) // Doesn't exist or won't exist soon or not doing it this tick
+		queue = ai_holders.Copy()
+		saved_index = 1
+	var/queue_length = length(queue)
+	if (!queue_length)
+		return
+	var/datum/ai_holder/ai
+	for (var/i = saved_index to queue_length)
+		ai = queue[i]
+		if (QDELETED(ai) || ai.busy || !ai.holder)
 			continue
-		A.handle_tactics()
-
-		if(MC_TICK_CHECK)
+		if (!config.run_empty_levels && !SSpresence.population(get_z(ai.holder)))
+			continue
+		ai.handle_tactics()
+		if (no_mc_tick)
+			CHECK_TICK
+		else if (MC_TICK_CHECK)
+			saved_index = i + 1
 			return
+	queue.Cut()

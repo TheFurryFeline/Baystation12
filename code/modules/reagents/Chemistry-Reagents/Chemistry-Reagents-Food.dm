@@ -4,15 +4,15 @@
 	taste_mult = 4
 	reagent_state = SOLID
 	metabolism = REM * 4
+	bioavailability = 1
 	var/nutriment_factor = 10 // Per unit
 	var/hydration_factor = 0 // Per unit
-	var/injectable = 0
 	color = "#664330"
 	value = 0.1
 
-/datum/reagent/nutriment/mix_data(var/list/newdata, var/newamount)
+/datum/reagent/nutriment/mix_data(list/newdata, newamount)
 
-	if(!islist(newdata) || !newdata.len)
+	if(!islist(newdata) || !length(newdata))
 		return
 
 	//add the new taste data
@@ -33,26 +33,16 @@
 		if(data[taste]/totalFlavor < 0.1)
 			data -= taste
 
-/datum/reagent/nutriment/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(!injectable)
-		M.adjustToxLoss(0.2 * removed)
-		return
-	affect_ingest(M, alien, removed)
-
-/datum/reagent/nutriment/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
-	if (alien == IS_SKRELL && protein_amount > 0)
-		var/datum/species/skrell/S = M.species
-		S.handle_protein(M, src)
+/datum/reagent/nutriment/affect_blood(mob/living/carbon/M, removed)
 	M.heal_organ_damage(0.5 * removed, 0) //what
-
-	adjust_nutrition(M, alien, removed)
+	adjust_nutrition(M, removed)
 	M.add_chemical_effect(CE_BLOODRESTORE, 4 * removed)
 
-/datum/reagent/nutriment/proc/adjust_nutrition(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/nutriment/proc/adjust_nutrition(mob/living/carbon/M, removed)
+	if (HAS_TRAIT(M, /singleton/trait/boon/cast_iron_stomach))
+		removed *= 0.1 // Unathi get most of their nutrition from meat.
 	var/nut_removed = removed
 	var/hyd_removed = removed
-	if(alien == IS_UNATHI)
-		removed *= 0.1 // Unathi get most of their nutrition from meat.
 	if(nutriment_factor)
 		M.adjust_nutrition(nutriment_factor * nut_removed) // For hunger and fatness
 	if(hydration_factor)
@@ -63,7 +53,9 @@
 	color = "#ffffff"
 	scannable = 1
 
-	injectable = 1
+/datum/reagent/nutriment/glucose/adjust_nutrition(mob/living/carbon/M, removed)
+	M.adjust_nutrition(nutriment_factor * removed)
+	M.adjust_hydration(hydration_factor * removed)
 
 /datum/reagent/nutriment/protein // Bad for Skrell!
 	name = "Animal Protein"
@@ -71,16 +63,36 @@
 	color = "#440000"
 	protein_amount = 1
 
-/datum/reagent/nutriment/protein/adjust_nutrition(var/mob/living/carbon/M, var/alien, var/removed)
-	switch(alien)
-		if(IS_UNATHI) removed *= 2.25
-		if(IS_SKRELL) return
+/datum/reagent/nutriment/protein/adjust_nutrition(mob/living/carbon/M, removed)
+	if (HAS_TRAIT(M, /singleton/trait/malus/animal_protein))
+		return
+	if (HAS_TRAIT(M, /singleton/trait/boon/cast_iron_stomach))
+		removed *= 2.25
 	M.adjust_nutrition(nutriment_factor * removed)
 
+/datum/reagent/nutriment/protein/cheese
+	name = "Cheese Protein"
+	taste_description = "cheese"
+	color = "#b7c616"
+
+/datum/reagent/nutriment/protein/fish
+	name = "Fish Protein"
+	taste_description = "fish"
+	color = "#9d9e94"
+
+/datum/reagent/nutriment/protein/shellfish
+	name = "Shellfish Protein"
+	taste_description = "shellfish"
+	color = "#f6db93"
+
 /datum/reagent/nutriment/protein/egg // Also bad for skrell.
-	name = "egg yolk"
+	name = "Egg Yolk"
 	taste_description = "egg"
 	color = "#ffffaa"
+
+	condiment_icon_state = "eggyolk"
+	condiment_name = "egg yolk carton"
+	condiment_desc = "A carton full of egg yolk."
 
 //vegetamarian alternative that is safe for skrell to ingest//rewired it from its intended nutriment/protein/egg/softtofu because it would not actually work, going with plan B, more recipes.
 
@@ -96,13 +108,11 @@
 	taste_description = "sweetness"
 	nutriment_factor = 10
 	color = "#ffff00"
+	sugar_amount = 1
 
-/datum/reagent/nutriment/honey/affect_ingest(var/mob/living/carbon/human/M, var/alien, var/removed)
-	..()
-
-	if(alien == IS_UNATHI)
-		var/datum/species/unathi/S = M.species
-		S.handle_sugar(M,src)
+	condiment_icon_state = "honey"
+	condiment_name = "honey"
+	condiment_desc = "A jar of sweet and viscous honey."
 
 /datum/reagent/nutriment/flour
 	name = "flour"
@@ -112,9 +122,13 @@
 	nutriment_factor = 1
 	color = "#ffffff"
 
-/datum/reagent/nutriment/flour/touch_turf(var/turf/simulated/T)
+	condiment_icon_state = "flour"
+	condiment_name = "flour sack"
+	condiment_desc = "A big bag of flour. Good for baking!"
+
+/datum/reagent/nutriment/flour/touch_turf(turf/simulated/T)
 	if(istype(T))
-		new /obj/effect/decal/cleanable/flour(T)
+		new /obj/decal/cleanable/flour(T)
 		if(T.wet > 1)
 			T.wet = min(T.wet, 1)
 		else
@@ -123,15 +137,26 @@
 /datum/reagent/nutriment/batter
 	name = "Batter"
 	description = "A gooey mixture of eggs and flour, a base for turning wheat into food."
-	taste_description = "blandness"
+	taste_description = "bready goodness"
 	reagent_state = LIQUID
+	taste_mult = 0.2
 	nutriment_factor = 3
 	color = "#ffd592"
 	protein_amount = 0.4
 
-/datum/reagent/nutriment/batter/touch_turf(var/turf/simulated/T)
+	condiment_icon_state = "batter"
+	condiment_name = "batter mix"
+	condiment_desc = "A gooey mixture of eggs and flour in a vat. Delicious!"
+
+/datum/reagent/nutriment/batter/soy
+	name = "Soy Batter"
+	description = "A gooey mixture of tofu and flour, a base for turning soy into food."
+	taste_description = "tofu goodness?"
+	protein_amount = 0
+
+/datum/reagent/nutriment/batter/touch_turf(turf/simulated/T)
 	if(!istype(T, /turf/space))
-		new /obj/effect/decal/cleanable/pie_smudge(T)
+		new /obj/decal/cleanable/pie_smudge(T)
 		if(T.wet > 1)
 			T.wet = min(T.wet, 1)
 		else
@@ -139,10 +164,24 @@
 
 /datum/reagent/nutriment/batter/cakebatter
 	name = "Cake Batter"
-	description = "A gooey mixture of eggs, flour and sugar, a important precursor to cake!"
+	description = "A gooey mixture of eggs, flour and sugar, an important precursor to cake!"
 	taste_description = "sweetness"
 	color = "#ffe992"
+	nutriment_factor = 5
+	taste_mult = 0.3
 	protein_amount = 0.3
+	sugar_amount = 0.3
+	condiment_name = "cake batter mix"
+	active_metabolites = /datum/reagent/nutriment/batter
+	metabolite_potency = 0.7
+
+/datum/reagent/nutriment/batter/cakebatter/soy
+	name = "Soy Cake Batter"
+	description = "A gooey mixture of soy, flour and honey, an important precursor to cake!"
+	protein_amount = 0
+	sugar_amount = 0.4
+	active_metabolites = /datum/reagent/nutriment/batter/soy
+	metabolite_potency = 0.7
 
 /datum/reagent/nutriment/coffee
 	name = "Coffee Powder"
@@ -152,9 +191,15 @@
 	nutriment_factor = 1
 	color = "#482000"
 
+	condiment_icon_state = "coffee"
+	condiment_name = "coffee powder"
+
 /datum/reagent/nutriment/coffee/instant
 	name = "Instant Coffee Powder"
 	description = "A bitter powder made by processing coffee beans."
+
+	condiment_name = "instant coffee powder"
+	condiment_desc = "A sack of instant coffee powder, now 50% more caffeinated!"
 
 /datum/reagent/nutriment/tea
 	name = "Tea Powder"
@@ -164,17 +209,27 @@
 	nutriment_factor = 1
 	color = "#101000"
 
+	condiment_icon_state = "tea"
+	condiment_name = "tea powder"
+
 /datum/reagent/nutriment/tea/instant
 	name = "Instant Tea Powder"
 
+	condiment_name = "instant tea powder"
+	condiment_desc = "A sack of instant tea powder, now 50% less caffeinated!"
+
 /datum/reagent/nutriment/coco
-	name = "Coco Powder"
-	description = "A fatty, bitter paste made from coco beans."
+	name = "Cocoa Powder"
+	description = "A fatty, bitter paste made from cocoa beans."
 	taste_description = "bitterness"
 	taste_mult = 1.3
 	reagent_state = SOLID
 	nutriment_factor = 5
 	color = "#302000"
+
+	condiment_icon_state = "cocoapowder"
+	condiment_name = "cocoa powder"
+	condiment_desc = "A can full of chocolately powder. Not very tasty by itself."
 
 /datum/reagent/nutriment/instantjuice
 	name = "Juice Powder"
@@ -213,7 +268,11 @@
 	taste_mult = 1.1
 	reagent_state = LIQUID
 	nutriment_factor = 2
+
 	color = "#792300"
+	condiment_icon_state = "soysauce"
+	condiment_name = "soy sauce"
+	condiment_desc = "A dark, salty, savoury flavoring."
 
 /datum/reagent/nutriment/ketchup
 	name = "Ketchup"
@@ -223,6 +282,10 @@
 	nutriment_factor = 5
 	color = "#731008"
 
+	condiment_icon_state = "ketchup"
+	condiment_name = "ketchup"
+	condiment_desc = "Tomato, but more liquid, stronger, better."
+
 /datum/reagent/nutriment/barbecue
 	name = "Barbecue Sauce"
 	description = "Barbecue sauce for barbecues and long shifts."
@@ -230,6 +293,10 @@
 	reagent_state = LIQUID
 	nutriment_factor = 5
 	color = "#4f330f"
+
+	condiment_icon_state = "barbecue"
+	condiment_name = "barbecue sauce"
+	condiment_desc = "A bottle of barbecue sauce. It's labeled 'sweet and spicy'."
 
 /datum/reagent/nutriment/garlicsauce
 	name = "Garlic Sauce"
@@ -239,6 +306,10 @@
 	nutriment_factor = 4
 	color = "#d8c045"
 
+	condiment_icon_state = "garlic_sauce"
+	condiment_name = "garlic sauce"
+	condiment_desc = "Perfect for repelling vampires and/or potential dates."
+
 /datum/reagent/nutriment/rice
 	name = "Rice"
 	description = "Enjoy the great taste of nothing."
@@ -247,6 +318,10 @@
 	reagent_state = SOLID
 	nutriment_factor = 1
 	color = "#ffffff"
+
+	condiment_icon_state = "rice"
+	condiment_name = "rice sack"
+	condiment_desc = "A big bag of rice for cooking."
 
 /datum/reagent/nutriment/rice/chazuke
 	name = "Chazuke"
@@ -266,6 +341,10 @@
 	nutriment_factor = 1
 	color = "#801e28"
 
+	condiment_icon_state = "jellyjar"
+	condiment_name = "cherry jelly jar"
+	condiment_desc = "Great with peanut butter!"
+
 /datum/reagent/nutriment/cornoil
 	name = "Corn Oil"
 	description = "An oil derived from various types of corn."
@@ -273,13 +352,17 @@
 	taste_mult = 0.1
 	reagent_state = LIQUID
 	nutriment_factor = 20
-	color = "#302000"
+	color = "#c9bb1e"
 
-/datum/reagent/nutriment/cornoil/touch_turf(var/turf/simulated/T)
+	condiment_icon_state = "cooking_oil"
+	condiment_name = "corn oil"
+	condiment_desc = "A delicious oil used in cooking. Made from corn."
+
+/datum/reagent/nutriment/cornoil/touch_turf(turf/simulated/T)
 	if(!istype(T))
 		return
 
-	var/hotspot = (locate(/obj/fire) in T)
+	var/hotspot = (locate(/obj/hotspot) in T)
 	if(hotspot && !istype(T, /turf/space))
 		var/datum/gas_mixture/lowertemp = T.remove_air(T:air:total_moles)
 		lowertemp.temperature = max(min(lowertemp.temperature-2000, lowertemp.temperature / 2), 0)
@@ -290,6 +373,22 @@
 	if(volume >= 3)
 		T.wet_floor()
 
+/datum/reagent/nutriment/cornoil/proc/heatdamage(mob/living/carbon/mob, temperature = T20C)
+	var/threshold = 360//Human heatdamage threshold
+	if (mob.species && istype(mob.species))
+		threshold = mob.species.heat_level_1
+
+	//If temperature is too low to burn, return a factor of 0. no damage
+	if (temperature < threshold)
+		return 0
+
+	//Degrees above heat level 1 for 1.0 multiplier
+	var/heat_step = 60
+	if (mob.species && istype(mob.species))
+		heat_step = (mob.species.heat_level_2 - mob.species.heat_level_1) * 1.5
+
+	return min((temperature - threshold) / heat_step, 2.5)
+
 /datum/reagent/nutriment/sprinkles
 	name = "Sprinkles"
 	description = "Multi-colored little bits of sugar, commonly found on donuts. Loved by cops."
@@ -297,12 +396,19 @@
 	nutriment_factor = 1
 	color = "#ff00ff"
 
+	condiment_icon_state = "sprinklesbottle"
+	condiment_name = "bottle of sprinkles"
+
 /datum/reagent/nutriment/mint
 	name = "Mint"
 	description = "Also known as Mentha."
 	taste_description = "sweet mint"
 	reagent_state = LIQUID
 	color = "#07aab2"
+
+	condiment_icon_state = "mint_syrup"
+	condiment_name = "mint essential oil"
+	condiment_desc = "A small bottle of the essential oil of some kind of mint plant."
 
 /datum/reagent/lipozine // The anti-nutriment.
 	name = "Lipozine"
@@ -313,7 +419,7 @@
 	overdose = REAGENTS_OVERDOSE
 	value = 0.11
 
-/datum/reagent/lipozine/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/lipozine/affect_blood(mob/living/carbon/M, removed)
 	M.adjust_nutrition(-10)
 
 /* Non-food stuff like condiments */
@@ -327,6 +433,10 @@
 	overdose = REAGENTS_OVERDOSE
 	value = 0.11
 
+	condiment_icon_state = "saltshaker"
+	condiment_name = "salt shaker"
+	condiment_desc = "Salt. From space oceans, presumably."
+
 /datum/reagent/blackpepper
 	name = "Black Pepper"
 	description = "A powder ground from peppercorns. *AAAACHOOO*"
@@ -334,6 +444,10 @@
 	reagent_state = SOLID
 	color = "#000000"
 	value = 0.1
+
+	condiment_icon_state = "peppermill"
+	condiment_name = "pepper shaker"
+	condiment_desc = "Often used to flavor food or make people sneeze."
 
 /datum/reagent/enzyme
 	name = "Universal Enzyme"
@@ -345,6 +459,10 @@
 	overdose = REAGENTS_OVERDOSE
 	value = 0.2
 
+	condiment_icon_state = "enzyme"
+	condiment_name = "universal enzyme"
+	condiment_desc = "Used in cooking various dishes."
+
 /datum/reagent/frostoil
 	name = "Chilly Oil"
 	description = "An oil harvested from a mutant form of chili peppers, it has a chilling effect on the body."
@@ -353,16 +471,21 @@
 	reagent_state = LIQUID
 	color = "#07aab2"
 	value = 0.2
+	bioavailability = 0.2
 
-/datum/reagent/frostoil/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_DIONA)
+	condiment_icon_state = "coldsauce"
+	condiment_name = "cold sauce"
+	condiment_desc = "Leaves the tongue numb in its passage."
+
+/datum/reagent/frostoil/affect_ingest(mob/living/carbon/M, removed)
+	if (IS_METABOLICALLY_INERT(M))
 		return
 	M.bodytemperature = max(M.bodytemperature - 10 * TEMPERATURE_DAMAGE_COEFFICIENT, 0)
 	if(prob(1))
 		M.emote("shiver")
 	if(istype(M, /mob/living/carbon/slime))
 		M.bodytemperature = max(M.bodytemperature - rand(10,20), 0)
-	holder.remove_reagent(/datum/reagent/capsaicin, 5)
+	holder.remove_reagent(/datum/reagent/capsaicin, removed * 5)
 
 /datum/reagent/capsaicin
 	name = "Capsaicin Oil"
@@ -375,31 +498,37 @@
 	var/agony_amount = 2
 	var/discomfort_message = "<span class='danger'>Your insides feel uncomfortably hot!</span>"
 	var/slime_temp_adj = 10
+	metabolism = REM * 0.5 //Takes forever to leave the stomach!
+	bioavailability = 0 //Does not get into the blood; just hangs around the stomach.
 	value = 0.2
 
-/datum/reagent/capsaicin/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_DIONA)
+	condiment_icon_state= "hotsauce"
+	condiment_name = "hot sauce"
+	condiment_desc = "You can almost TASTE the stomach ulcers now!"
+
+/datum/reagent/capsaicin/affect_blood(mob/living/carbon/M, removed)
+	if (IS_METABOLICALLY_INERT(M))
 		return
 	M.adjustToxLoss(0.5 * removed)
 
-/datum/reagent/capsaicin/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_DIONA || alien == IS_UNATHI)
+/datum/reagent/capsaicin/affect_ingest(mob/living/carbon/M, removed)
+	if(IS_METABOLICALLY_INERT(M) || M.HasTrait(/singleton/trait/boon/cast_iron_stomach))
 		return
 	if(ishuman(M))
 		var/mob/living/carbon/human/H = M
 		if(!H.can_feel_pain())
 			return
-	if(M.chem_doses[type] < agony_dose)
-		if(prob(5) || M.chem_doses[type] == metabolism) //dose == metabolism is a very hacky way of forcing the message the first time this procs
-			to_chat(M, discomfort_message)
-	else
-		M.apply_effect(agony_amount, PAIN, 0)
+
+	if (volume < agony_dose && prob(5))
+		to_chat(M, discomfort_message)
+	else if (volume >= agony_dose)
+		M.apply_effect(agony_amount, EFFECT_PAIN, 0)
 		if(prob(5))
 			M.custom_emote(2, "[pick("dry heaves!","coughs!","splutters!")]")
-			to_chat(M, "<span class='danger'>You feel like your insides are burning!</span>")
+			to_chat(M, SPAN_DANGER("You feel like your insides are burning!"))
 	if(istype(M, /mob/living/carbon/slime))
-		M.bodytemperature += rand(0, 15) + slime_temp_adj
-	holder.remove_reagent(/datum/reagent/frostoil, 5)
+		M.bodytemperature += (rand(0, 15) * agony_amount/2) + slime_temp_adj
+	holder.remove_reagent(/datum/reagent/frostoil, removed * 2 * agony_amount)
 
 /datum/reagent/capsaicin/condensed
 	name = "Condensed Capsaicin"
@@ -414,7 +543,7 @@
 	discomfort_message = "<span class='danger'>You feel like your insides are burning!</span>"
 	slime_temp_adj = 15
 
-/datum/reagent/capsaicin/condensed/affect_touch(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/capsaicin/condensed/affect_touch(mob/living/carbon/M, removed)
 	var/eyes_covered = 0
 	var/mouth_covered = 0
 	var/partial_mouth_covered = 0
@@ -424,10 +553,8 @@
 	var/obj/item/face_protection = null
 	var/obj/item/partial_face_protection = null
 
-	var/effective_strength = 5
-
-	if(alien == IS_SKRELL)	//Larger eyes means bigger targets.
-		effective_strength = 8
+	var/permeability = GET_TRAIT_LEVEL(M, /singleton/trait/general/permeable_skin)
+	var/effective_strength = 5 + (3 * permeability)
 
 	var/list/protection
 	if(istype(M, /mob/living/carbon/human))
@@ -452,10 +579,10 @@
 
 	if(eyes_covered)
 		if(!mouth_covered)
-			to_chat(M, "<span class='warning'>Your [eye_protection] protects your eyes from the pepperspray!</span>")
+			to_chat(M, SPAN_WARNING("Your [eye_protection] protects your eyes from the pepperspray!"))
 	else
-		to_chat(M, "<span class='warning'>The pepperspray gets in your eyes!</span>")
-		M.confused += 2
+		to_chat(M, SPAN_WARNING("The pepperspray gets in your eyes!"))
+		M.mod_confused(2)
 		if(mouth_covered)
 			M.eye_blurry = max(M.eye_blurry, effective_strength * 3)
 			M.eye_blind = max(M.eye_blind, effective_strength)
@@ -464,34 +591,17 @@
 			M.eye_blind = max(M.eye_blind, effective_strength * 2)
 
 	if(mouth_covered)
-		to_chat(M, "<span class='warning'>Your [face_protection] protects you from the pepperspray!</span>")
+		to_chat(M, SPAN_WARNING("Your [face_protection] protects you from the pepperspray!"))
 	else if(!no_pain)
 		if(partial_mouth_covered)
-			to_chat(M, "<span class='warning'>Your [partial_face_protection] partially protects you from the pepperspray!</span>")
+			to_chat(M, SPAN_WARNING("Your [partial_face_protection] partially protects you from the pepperspray!"))
 			stun_probability *= 0.5
-		to_chat(M, "<span class='danger'>Your face and throat burn!</span>")
+		to_chat(M, SPAN_DANGER("Your face and throat burn!"))
 		if(M.stunned > 0  && !M.lying)
 			M.Weaken(4)
 		if(prob(stun_probability))
 			M.custom_emote(2, "[pick("coughs!","coughs hysterically!","splutters!")]")
 			M.Stun(3)
-
-/datum/reagent/capsaicin/condensed/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
-	if(ishuman(M))
-		var/mob/living/carbon/human/H = M
-		if(!H.can_feel_pain())
-			return
-	if(M.chem_doses[type] == metabolism)
-		to_chat(M, "<span class='danger'>You feel like your insides are burning!</span>")
-	else
-		M.apply_effect(6, PAIN, 0)
-		if(prob(5))
-			to_chat(M, "<span class='danger'>You feel like your insides are burning!</span>")
-			M.custom_emote(2, "[pick("coughs.","gags.","retches.")]")
-			M.Stun(2)
-	if(istype(M, /mob/living/carbon/slime))
-		M.bodytemperature += rand(15, 30)
-	holder.remove_reagent(/datum/reagent/frostoil, 5)
 
 /datum/reagent/nutriment/vinegar
 	name = "Vinegar"
@@ -509,3 +619,80 @@
 	color = "#efede8"
 	taste_mult = 2
 	protein_amount = 0.7
+
+	condiment_icon_state = "mayonnaise"
+	condiment_name = "mayonnaise"
+	condiment_desc = "Mayonnaise, used for centuries to make things edible."
+
+/datum/reagent/nutriment/peanut
+	name = "Peanuts"
+	description = "Whole peanuts"
+	taste_description = "peanut"
+	reagent_state = SOLID
+	color = "#ad7937"
+	taste_mult = 2
+
+/datum/reagent/nutriment/peanut/groundpeanuts
+	name = "Ground Peanuts"
+	description = "Roughly ground peanuts."
+	active_metabolites = /datum/reagent/nutriment/peanut
+
+	condiment_icon_state = "peanut"
+	condiment_name = "sack of ground peanuts"
+	condiment_desc = "A sack full of crunchy ground peanuts."
+
+/datum/reagent/nutriment/peanut/peanutbutter
+	name = "Peanut Butter"
+	description = "Clearer the better spread, exception for those who are deathly allergic."
+	taste_description = "peanut butter"
+	reagent_state = LIQUID
+	sugar_amount = 0.1
+	active_metabolites = /datum/reagent/nutriment/peanut
+	metabolite_potency = 0.7
+
+	condiment_icon_state = "pbjar"
+	condiment_name = "peanut butter jar"
+	condiment_desc = "Great with jelly!"
+
+/datum/reagent/nutriment/almondmeal
+	name = "Almond Meal"
+	description = "Finely ground almonds."
+	taste_description = "nuts"
+	reagent_state = SOLID
+	color = "#c9a275"
+	taste_mult = 2
+
+/datum/reagent/nutriment/choconutspread
+	name = "Choco-Nut Spread"
+	description = "Creamy chocolate spread with a nutty undertone."
+	taste_description = "nutty chocolate"
+	reagent_state = LIQUID
+	color = "#2c1000"
+	taste_mult = 2
+	sugar_amount = 0.5
+
+	condiment_name = "NTella jar"
+	condiment_desc = "Originally called 'Entella', it was rebranded after being bought by NanoTrasen. Some humans insist this nutty chocolate spread might be the best thing they've ever created."
+	condiment_icon_state = "NTellajar"
+
+/datum/reagent/spacespice
+	name = "Space Spice"
+	description = "A melange of spices for cooking. It must flow."
+	taste_description = "spices"
+	reagent_state = SOLID
+	color = "#e08702"
+	taste_mult = 1.5
+
+	condiment_name = "bottle of space spice"
+	condiment_icon_state = "spacespicebottle"
+
+/datum/reagent/pearcompote
+	name = "Pear Compote"
+	description = "A delicious compote made of spiced pears."
+	taste_description = "spiced pears"
+	reagent_state = SOLID
+	sugar_amount = 0.5
+
+	condiment_icon_state = "pearcompote"
+	condiment_name = "pear compote jar"
+	condiment_desc = "A delicious spread of spiced pears."

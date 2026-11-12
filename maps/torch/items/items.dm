@@ -23,7 +23,7 @@ Random item spawning
 /obj/random/maintenance/solgov
 	name = "random maintenance item"
 	desc = "This is a random maintenance item."
-	icon = 'icons/obj/items.dmi'
+	icon = 'icons/obj/parcels.dmi'
 	icon_state = "gift1"
 
 /obj/random/maintenance/solgov/spawn_choices()
@@ -34,8 +34,8 @@ Random item spawning
 /obj/random/maintenance/solgov/clean
 	name = "random maintenance item"
 	desc = "This is a random maintenance item."
-	icon = 'icons/obj/items.dmi'
-	icon_state = "gift2"
+	icon = 'icons/obj/parcels.dmi'
+	icon_state = "gift3"
 
 /obj/random/maintenance/solgov/clean/spawn_choices()
 	return list(/obj/random/solgov = 3,
@@ -59,16 +59,24 @@ Torch specific items
 	name = "explorer backpack"
 	desc = "A rugged backpack."
 	icon_state = "exppack"
+	item_state_slots = list(
+		slot_l_hand_str = "exppack",
+		slot_r_hand_str = "exppack",
+		)
 
 /obj/item/storage/backpack/satchel/explorer
 	name = "explorer satchel"
 	desc = "A rugged satchel for field work."
 	icon_state = "satchel-exp"
+	item_state_slots = list(
+		slot_l_hand_str = "satchel-exp",
+		slot_r_hand_str = "satchel-exp",
+		)
 
 /obj/item/storage/backpack/messenger/explorer
 	name = "explorer messenger bag"
 	desc = "A rugged backpack worn over one shoulder."
-	icon_state = "courierbagexp"
+	icon_state = "courierbagsci"
 
 /***********
 Unique items
@@ -90,7 +98,7 @@ Unique items
 	if(++selectedColor > 3)
 		selectedColor = 1
 	colour = colors[selectedColor]
-	to_chat(user, "<span class='notice'>Changed color to '[colour].'</span>")
+	to_chat(user, SPAN_NOTICE("Changed color to '[colour].'"))
 
 /******
 Weapons
@@ -105,6 +113,7 @@ Weapons
 	fire_anim = "mosley_fire"
 	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 2)
 	starts_loaded = 0 //Nobody keeps ballistic weapons loaded
+	manufacturer = MANUFACTURER_AL_MALIKI_MOSLEY
 
 /obj/item/gun/energy/stunrevolver/secure/nanotrasen
 	name = "corporate stun revolver"
@@ -117,8 +126,8 @@ Weapons
 /obj/item/ammo_magazine/pistol/small/oneway
 	initial_ammo = 1
 
-/obj/effect/paint/hull
+/obj/paint/hull
 	color = COLOR_SOL
 
-/obj/effect/paint/expeditionary
+/obj/paint/expeditionary
 	color = "#68099e"

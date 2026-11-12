@@ -5,7 +5,7 @@ Single Use Emergency Pouches
 /obj/item/storage/med_pouch
 	name = "emergency medical pouch"
 	desc = "For use in emergency situations only."
-	icon = 'icons/obj/med_pouch.dmi'
+	icon = 'icons/obj/medical.dmi'
 	storage_slots = 7
 	w_class = ITEM_SIZE_SMALL
 	max_w_class = ITEM_SIZE_SMALL
@@ -13,7 +13,7 @@ Single Use Emergency Pouches
 	opened = FALSE
 	open_sound = 'sound/effects/rip1.ogg'
 	var/injury_type = "generic"
-	var/global/image/cross_overlay
+	var/static/image/cross_overlay
 
 	var/instructions = {"
 	1) Tear open the emergency medical pack using the easy open tab at the top.\n\
@@ -37,21 +37,21 @@ Single Use Emergency Pouches
 		A.update_icon()
 
 /obj/item/storage/med_pouch/on_update_icon()
-	overlays.Cut()
+	ClearOverlays()
 	if(!cross_overlay)
 		cross_overlay = image(icon, "cross")
 		cross_overlay.appearance_flags = DEFAULT_APPEARANCE_FLAGS | RESET_COLOR
-	overlays += cross_overlay
+	AddOverlays(cross_overlay)
 	icon_state = "pack[opened]"
 
 /obj/item/storage/med_pouch/examine(mob/user)
 	. = ..()
-	to_chat(user, "<A href='?src=\ref[src];show_info=1'>Please read instructions before use.</A>")
+	to_chat(user, "<A href='byond://?src=\ref[src];show_info=1'>Please read instructions before use.</A>")
 
 /obj/item/storage/med_pouch/CanUseTopic()
 	return STATUS_INTERACTIVE
 
-/obj/item/storage/med_pouch/OnTopic(var/user, var/list/href_list)
+/obj/item/storage/med_pouch/OnTopic(user, list/href_list)
 	if(href_list["show_info"])
 		to_chat(user, instructions)
 		return TOPIC_HANDLED
@@ -61,7 +61,7 @@ Single Use Emergency Pouches
 
 /obj/item/storage/med_pouch/open(mob/user)
 	if(!opened)
-		user.visible_message("<span class='notice'>\The [user] tears open [src], breaking the vacuum seal!</span>", "<span class='notice'>You tear open [src], breaking the vacuum seal!</span>")
+		user.visible_message(SPAN_NOTICE("\The [user] tears open [src], breaking the vacuum seal!"), SPAN_NOTICE("You tear open [src], breaking the vacuum seal!"))
 	. = ..()
 
 /obj/item/storage/med_pouch/trauma
@@ -119,6 +119,7 @@ Single Use Emergency Pouches
 	/obj/item/reagent_containers/hypospray/autoinjector/pouch_auto/adrenaline,
 	/obj/item/reagent_containers/pill/pouch_pill/inaprovaline,
 	/obj/item/reagent_containers/pill/pouch_pill/dexalin,
+	/obj/item/reagent_containers/hypospray/autoinjector/pouch_auto/naloxone,
 		)
 	instructions = {"
 	1) Tear open the emergency medical pack using the easy open tab at the top.\n\
@@ -214,5 +215,14 @@ Single Use Emergency Pouches
 
 /obj/item/reagent_containers/hypospray/autoinjector/pouch_auto/adrenaline
 	name = "emergency adrenaline autoinjector"
-	amount_per_transfer_from_this = 8
-	starts_with = list(/datum/reagent/adrenaline = 8)
+	starts_with = list(/datum/reagent/adrenaline = 5)
+
+/obj/item/reagent_containers/hypospray/autoinjector/pouch_auto/allergy
+	name = "emergency allergy autoinjector"
+	desc = "The ingredient label reads 1.5 units of adrenaline and 3.5 units of inaprovaline."
+	starts_with = list(/datum/reagent/adrenaline = 1.5, /datum/reagent/inaprovaline = 3.5)
+
+/obj/item/reagent_containers/hypospray/autoinjector/pouch_auto/naloxone
+	name = "emergency overdose autoinjector"
+	desc = "The ingredient label reads 5 units of naloxone. To be used in case of opiate or antidepressant overdose."
+	starts_with = list(/datum/reagent/naloxone = 5)

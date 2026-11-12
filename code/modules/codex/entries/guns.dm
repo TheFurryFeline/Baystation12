@@ -1,14 +1,10 @@
-/obj/item/gun
-	var/general_codex_key = "guns"
+/obj/item/gun/var/general_codex_key = "guns"
 
-/obj/item/gun/projectile
-	general_codex_key = "ballistic weapons"
+/obj/item/gun/projectile/general_codex_key = "ballistic weapons"
 
-/obj/item/gun/energy
-	general_codex_key = "energy weapons"
+/obj/item/gun/energy/general_codex_key = "energy weapons"
 
-/obj/item/gun/magnetic
-	general_codex_key = "magnetic weapons"
+/obj/item/gun/magnetic/general_codex_key = "magnetic weapons"
 
 /obj/item/gun/get_antag_info()
 	var/list/entries = SScodex.retrieve_entries_for_string(general_codex_key)
@@ -43,8 +39,14 @@
 	if(scope_zoom)
 		traits += "It has a magnifying optical scope. It can be toggled with Use Scope verb."
 
+	if(foldable)
+		traits += "It has a foldable stock. The stock can be folded or unfolded with the Toggle Stock verb."
+
 	if(LAZYLEN(firemodes) > 1)
 		traits += "It has multiple firemodes. Click it in hand to cycle them."
+
+	if(serial_number)
+		traits += "It has a serial number. Use a screwdriver to file it off."
 
 	return jointext(traits, "<br>")
 

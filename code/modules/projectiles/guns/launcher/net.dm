@@ -11,30 +11,34 @@
 /obj/item/net_shell
 	name = "net gun shell"
 	desc = "A casing containing an autodeploying net for use in a net gun. Kind of looks like a flash light."
-	icon = 'icons/obj/ammo.dmi'
+	icon = 'icons/obj/weapons/ammo.dmi'
 	icon_state = "netshell"
 
-/obj/item/net_shell/attackby(obj/item/gun/launcher/net/I, mob/user)
-	if(istype(I) && I.can_load(src, user))
-		I.load(src, user)
-		to_chat(usr, "You load \the [src] into \the [I].")
+/obj/item/net_shell/use_tool(obj/item/item, mob/living/user, list/click_params)
+	if(istype(item, /obj/item/gun/launcher/net))
+		var/obj/item/gun/launcher/net/launcher = item
+		if (!launcher.can_load(src, user))
+			return TRUE
+		launcher.load(src, user)
+		to_chat(usr, "You load \the [src] into \the [launcher].")
+		return TRUE
 	else
-		..()
+		return ..()
 
 /obj/item/gun/launcher/net/examine(mob/user, distance)
 	. = ..()
 	if(distance <= 2 && chambered)
 		to_chat(user, "\A [chambered] is chambered.")
 
-/obj/item/gun/launcher/net/proc/can_load(var/obj/item/net_shell/S, var/mob/user)
+/obj/item/gun/launcher/net/proc/can_load(obj/item/net_shell/S, mob/user)
 	if(chambered)
 		to_chat(user, SPAN_WARNING("\The [src] already has a shell loaded."))
 		return FALSE
 	return TRUE
 
-/obj/item/gun/launcher/net/proc/finish_loading(var/obj/item/net_shell/S, var/mob/user)
+/obj/item/gun/launcher/net/proc/finish_loading(obj/item/net_shell/S, mob/user)
 	chambered = S
-	if(user) 
+	if(user)
 		user.visible_message("\The [user] inserts \a [S] into \the [src].", SPAN_NOTICE("You insert \a [S] into \the [src]."))
 
 /obj/item/gun/launcher/net/proc/load(obj/item/net_shell/S, mob/user)
@@ -46,17 +50,21 @@
 
 /obj/item/gun/launcher/net/proc/unload(mob/user)
 	if(chambered)
-		user.visible_message("\The [user] removes \the [chambered] from \the [src].", "<span class='notice'>You remove \the [chambered] from \the [src].</span>")
+		user.visible_message("\The [user] removes \the [chambered] from \the [src].", SPAN_NOTICE("You remove \the [chambered] from \the [src]."))
 		user.put_in_hands(chambered)
 		chambered = null
 	else
-		to_chat(user, "<span class='warning'>\The [src] is empty.</span>")
+		to_chat(user, SPAN_WARNING("\The [src] is empty."))
 
-/obj/item/gun/launcher/net/attackby(obj/item/I, mob/user)
-	if((istype(I, /obj/item/net_shell)))
-		load(I, user)
-	else
-		..()
+
+/obj/item/gun/launcher/net/use_tool(obj/item/tool, mob/user, list/click_params)
+	// Net Shell - Load
+	if (istype(tool, /obj/item/net_shell))
+		load(tool, user)
+		return TRUE
+
+	return ..()
+
 
 /obj/item/gun/launcher/net/attack_hand(mob/user)
 	if(user.get_inactive_hand() == src)
@@ -81,7 +89,7 @@
 	for(var/i in 1 to (max_shells + 1))
 		load(new /obj/item/net_shell)
 
-/obj/item/gun/launcher/net/borg/can_load(var/obj/item/net_shell/S, var/mob/user)
+/obj/item/gun/launcher/net/borg/can_load(obj/item/net_shell/S, mob/user)
 	if(LAZYLEN(shells) >= max_shells)
 		to_chat(user, SPAN_WARNING("\The [src] already has the maximum number of shells loaded."))
 		return FALSE
@@ -92,11 +100,11 @@
 		chambered = shells[1]
 		LAZYREMOVE(shells, chambered)
 
-/obj/item/gun/launcher/net/borg/finish_loading(var/obj/item/net_shell/S, var/mob/user)
+/obj/item/gun/launcher/net/borg/finish_loading(obj/item/net_shell/S, mob/user)
 	LAZYDISTINCTADD(shells, S)
 	update_chambered_shell()
 
-/obj/item/gun/launcher/net/borg/unload(var/mob/user)
+/obj/item/gun/launcher/net/borg/unload(mob/user)
 	. = ..()
 	update_chambered_shell()
 
@@ -104,6 +112,6 @@
 	. = ..()
 	update_chambered_shell()
 
-/obj/item/gun/launcher/net/borg/examine(mob/user)
-	. = ..()
+/obj/item/gun/launcher/net/borg/examine(mob/user, distance)
+	. = ..(user, distance)
 	to_chat(user, "There are [LAZYLEN(shells)] shell\s loaded.")

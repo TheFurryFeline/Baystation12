@@ -7,12 +7,12 @@
 	max_storage_space = BASE_STORAGE_CAPACITY(ITEM_SIZE_SMALL)
 	use_sound = 'sound/effects/storage/toolbox.ogg'
 	var/static/list/projection_types = list(
-		/obj/item/photo = /obj/effect/projection/photo,
-		/obj/item/paper = /obj/effect/projection/paper,
-		/obj/item = /obj/effect/projection
+		/obj/item/photo = /obj/projection/photo,
+		/obj/item/paper = /obj/projection/paper,
+		/obj/item = /obj/projection
 	)
 	var/obj/item/current_slide
-	var/obj/effect/projection/projection
+	var/obj/projection/projection
 
 /obj/item/storage/slide_projector/Destroy()
 	current_slide = null
@@ -26,12 +26,12 @@
 	. = ..()
 	. += "Use in hand to open the interface."
 
-/obj/item/storage/slide_projector/remove_from_storage(obj/item/W, atom/new_location, var/NoUpdate = 0)
+/obj/item/storage/slide_projector/remove_from_storage(obj/item/W, atom/new_location, NoUpdate = 0)
 	. = ..()
 	if(. && W == current_slide)
 		set_slide(length(contents) ? contents[1] : null)
 
-/obj/item/storage/slide_projector/handle_item_insertion(var/obj/item/W, var/prevent_warning = 0, var/NoUpdate = 0)
+/obj/item/storage/slide_projector/handle_item_insertion(obj/item/W, prevent_warning = 0, NoUpdate = 0)
 	. = ..()
 	if(. && !current_slide)
 		set_slide(W)
@@ -39,7 +39,7 @@
 /obj/item/storage/slide_projector/on_item_pre_deletion(obj/item/W)
 	if(W == current_slide)
 		set_slide(null)
-	
+
 /obj/item/storage/slide_projector/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	if(!current_slide)
 		to_chat(user, SPAN_WARNING("\The [src] does not have a slide loaded."))
@@ -75,10 +75,10 @@
 /obj/item/storage/slide_projector/proc/stop_projecting()
 	if(projection)
 		QDEL_NULL(projection)
-	GLOB.moved_event.unregister(src, src, .proc/check_projections)
+	GLOB.moved_event.unregister(src, src, PROC_REF(check_projections))
 	set_light(0)
 	update_icon()
-	
+
 /obj/item/storage/slide_projector/proc/project_at(turf/target)
 	stop_projecting()
 	if(!current_slide)
@@ -92,20 +92,20 @@
 			break
 	projection = new projection_type(target)
 	projection.set_source(current_slide)
-	GLOB.moved_event.register(src, src, .proc/check_projections)
-	set_light(0.1, 0.1, 1, 2, COLOR_WHITE) //Bit of light
+	GLOB.moved_event.register(src, src, PROC_REF(check_projections))
+	set_light(1, 0.1, COLOR_WHITE) //Bit of light
 	update_icon()
 
 /obj/item/storage/slide_projector/attack_self(mob/user)
 	interact(user)
 
-/obj/item/storage/slide_projector/interact(mob/user)	
+/obj/item/storage/slide_projector/interact(mob/user)
 	var/data = list()
 	if(projection)
-		data += "<a href='?src=\ref[src];stop_projector=1'>Disable projector</a>"
+		data += "<a href='byond://?src=\ref[src];stop_projector=1'>Disable projector</a>"
 	else
 		data += "Projector inactive"
-	
+
 	var/table = list("<table><tr><th>#</th><th>SLIDE</th><th>SHOW</th></tr>")
 	var/i = 1
 	for(var/obj/item/I in contents)
@@ -113,7 +113,7 @@
 		if(I == current_slide)
 			table += "<td><b>[I.name]</b></td><td>SHOWING</td>"
 		else
-			table += "<td>[I.name]</td><td><a href='?src=\ref[src];set_active=[i]'>SHOW</a></td>"
+			table += "<td>[I.name]</td><td><a href='byond://?src=\ref[src];set_active=[i]'>SHOW</a></td>"
 		table += "</tr>"
 		i++
 	table += "</table>"
@@ -122,7 +122,7 @@
 	popup.set_content(jointext(data, "<br>"))
 	popup.open()
 
-/obj/item/storage/slide_projector/OnTopic(var/mob/user, var/href_list, var/datum/topic_state/state)
+/obj/item/storage/slide_projector/OnTopic(mob/user, href_list, datum/topic_state/state)
 	. = ..()
 	if(.)
 		return
@@ -134,15 +134,15 @@
 
 	if(href_list["set_active"])
 		var/index = text2num(href_list["set_active"])
-		if(index < 1 || index > contents.len)
+		if(index < 1 || index > length(contents))
 			return TOPIC_HANDLED
 		set_slide(contents[index])
 		. = TOPIC_REFRESH
-	
+
 	if(. == TOPIC_REFRESH)
 		interact(user)
 
-/obj/effect/projection
+/obj/projection
 	name = "projected slide"
 	icon = 'icons/effects/effects.dmi'
 	icon_state = "white"
@@ -153,20 +153,20 @@
 	alpha = 100
 	var/weakref/source
 
-/obj/effect/projection/Initialize()
+/obj/projection/Initialize()
 	. = ..()
-	set_light(0.1, 0.1, 1, 2, COLOR_WHITE) //Makes turning off the lights not invalidate projection
+	set_light(1, 0.1, COLOR_WHITE) //Makes turning off the lights not invalidate projection
 
-/obj/effect/projection/on_update_icon()
+/obj/projection/on_update_icon()
 	filters = filter(type="drop_shadow", color = COLOR_WHITE, size = 4, offset = 1,x = 0, y = 0)
 	project_icon()
 
-/obj/effect/projection/proc/project_icon()
+/obj/projection/proc/project_icon()
 	var/obj/item/I = source.resolve()
 	if(!istype(I))
 		qdel(src)
 		return
-	overlays.Cut()
+	ClearOverlays()
 	var/mutable_appearance/MA = new(I)
 	MA.plane = FLOAT_PLANE
 	MA.layer = FLOAT_LAYER
@@ -174,43 +174,42 @@
 	MA.alpha = 170
 	MA.pixel_x = 0
 	MA.pixel_y = 0
-	overlays |= MA
+	AddOverlays(MA)
 
-/obj/effect/projection/proc/set_source(obj/item/I)
+/obj/projection/proc/set_source(obj/item/I)
 	source = weakref(I)
 	desc = "It's currently showing \the [I]."
 	update_icon()
 
-/obj/effect/projection/examine(mob/user, distance)
+/obj/projection/examine(mob/user, distance)
 	. = ..()
 	var/obj/item/slide = source.resolve()
 	if(!istype(slide))
 		qdel(src)
 		return
-	return slide.examine(user, 1)
+	return slide.examine(user, 0, TRUE)
 
-/obj/effect/projection/photo
+/obj/projection/photo
 	alpha = 170
 
-/obj/effect/projection/photo/project_icon()
+/obj/projection/photo/project_icon()
 	var/obj/item/photo/slide = source.resolve()
 	if(!istype(slide))
 		qdel(src)
 		return
 	icon = slide.img
-	transform = matrix()
-	transform *= 1 / slide.photo_size
+	SetTransform(scale = 1 / slide.photo_size)
 	pixel_x = -32 * round(slide.photo_size/2)
 	pixel_y = -32 * round(slide.photo_size/2)
 
-/obj/effect/projection/paper
+/obj/projection/paper
 	alpha = 140
 
-/obj/effect/projection/paper/project_icon()
+/obj/projection/paper/project_icon()
 	var/obj/item/paper/P = source.resolve()
 	if(!istype(P))
 		qdel(src)
 		return
-	overlays.Cut()
+	ClearOverlays()
 	if(P.info)
 		icon_state = "text[rand(1,3)]"

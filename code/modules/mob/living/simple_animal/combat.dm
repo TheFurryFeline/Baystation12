@@ -41,7 +41,7 @@
 
 	var/obj/item/natural_weapon/weapon = get_natural_weapon()
 
-	if (weapon.resolve_attackby(A, src))
+	if (weapon?.resolve_attackby(A, src))
 		apply_melee_effects(A)
 
 	return TRUE
@@ -72,10 +72,11 @@
 			try_reload()
 			return FALSE
 
-	visible_message("<span class='danger'><b>\The [src]</b> fires at \the [A]!</span>")
+	visible_message(SPAN_DANGER("<b>\The [src]</b> fires at \the [A]!"))
 	shoot(A)
 	if(casingtype)
-		new casingtype(loc)
+		var/obj/item/ammo_casing/b = new casingtype(loc)
+		b.expend()
 
 	if(ranged_attack_delay)
 		ranged_post_animation(A)
@@ -103,6 +104,7 @@
 	// P.accuracy += calculate_accuracy()
 	P.dispersion += calculate_dispersion()
 
+	P.firer = src
 	P.launch(target = A)
 	if(needs_reload)
 		reload_count++
@@ -111,7 +113,7 @@
 	set waitfor = FALSE
 	set_AI_busy(TRUE)
 
-	if(do_after(src, reload_time))
+	if(do_after(src, reload_time, do_flags = DO_DEFAULT | DO_USER_UNIQUE_ACT))
 		if(reload_sound)
 			playsound(src, reload_sound, 70, 1)
 		reload_count = 0
@@ -161,6 +163,7 @@
 // Special attacks, like grenades or blinding spit or whatever.
 // Don't override this, override do_special_attack() for your blinding spit/etc.
 /mob/living/simple_animal/proc/special_attack_target(atom/A)
+	set waitfor = FALSE
 	face_atom(A)
 
 	if(special_attack_delay)

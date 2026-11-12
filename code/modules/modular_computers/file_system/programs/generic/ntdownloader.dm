@@ -8,10 +8,11 @@
 	unsendable = TRUE
 	undeletable = TRUE
 	size = 4
+	processing_size = 0.5
 	requires_ntnet = TRUE
 	requires_ntnet_feature = NTNET_SOFTWAREDOWNLOAD
 	available_on_ntnet = FALSE
-	nanomodule_path = /datum/nano_module/program/computer_ntnetdownload/
+	nanomodule_path = /datum/nano_module/program/computer_ntnetdownload
 	ui_header = "downloader_finished.gif"
 	var/datum/computer_file/program/downloaded_file = null
 	var/hacked_download = FALSE
@@ -19,7 +20,7 @@
 	var/download_completion = 0
 	var/download_netspeed = 0
 	var/downloaderror = ""
-	var/list/downloads_queue[0]
+	var/list/downloads_queue = list()
 	/// For logging, can be faked by antags.
 	var/file_info
 	var/server
@@ -101,7 +102,7 @@
 		return
 	if(download_completion >= downloaded_file.size)
 		complete_file_download()
-		if(downloads_queue.len > 0)
+		if(length(downloads_queue) > 0)
 			begin_file_download(downloads_queue[1], downloads_queue[downloads_queue[1]])
 			downloads_queue.Remove(downloads_queue[1])
 
@@ -115,7 +116,7 @@
 	if(href_list["PRG_downloadfile"])
 		if(!downloaded_file)
 			begin_file_download(href_list["PRG_downloadfile"], usr.get_skill_value(SKILL_COMPUTER))
-		else if(check_file_download(href_list["PRG_downloadfile"]) && !list_find(downloads_queue, href_list["PRG_downloadfile"]) && downloaded_file.filename != href_list["PRG_downloadfile"])
+		else if(check_file_download(href_list["PRG_downloadfile"]) && !downloads_queue.Find(href_list["PRG_downloadfile"]) && downloaded_file.filename != href_list["PRG_downloadfile"])
 			downloads_queue[href_list["PRG_downloadfile"]] = usr.get_skill_value(SKILL_COMPUTER)
 		return TOPIC_HANDLED
 	if(href_list["PRG_removequeued"])
@@ -154,9 +155,9 @@
 
 	data["disk_size"] = program.computer.max_disk_capacity()
 	data["disk_used"] = program.computer.used_disk_capacity()
-	var/list/all_entries[0]
+	var/list/all_entries = list()
 	for(var/category in ntnet_global.available_software_by_category)
-		var/list/category_list[0]
+		var/list/category_list = list()
 		for(var/datum/computer_file/program/P in ntnet_global.available_software_by_category[category])
 			// Only those programs our user can run will show in the list
 			if(!P.can_run(user) && P.requires_access_to_download)
@@ -170,12 +171,12 @@
 				"size" = P.size,
 				"icon" = P.program_menu_icon
 			)))
-		if(category_list.len)
+		if(length(category_list))
 			all_entries.Add(list(list("category"=category, "programs"=category_list)))
 
 	data["hackedavailable"] = FALSE
 	if(prog.computer.emagged()) // If we are running on emagged computer we have access to some "bonus" software
-		var/list/hacked_programs[0]
+		var/list/hacked_programs = list()
 		for(var/datum/computer_file/program/P in ntnet_global.available_antag_software)
 			data["hackedavailable"] = TRUE
 			hacked_programs.Add(list(list(
@@ -189,7 +190,7 @@
 
 	data["downloadable_programs"] = all_entries
 
-	if(prog.downloads_queue.len > 0)
+	if(length(prog.downloads_queue) > 0)
 		var/list/queue = list() // Nanoui can't iterate through assotiative lists, so we have to do this
 		for(var/item in prog.downloads_queue)
 			queue += item

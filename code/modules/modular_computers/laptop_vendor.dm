@@ -3,7 +3,7 @@
 /obj/machinery/lapvend
 	name = "computer vendor"
 	desc = "A vending machine with a built-in microfabricator, capable of dispensing various computers."
-	icon = 'icons/obj/vending.dmi'
+	icon = 'icons/obj/machines/vending.dmi'
 	icon_state = "laptop"
 	layer = BELOW_OBJ_LAYER
 	anchored = TRUE
@@ -29,9 +29,9 @@
 	var/dev_aislot = 0						// 0: None, 1: Standard
 
 /obj/machinery/lapvend/on_update_icon()
-	if(stat & BROKEN)
+	if(MACHINE_IS_BROKEN(src))
 		icon_state = "[initial(icon_state)]-broken"
-	else if(!(stat & NOPOWER))
+	else if(is_powered())
 		icon_state = initial(icon_state)
 	else
 		icon_state = "[initial(icon_state)]-off"
@@ -56,7 +56,7 @@
 	dev_aislot = 0
 
 // Recalculates the price and optionally even fabricates the device.
-/obj/machinery/lapvend/proc/fabricate_and_recalc_price(var/fabricate = 0)
+/obj/machinery/lapvend/proc/fabricate_and_recalc_price(fabricate = 0)
 	total_price = 0
 	if(devtype == 1) 		// Laptop, generally cheaper to make it accessible for most station roles
 		if(fabricate)
@@ -236,17 +236,17 @@
 		return 1
 	return 0
 
-/obj/machinery/lapvend/interface_interact(var/mob/user)
+/obj/machinery/lapvend/interface_interact(mob/user)
 	ui_interact(user)
 	return TRUE
 
-/obj/machinery/lapvend/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
-	if(stat & (BROKEN | NOPOWER | MAINT))
+/obj/machinery/lapvend/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1)
+	if(inoperable() || GET_FLAGS(stat, MACHINE_STAT_MAINT))
 		if(ui)
 			ui.close()
 		return 0
 
-	var/list/data[0]
+	var/list/data = list()
 	data["state"] = state
 	if(state == 1)
 		data["devtype"] = devtype
@@ -269,8 +269,10 @@
 		ui.set_auto_update(1)
 
 
-obj/machinery/lapvend/attackby(obj/item/W as obj, mob/user as mob)
+/obj/machinery/lapvend/use_tool(obj/item/W, mob/living/user, list/click_params)
 	var/obj/item/card/id/I = W.GetIdCard()
+	if (!I)
+		return ..()
 	// Awaiting payment state
 	if(state == 2)
 		if(process_payment(I,W))
@@ -293,17 +295,17 @@ obj/machinery/lapvend/attackby(obj/item/W as obj, mob/user as mob)
 				fabricated_tablet = null
 			ping("Enjoy your new product!")
 			state = 3
-			return 1
-		return 0
+			return TRUE
+
 	return ..()
 
 
 // Simplified payment processing, returns 1 on success.
-/obj/machinery/lapvend/proc/process_payment(var/obj/item/card/id/I, var/obj/item/ID_container)
-	if(I==ID_container || ID_container == null)
-		visible_message("<span class='info'>\The [usr] swipes \the [I] through \the [src].</span>")
+/obj/machinery/lapvend/proc/process_payment(obj/item/card/id/I, obj/item/ID_container)
+	if(I==ID_container || isnull(ID_container))
+		visible_message(SPAN_INFO("\The [usr] swipes \the [I] through \the [src]."))
 	else
-		visible_message("<span class='info'>\The [usr] swipes \the [ID_container] through \the [src].</span>")
+		visible_message(SPAN_INFO("\The [usr] swipes \the [ID_container] through \the [src]."))
 	var/datum/money_account/customer_account = I ? get_account(I.associated_account_number) : null
 	if (!customer_account || customer_account.suspended)
 		ping("Connection error. Unable to connect to account.")

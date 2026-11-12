@@ -56,6 +56,10 @@
 	activate_string = "Enable Visor"
 	deactivate_string = "Disable Visor"
 
+	banned_modules = list(
+		/obj/item/rig_module/vision
+	)
+
 	var/datum/rig_vision/vision
 	var/list/vision_modes = list(
 		/datum/rig_vision/nvg,
@@ -67,7 +71,7 @@
 
 /obj/item/rig_module/vision/multi
 
-	name = "hardsuit optical package"
+	name = "advanced hardsuit optical package"
 	desc = "A complete visor system of optical scanners and vision modes."
 	icon_state = "fulloptics"
 
@@ -78,6 +82,15 @@
 	vision_modes = list(/datum/rig_vision/meson,
 						/datum/rig_vision/nvg,
 						/datum/rig_vision/thermal,
+						/datum/rig_vision/sechud,
+						/datum/rig_vision/medhud)
+
+/obj/item/rig_module/vision/multi/cheap
+	name = "hardsuit optical package"
+	icon_state = "optics"
+	desc = "An advanced visor system of HUD connected optical scanners and night vision mode."
+	vision_modes = list(/datum/rig_vision/meson,
+						/datum/rig_vision/nvg,
 						/datum/rig_vision/sechud,
 						/datum/rig_vision/medhud)
 
@@ -152,7 +165,7 @@
 	..()
 	holder.visor = src
 
-/obj/item/rig_module/vision/engage()
+/obj/item/rig_module/vision/engage(atom/target)
 
 	var/starting_up = !active
 
@@ -161,18 +174,18 @@
 
 	// Don't cycle if this engage() is being called by activate().
 	if(starting_up)
-		to_chat(holder.wearer, "<span class='info'>You activate your visual sensors.</span>")
+		to_chat(holder.wearer, SPAN_INFO("You activate your visual sensors."))
 		return 1
 
-	if(vision_modes.len > 1)
+	if(length(vision_modes) > 1)
 		vision_index++
-		if(vision_index > vision_modes.len)
+		if(vision_index > length(vision_modes))
 			vision_index = 1
 		vision = vision_modes[vision_index]
 
-		to_chat(holder.wearer, "<span class='info'>You cycle your sensors to <b>[vision.mode]</b> mode.</span>")
+		to_chat(holder.wearer, SPAN_INFO("You cycle your sensors to <b>[vision.mode]</b> mode."))
 	else
-		to_chat(holder.wearer, "<span class='info'>Your sensors only have one mode.</span>")
+		to_chat(holder.wearer, SPAN_INFO("Your sensors only have one mode."))
 	return 1
 
 /obj/item/rig_module/vision/Initialize()

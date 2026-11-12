@@ -10,28 +10,28 @@
 // BEGIN RESEARCH DATUMS
 
 /datum/malf_research_ability/networking/basic_hack
-	ability = new/datum/game_mode/malfunction/verb/basic_encryption_hack()
+	ability = /datum/game_mode/malfunction/verb/basic_encryption_hack
 	price = 25		// Until you have this ability your CPU generation sucks, therefore it's very cheap.
 	next = new/datum/malf_research_ability/networking/advanced_hack()
 	name = "T1 - Basic Encryption Hack"
 
 
 /datum/malf_research_ability/networking/advanced_hack
-	ability = new/datum/game_mode/malfunction/verb/advanced_encryption_hack()
+	ability = /datum/game_mode/malfunction/verb/advanced_encryption_hack
 	price = 1000
 	next = new/datum/malf_research_ability/networking/elite_hack()
 	name = "T2 - Advanced Encryption Hack"
 
 
 /datum/malf_research_ability/networking/elite_hack
-	ability = new/datum/game_mode/malfunction/verb/elite_encryption_hack()
+	ability = /datum/game_mode/malfunction/verb/elite_encryption_hack
 	price = 2000
 	next = new/datum/malf_research_ability/networking/system_override()
 	name = "T3 - Elite Encryption Hack"
 
 
 /datum/malf_research_ability/networking/system_override
-	ability = new/datum/game_mode/malfunction/verb/system_override()
+	ability = /datum/game_mode/malfunction/verb/system_override
 	price = 4000
 	name = "T4 - System Override"
 
@@ -57,7 +57,7 @@
 			to_chat(user, "You already control this APC!")
 			return
 		else if(A.aidisabled)
-			to_chat(user, "<span class='notice'>Unable to connect to APC. Please verify wire connection and try again.</span>")
+			to_chat(user, SPAN_NOTICE("Unable to connect to APC. Please verify wire connection and try again."))
 			return
 	else
 		return
@@ -77,9 +77,9 @@
 		if(A.hacker == user)
 			to_chat(user, "Hack successful. You now have full control over \the [A].")
 		else
-			to_chat(user, "<span class='notice'>Hack failed. Connection to APC has been lost. Please verify wire connection and try again.</span>")
+			to_chat(user, SPAN_NOTICE("Hack failed. Connection to APC has been lost. Please verify wire connection and try again."))
 	else
-		to_chat(user, "<span class='notice'>Hack failed. Unable to locate APC. Please verify the APC still exists.</span>")
+		to_chat(user, SPAN_NOTICE("Hack failed. Unable to locate APC. Please verify the APC still exists."))
 
 
 /datum/game_mode/malfunction/verb/advanced_encryption_hack()
@@ -128,7 +128,7 @@
 	if(!ability_prechecks(user, price))
 		return
 
-	var/decl/security_state/security_state = decls_repository.get_decl(GLOB.using_map.security_state)
+	var/singleton/security_state/security_state = GET_SINGLETON(GLOB.using_map.security_state)
 	var/alert_target = input("Select new alert level:") as null|anything in (security_state.all_security_levels - security_state.current_security_level)
 	if(!alert_target || !ability_pay(user, price))
 		to_chat(user, "Hack Aborted")
@@ -162,14 +162,14 @@
 	log_ability_use(user, "system override (STARTED)")
 	var/list/remaining_apcs = list()
 	var/list/valid_zlevels = GetConnectedZlevels(user.z)
-	for(var/obj/machinery/power/apc/A in SSmachines.machinery)
+	for(var/obj/machinery/power/apc/A as anything in MACHINES_OF(/obj/machinery/power/apc))
 		if(!(A.z in valid_zlevels)) 		// Only station APCs
 			continue
 		if(A.hacker == user || A.aidisabled) 		// This one is already hacked, or AI control is disabled on it.
 			continue
 		remaining_apcs += A
 
-	var/duration = (remaining_apcs.len * 100)		// Calculates duration for announcing system
+	var/duration = (length(remaining_apcs) * 100)		// Calculates duration for announcing system
 	if(user.hack_can_fail)								// Two types of announcements. Short hacks trigger immediate warnings. Long hacks are more "progressive".
 		spawn(0)
 			sleep(duration/5)
@@ -206,7 +206,7 @@
 	to_chat(user, "## REACHABLE APC SYSTEMS OVERTAKEN. BYPASSING PRIMARY FIREWALL.")
 	sleep(1 MINUTE)
 	// Hack all APCs, including those built during hack sequence.
-	for(var/obj/machinery/power/apc/A in SSmachines.machinery)
+	for(var/obj/machinery/power/apc/A as anything in MACHINES_OF(/obj/machinery/power/apc))
 		if((!A.hacker || A.hacker != src) && !A.aidisabled && (A.z in valid_zlevels))
 			A.ai_hack(src)
 
@@ -217,4 +217,4 @@
 		command_announcement.Announce("Our system administrators just reported that we've been locked out from your control network. Whoever did this now has full access to [GLOB.using_map.station_name]'s systems.", "Network Administration Center")
 	user.hack_can_fail = 0
 	user.system_override = 2
-	user.verbs += new/datum/game_mode/malfunction/verb/ai_destroy_station()
+	user.verbs += /datum/game_mode/malfunction/verb/ai_destroy_station

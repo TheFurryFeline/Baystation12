@@ -12,16 +12,17 @@
 	unsendable = 1
 	undeletable = 1
 	size = 4
+	processing_size = 0.5
 	available_on_ntnet = FALSE
 	requires_ntnet = FALSE
-	nanomodule_path = /datum/nano_module/program/computer_configurator/
+	nanomodule_path = /datum/nano_module/program/computer_configurator
 	usage_flags = PROGRAM_ALL
 	category = PROG_UTIL
 
 /datum/nano_module/program/computer_configurator
 	name = "NTOS Computer Configuration Tool"
 
-/datum/nano_module/program/computer_configurator/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
+/datum/nano_module/program/computer_configurator/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
 	var/list/data = list()
 
 	data = program.get_header_data()
@@ -39,7 +40,7 @@
 	var/obj/item/stock_parts/computer/nano_printer/nano_printer = program.computer.get_component(/obj/item/stock_parts/computer/nano_printer)
 	data["print_language"] = nano_printer ? nano_printer.print_language : null
 
-	var/list/all_entries[0]
+	var/list/all_entries = list()
 	var/list/hardware = program.computer.get_all_components()
 	for(var/obj/item/stock_parts/computer/H in hardware)
 		all_entries.Add(list(list(

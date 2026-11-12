@@ -1,4 +1,4 @@
-/obj/item/clothing/under/pj/red
+/obj/item/clothing/under/redpyjamas
 	name = "red pj's"
 	desc = "Sleepwear."
 	icon_state = "red_pyjamas"
@@ -6,7 +6,7 @@
 	item_state = "w_suit"
 	gender_icons = 1
 
-/obj/item/clothing/under/pj/blue
+/obj/item/clothing/under/bluepyjamas
 	name = "blue pj's"
 	desc = "Sleepwear."
 	icon_state = "blue_pyjamas"
@@ -77,7 +77,7 @@
 
 /obj/item/clothing/under/rank/centcom_officer
 	desc = "Gold trim on space-black cloth, this uniform displays the rank of \"Admiral.\"."
-	name = "\improper Officer's Dress Uniform"
+	name = "officer's dress uniform"
 	icon_state = "officer"
 	item_state = "lawyer_black"
 	worn_state = "officer"
@@ -85,14 +85,14 @@
 
 /obj/item/clothing/under/rank/centcom_captain
 	desc = "Gold trim on space-black cloth, this uniform displays the rank of \"Admiral-Executive.\"."
-	name = "\improper Officer's Dress Uniform"
+	name = "officer's dress uniform"
 	icon_state = "centcom"
 	item_state = "lawyer_black"
 	worn_state = "centcom"
 	displays_id = 0
 
 /obj/item/clothing/under/ert
-	name = "ERT tactical uniform"
+	name = "\improper ERT tactical uniform"
 	desc = "A short-sleeved black uniform, paired with grey digital-camo cargo pants. It looks very tactical."
 	icon_state = "ert_uniform"
 	item_state = "bl_suit"
@@ -105,9 +105,9 @@
 /obj/item/clothing/under/space
 	name = "\improper NASA jumpsuit"
 	desc = "It has a NASA logo on it and is made of space-proofed materials."
-	icon_state = "black"
+	icon_state = "syndicate"
 	item_state = "bl_suit"
-	worn_state = "black"
+	worn_state = "syndicate"
 	w_class = ITEM_SIZE_HUGE//bulky item
 	gas_transfer_coefficient = 0.01
 	permeability_coefficient = 0.02
@@ -166,7 +166,7 @@
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|FEET|ARMS|HANDS
 
 /obj/item/clothing/under/gentlesuit
-	name = "gentlemans suit"
+	name = "gentleman's suit"
 	desc = "A silk black shirt with a white tie and a matching gray vest and slacks. Feels proper."
 	icon_state = "gentlesuit"
 	item_state = "gy_suit"
@@ -217,14 +217,6 @@
 	icon_state = "red_suit"
 	item_state = "r_suit"
 	worn_state = "red_suit"
-
-/obj/item/clothing/under/blackskirt
-	name = "black skirt"
-	desc = "A black skirt, very fancy!"
-	icon_state = "blackskirt"
-	item_state = "bl_suit"
-	worn_state = "blackskirt"
-	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
 
 /obj/item/clothing/under/schoolgirl
 	name = "schoolgirl uniform"
@@ -370,28 +362,8 @@
 	worn_state = "huresource"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|ARMS
 
-/obj/item/clothing/under/dress/plaid_blue
-	name = "blue plaid skirt"
-	desc = "A preppy blue skirt with a white blouse."
-	icon_state = "plaid_blue"
-	worn_state = "plaid_blue"
-
-/obj/item/clothing/under/dress/plaid_red
-	name = "red plaid skirt"
-	desc = "A preppy red skirt with a white blouse."
-	icon_state = "plaid_red"
-	item_state = "kilt"
-	worn_state = "plaid_red"
-
-/obj/item/clothing/under/dress/plaid_purple
-	name = "blue purple skirt"
-	desc = "A preppy purple skirt with a white blouse."
-	icon_state = "plaid_purple"
-	item_state = "kilt"
-	worn_state = "plaid_purple"
-
 //wedding stuff
-/obj/item/clothing/under/wedding/
+/obj/item/clothing/under/wedding
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS
 
 /obj/item/clothing/under/wedding/bride_orange
@@ -677,6 +649,7 @@
 	worn_state = "punpun"
 	species_restricted = list(SPECIES_MONKEY)
 	sprite_sheets = list("Monkey" = 'icons/mob/species/monkey/onmob_under_monkey.dmi')
+	item_flags = ITEM_FLAG_WASHER_ALLOWED | ITEM_FLAG_INVALID_FOR_CHAMELEON
 
 /obj/item/clothing/under/punpants
 	name = "monkey pants"
@@ -685,6 +658,7 @@
 	worn_state = "jeansmustang"
 	species_restricted = list(SPECIES_MONKEY)
 	sprite_sheets = list("Monkey" = 'icons/mob/species/monkey/onmob_under_monkey.dmi')
+	item_flags = ITEM_FLAG_WASHER_ALLOWED | ITEM_FLAG_INVALID_FOR_CHAMELEON
 
 /obj/item/clothing/under/rank/psych/turtleneck/sweater
 	desc = "A warm looking sweater and a pair of dark blue slacks."
@@ -743,9 +717,9 @@
 /obj/item/clothing/under/sterile/emrs
 	name = "medical uniform"
 	desc = "An uniform worn in emergency medical and reanimation services across human space."
-	icon_state = "medical_Uniform"
-	item_state = "medical_Uniform"
-	worn_state = "medical_Uniform"
+	icon_state = "medical_uniform"
+	item_state = "medical_uniform"
+	worn_state = "medical_uniform"
 
 /obj/item/clothing/under/kimono
 	desc = "A traditional robe with remarkably long sleeves, mostly worn by women. <i>Sugoi.</i>"
@@ -753,3 +727,9 @@
 	icon_state = "kimono"
 	worn_state = "kimono"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO|LEGS|ARMS
+
+/obj/item/clothing/under/slate
+	name = "\improper Slate Engineering uniform"
+	desc = "A dress shirt and khakis belonging to Slate Sisters Engineering, a shipbuilding and asteroid excavation firm."
+	icon_state = "dispatch"
+	worn_state = "dispatch"

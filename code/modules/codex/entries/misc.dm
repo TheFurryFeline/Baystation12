@@ -10,7 +10,8 @@
 
 /datum/codex_entry/sneakies
 	associated_paths = list(/obj/item/clothing/shoes/laceup/sneakies)
-	lore_text =  "Originally designed to confuse Terran troops on the swamp moon of Nabier XI, where they were proven somewhat effective. Not bad on a space vessel, either."
+	lore_text =  "Originally designed to confuse patrols along Northern Gaia's many lake shorelines and swamps, where they were proven somewhat effective \
+	in disorienting searches in the opposite direction. Not bad on a space vessel, so long as you have something coating your shoes."
 
 /datum/codex_entry/moneygun
 	associated_paths = list(/obj/item/gun/launcher/money)
@@ -28,3 +29,8 @@
 	If the message displays something more severe, like being completely comatose or having a full system failure, the player has voluntarily ghosted while still alive - this means that the character won't return back to the round as a player, short of invervention from an admin. For clarity, these cases will also always mention that the player won't be recovering or waking up any time soon.<br><br>\
 	\
 	The server's rules likely have special clauses regarding SSD players. Check the rule list before you touch a player who's disconnected or take any actions on them."
+
+/datum/codex_entry/cards
+	associated_paths = list(/obj/item/deck)
+	display_name = "Deck of Cards"
+	mechanics_text = "You can use harm intent to deal a new card face up while clicking on something, and similarly grab intent to deal a card face down. Both intents let you deal to a hand of cards you can interact with."

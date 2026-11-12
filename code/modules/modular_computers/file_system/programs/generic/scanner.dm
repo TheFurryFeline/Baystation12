@@ -95,7 +95,7 @@
 	name = "Scanner"
 
 /datum/nano_module/program/scanner/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
 	var/datum/computer_file/program/scanner/prog = program
 	if(!prog.computer)
 		return
@@ -107,7 +107,7 @@
 		data["can_save_scan"] = (scanner.can_save_scan && prog.data_buffer)
 	data["using_scanner"] = prog.using_scanner
 	data["check_scanning"] = prog.check_scanning()
-	if(prog.metadata_buffer.len > 0 && prog.paper_type == /obj/item/paper/bodyscan)
+	if(length(prog.metadata_buffer) > 0 && prog.paper_type == /obj/item/paper/bodyscan)
 		data["data_buffer"] = display_medical_data(prog.metadata_buffer.Copy(), user.get_skill_value(SKILL_MEDICAL, TRUE))
 	else
 		data["data_buffer"] = digitalPencode2html(prog.data_buffer)

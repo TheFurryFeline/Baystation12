@@ -18,12 +18,12 @@ This is /obj/machinery level code to properly manage power usage from the area.
 		return FALSE
 
 	//Don't do this. It allows machines that set use_power to 0 when off (many machines) to
-	//be turned on again and used after a power failure because they never gain the NOPOWER flag.
+	//be turned on again and used after a power failure because they never gain the MACHINE_STAT_NOPOWER flag.
 	//if(!use_power)
 	//	return 1
 
 	if(!check_area)
-		check_area = loc.loc		// make sure it's in an area
+		check_area = get_area(src)	// make sure it's in an area
 	if(!check_area || !isarea(check_area))
 		return FALSE					// if not, then not powered
 	if(chan == POWER_CHAN)
@@ -34,14 +34,14 @@ This is /obj/machinery level code to properly manage power usage from the area.
 // by default, check equipment channel & set flag can override if needed
 // This is NOT for when the machine's own status changes; update_use_power for that.
 /obj/machinery/proc/power_change()
-	if(stat_immune & NOPOWER)
+	if(stat_immune & MACHINE_STAT_NOPOWER)
 		return FALSE
 	var/oldstat = stat
-	stat |= NOPOWER
+	set_stat(MACHINE_STAT_NOPOWER, TRUE)
 	for(var/thing in power_components)
 		var/obj/item/stock_parts/power/power = thing
-		if((stat & NOPOWER) && power.can_provide_power(src))
-			stat &= ~NOPOWER
+		if((!is_powered()) && power.can_provide_power(src))
+			set_stat(MACHINE_STAT_NOPOWER, FALSE)
 		else
 			power.not_needed(src)
 
@@ -89,13 +89,13 @@ This is /obj/machinery level code to properly manage power usage from the area.
 // Do not do power stuff in New/Initialize until after ..()
 /obj/machinery/Initialize()
 	REPORT_POWER_CONSUMPTION_CHANGE(0, get_power_usage())
-	GLOB.moved_event.register(src, src, .proc/update_power_on_move)
+	GLOB.moved_event.register(src, src, PROC_REF(update_power_on_move))
 	power_init_complete = TRUE
 	. = ..()
 
 // Or in Destroy at all, but especially after the ..().
 /obj/machinery/Destroy()
-	GLOB.moved_event.unregister(src, src, .proc/update_power_on_move)
+	GLOB.moved_event.unregister(src, src, PROC_REF(update_power_on_move))
 	REPORT_POWER_CONSUMPTION_CHANGE(get_power_usage(), 0)
 	. = ..()
 

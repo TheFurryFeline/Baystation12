@@ -4,7 +4,7 @@
 	var/obj/item/in_slot = get_equipped_item(slot)
 	if (istype(in_slot))
 		if (istype(in_hand))
-			in_slot.attackby(in_hand, src)
+			in_slot.use_tool(in_hand, src)
 		else
 			in_slot.attack_hand(src)
 	else
@@ -39,6 +39,7 @@
 			return
 		I.equip_delay_after(src, slot, equip_flags)
 	equip_to_slot(I, slot, equip_flags & TRYEQUIP_REDRAW)
+	I.post_equip_item(src, slot, equip_flags)
 	return TRUE
 
 
@@ -62,7 +63,7 @@
 
 
 /// Place I into the first slot it fits in the order of slots_by_priority, returning the slot or falsy.
-/mob/proc/equip_to_appropriate_slot(obj/item/I, skip_storage)
+/mob/proc/equip_to_appropriate_slot(obj/item/I, skip_storage, skip_timer, destroy_on_fail, force_equip)
 	var/static/list/slots_by_priority = list(
 		slot_back, slot_wear_id, slot_w_uniform, slot_wear_suit,
 		slot_wear_mask, slot_head, slot_shoes, slot_gloves, slot_l_ear,
@@ -71,15 +72,22 @@
 	)
 	if (!istype(I))
 		return
+	var/equip_flags = TRYEQUIP_REDRAW | TRYEQUIP_SILENT
+	if (skip_timer)
+		equip_flags |= TRYEQUIP_INSTANT
+	if (force_equip)
+		equip_flags |= TRYEQUIP_FORCE
 	for (var/slot in slots_by_priority)
 		if (skip_storage && (slot == slot_s_store || slot == slot_l_store || slot == slot_r_store))
 			continue
-		if (equip_to_slot_if_possible(I, slot, TRYEQUIP_REDRAW | TRYEQUIP_SILENT))
+		if (equip_to_slot_if_possible(I, slot, equip_flags))
 			return slot //slot is truthy; we can return it for info
+	if(destroy_on_fail)
+		qdel(I)
 
 
 //Checks if a given slot can be accessed at this time, either to equip or unequip I
-/mob/proc/slot_is_accessible(var/slot, var/obj/item/I, mob/user=null)
+/mob/proc/slot_is_accessible(slot, obj/item/I, mob/user=null)
 	return 1
 
 
@@ -118,37 +126,108 @@
 	else		return l_hand
 
 //Puts the item into your l_hand if possible and calls all necessary triggers/updates. returns 1 on success.
-/mob/proc/put_in_l_hand(var/obj/item/W)
+/mob/proc/put_in_l_hand(obj/item/W)
 	if(lying || !istype(W))
 		return 0
 	return 1
 
 //Puts the item into your r_hand if possible and calls all necessary triggers/updates. returns 1 on success.
-/mob/proc/put_in_r_hand(var/obj/item/W)
+/mob/proc/put_in_r_hand(obj/item/W)
 	if(lying || !istype(W))
 		return 0
 	return 1
 
 //Puts the item into our active hand if possible. returns 1 on success.
-/mob/proc/put_in_active_hand(var/obj/item/W)
+/mob/proc/put_in_active_hand(obj/item/W)
 	return 0 // Moved to human procs because only they need to use hands.
 
 //Puts the item into our inactive hand if possible. returns 1 on success.
-/mob/proc/put_in_inactive_hand(var/obj/item/W)
+/mob/proc/put_in_inactive_hand(obj/item/W)
 	return 0 // As above.
 
 //Puts the item our active hand if possible. Failing that it tries our inactive hand. Returns 1 on success.
 //If both fail it drops it on the floor and returns 0.
 //This is probably the main one you need to know :)
-/mob/proc/put_in_hands(var/obj/item/W)
+/mob/proc/put_in_hands(obj/item/W)
 	if(!W)
 		return 0
 	drop_from_inventory(W)
 	return 0
 
+
+/**
+ * Checks if a given item or path is in any of the mob's hands or other holding slots.
+ *
+ * **Parameters**:
+ * - `item` - The item to check for. Either a reference or a path. If a path, will check for any instance of path or its subtypes.
+ *
+ * Returns instance of `/obj/item` or `null`. the item found in the mob's hands.
+ */
+/mob/proc/IsHolding(obj/item/item)
+	if (istype(item))
+		if (QDELING(item))
+			crash_with("Invalid instance supplied: The passed item has been QDEL'd.")
+			return
+		if (l_hand == item || r_hand == item)
+			return item
+		return
+
+	if (ispath(item, /obj/item))
+		if (istype(l_hand, item))
+			return l_hand
+		if (istype(r_hand, item))
+			return r_hand
+		return
+
+	crash_with("Invalid instance or path supplied: Not a valid subtype of `/obj/item` or was `null`.")
+
+
+/**
+ * Fetches all held items of the given path.
+ *
+ * If not passed any parameters, will simply fetch all held items.
+ *
+ * **Parameters**:
+ * - `item_path` (path) - Path to the item type to fetch. Must be a type of `/obj/item`.
+ *
+ * Returns list of found instances, or null.
+ */
+/mob/proc/GetAllHeld(item_path)
+	. = list()
+
+	if (HandsEmpty())
+		return null
+
+	if (!item_path)
+		if (l_hand)
+			. += l_hand
+		if (r_hand)
+			. += r_hand
+		return
+
+	if (ispath(item_path, /obj/item))
+		if (istype(l_hand, item_path))
+			. += l_hand
+		if (istype(r_hand, item_path))
+			. += r_hand
+		return
+
+	crash_with("Invalid path supplied: Not a valid subtype of `/obj/item`.")
+
+
+/// Whether or not the mob's hands or other holding slots are empty. Returns boolean.
+/mob/proc/HandsEmpty()
+	return isnull(l_hand) && isnull(r_hand)
+
+
+/// Whether or not the mob has any free hands/holding slots.
+/mob/proc/HasFreeHand()
+	return isnull(l_hand) || isnull(r_hand)
+
+
 // Removes an item from inventory and places it in the target atom.
 // If canremove or other conditions need to be checked then use unEquip instead.
-/mob/proc/drop_from_inventory(var/obj/item/W, var/atom/target = null)
+/mob/proc/drop_from_inventory(obj/item/W, atom/target = null)
 	if(W)
 		remove_from_mob(W, target)
 		if(!(W && W.loc)) return 1 // self destroying objects (tk, grabs)
@@ -205,10 +284,15 @@
 		update_inv_wear_mask(0)
 	return
 
-/mob/proc/isEquipped(obj/item/I)
-	if(!I)
-		return 0
-	return get_inventory_slot(I) != 0
+
+/// Returns truthy when item is in the mobs inventory slots, or in slot if specified.
+/mob/proc/isEquipped(obj/item/item, slot)
+	if (!item)
+		return FALSE
+	if (slot)
+		return get_equipped_item(slot) == item
+	return get_inventory_slot(item) != 0
+
 
 /mob/proc/canUnEquip(obj/item/I)
 	if(!I) //If there's nothing to drop, the drop is automatically successful.
@@ -227,7 +311,7 @@
 	return slot
 
 //This differs from remove_from_mob() in that it checks if the item can be unequipped first. Use drop_from_inventory if you don't want to check.
-/mob/proc/unEquip(obj/item/I, var/atom/target)
+/mob/proc/unEquip(obj/item/I, atom/target)
 	if(!canUnEquip(I))
 		return
 	drop_from_inventory(I, target)
@@ -240,7 +324,7 @@
 	return 1
 
 //Attemps to remove an object on a mob.
-/mob/proc/remove_from_mob(var/obj/O, var/atom/target)
+/mob/proc/remove_from_mob(obj/O, atom/target)
 	if(!O) // Nothing to remove, so we succeed.
 		return 1
 	src.u_equip(O)
@@ -259,7 +343,7 @@
 
 
 //Returns the item equipped to the specified slot, if any.
-/mob/proc/get_equipped_item(var/slot)
+/mob/proc/get_equipped_item(slot)
 	switch(slot)
 		if(slot_l_hand) return l_hand
 		if(slot_r_hand) return r_hand
@@ -267,7 +351,7 @@
 		if(slot_wear_mask) return wear_mask
 	return null
 
-/mob/proc/get_equipped_items(var/include_carried = 0)
+/mob/proc/get_equipped_items(include_carried = 0)
 	. = list()
 	if(back)      . += back
 	if(wear_mask) . += wear_mask
@@ -276,7 +360,7 @@
 		if(l_hand) . += l_hand
 		if(r_hand) . += r_hand
 
-/mob/proc/delete_inventory(var/include_carried = FALSE)
+/mob/proc/delete_inventory(include_carried = FALSE)
 	for(var/entry in get_equipped_items(include_carried))
 		drop_from_inventory(entry)
 		qdel(entry)
@@ -289,14 +373,14 @@
 		. |= I.body_parts_covered
 
 // Returns the first item which covers any given body part
-/mob/proc/get_covering_equipped_item(var/body_parts)
+/mob/proc/get_covering_equipped_item(body_parts)
 	for(var/entry in get_equipped_items())
 		var/obj/item/I = entry
 		if(I.body_parts_covered & body_parts)
 			return I
 
 // Returns all items which covers any given body part
-/mob/proc/get_covering_equipped_items(var/body_parts)
+/mob/proc/get_covering_equipped_items(body_parts)
 	. = list()
 	for(var/entry in get_equipped_items())
 		var/obj/item/I = entry

@@ -22,15 +22,17 @@
 #define TOTAL   5 // For total power used only.
 
 // Bitflags for machine stat variable.
-#define BROKEN      FLAG(0)
-#define NOPOWER     FLAG(1)
-#define MAINT       FLAG(2)  // Under maintenance.
-#define EMPED       FLAG(3)  // Temporary broken by EMP pulse.
-#define NOSCREEN    FLAG(4)  // No UI shown via direct interaction
-#define NOINPUT     FLAG(5)  // No input taken from direct interaction
+#define MACHINE_STAT_NOPOWER     FLAG_01
+#define MACHINE_STAT_MAINT       FLAG_02  // Under maintenance.
+#define MACHINE_STAT_EMPED       FLAG_03  // Temporary broken by EMP pulse.
+#define MACHINE_STAT_NOSCREEN    FLAG_04  // No UI shown via direct interaction
+#define MACHINE_STAT_NOINPUT     FLAG_05  // No input taken from direct interaction
 
-#define MACHINE_BROKEN_GENERIC  FLAG(0)  // Standard legacy brokenness, used on a case-by-case basis
-#define MACHINE_BROKEN_NO_PARTS FLAG(1)  // Missing required parts
+#define MACHINE_BROKEN_GENERIC  FLAG_01  // Standard legacy brokenness, used on a case-by-case basis
+#define MACHINE_BROKEN_NO_PARTS FLAG_02  // Missing required parts
+#define MACHINE_BROKEN_HEALTH   FLAG_03  // Standardized health state is dead
+
+#define MACHINE_IS_BROKEN(MACHINE) (!!MACHINE.reason_broken)
 
 // Used by firelocks
 #define FIREDOOR_OPEN 1
@@ -39,17 +41,17 @@
 #define AI_CAMERA_LUMINOSITY 6
 
 // Camera networks
-#define NETWORK_CRESCENT "Crescent"
-#define NETWORK_ENGINEERING "Engineering"
-#define NETWORK_ERT "ZeEmergencyResponseTeam"
-#define NETWORK_EXODUS "Exodus"
-#define NETWORK_MEDICAL "Medical"
-#define NETWORK_MERCENARY "MercurialNet"
-#define NETWORK_MINE "Mining"
-#define NETWORK_RESEARCH "Research"
-#define NETWORK_ROBOTS "Robots"
-#define NETWORK_SECURITY "Security"
-#define NETWORK_THUNDER "Thunderdome"
+var/global/const/NETWORK_CRESCENT       = "Crescent"
+var/global/const/NETWORK_ENGINEERING       = "Engineering"
+var/global/const/NETWORK_ERT       = "ERT"
+var/global/const/NETWORK_EXODUS       = "Exodus"
+var/global/const/NETWORK_MEDICAL       = "Medical"
+var/global/const/NETWORK_MERCENARY       = "MercurialNet"
+var/global/const/NETWORK_MINE       = "Mining"
+var/global/const/NETWORK_RESEARCH       = "Research"
+var/global/const/NETWORK_SECURITY       = "Security"
+var/global/const/NETWORK_THUNDER       = "Thunderdome"
+var/global/const/NETWORK_HELMETS       = "Helmet Cameras"
 
 #define NETWORK_ALARM_ATMOS "Atmosphere Alarms"
 #define NETWORK_ALARM_CAMERA "Camera Alarms"
@@ -136,19 +138,19 @@
 #define MESSAGE_RESEND_TIME 5	//how long (in seconds) do we wait before resending a message
 
 // obj/item/stock_parts status flags
-#define PART_STAT_INSTALLED     FLAG(0)
-#define PART_STAT_PROCESSING    FLAG(1)
-#define PART_STAT_ACTIVE        FLAG(2)
-#define PART_STAT_CONNECTED     FLAG(3)
+#define PART_STAT_INSTALLED     FLAG_01
+#define PART_STAT_PROCESSING    FLAG_02
+#define PART_STAT_ACTIVE        FLAG_03
+#define PART_STAT_CONNECTED     FLAG_04
 
 // part_flags
-#define PART_FLAG_LAZY_INIT      FLAG(0)  // Will defer init on stock parts until machine is destroyed or parts are otherwise queried.
-#define PART_FLAG_QDEL           FLAG(1)  // Will delete on uninstall
-#define PART_FLAG_HAND_REMOVE    FLAG(2)  // Can be removed by hand
+#define PART_FLAG_LAZY_INIT      FLAG_01  // Will defer init on stock parts until machine is destroyed or parts are otherwise queried.
+#define PART_FLAG_QDEL           FLAG_02  // Will delete on uninstall
+#define PART_FLAG_HAND_REMOVE    FLAG_03  // Can be removed by hand
 
 // Machinery process flags, for use with START_PROCESSING_MACHINE
-#define MACHINERY_PROCESS_SELF          FLAG(0)
-#define MACHINERY_PROCESS_COMPONENTS    FLAG(1)
+#define MACHINERY_PROCESS_SELF          FLAG_01
+#define MACHINERY_PROCESS_COMPONENTS    FLAG_02
 #define MACHINERY_PROCESS_ALL           (MACHINERY_PROCESS_SELF | MACHINERY_PROCESS_COMPONENTS)
 
 // Machine construction state return values, for use with cannot_transition_to
@@ -157,10 +159,10 @@
 #define MCS_BLOCK    2 // Failed to change, but action was performed
 
 #define FABRICATOR_EXTRA_COST_FACTOR 1.25
-#define FAB_HACKED      FLAG(0)
-#define FAB_DISABLED    FLAG(1)
-#define FAB_SHOCKED     FLAG(2)
-#define FAB_BUSY        FLAG(3)
+#define FAB_HACKED      FLAG_01
+#define FAB_DISABLED    FLAG_02
+#define FAB_SHOCKED     FLAG_03
+#define FAB_BUSY        FLAG_04
 
 #define  PART_CPU  		/obj/item/stock_parts/computer/processor_unit				// CPU. Without it the computer won't run. Better CPUs can run more programs at once.
 #define  PART_NETWORK  	/obj/item/stock_parts/computer/network_card					// Network Card component of this computer. Allows connection to NTNet
@@ -176,3 +178,6 @@
 #define  PART_SCANNER  	/obj/item/stock_parts/computer/scanner							// One of several optional scanner attachments.
 
 #define CLICKSOUND_INTERVAL (5 SECONDS)
+
+#define MISSILE_PART_PAYLOAD "payload"
+#define MISSILE_PART_THRUSTER "thruster"

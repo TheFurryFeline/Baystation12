@@ -25,7 +25,7 @@
 
 	possible_wanted_items = list(/mob/living/simple_animal/passive/corgi      = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/cat         = TRADER_THIS_TYPE,
-								/mob/living/simple_animal/crab        = TRADER_THIS_TYPE,
+								/mob/living/simple_animal/passive/crab        = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/lizard      = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/mouse       = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/mushroom    = TRADER_THIS_TYPE,
@@ -45,7 +45,7 @@
 
 	possible_trading_items = list(/mob/living/simple_animal/passive/corgi     = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/cat         = TRADER_THIS_TYPE,
-								/mob/living/simple_animal/crab        = TRADER_THIS_TYPE,
+								/mob/living/simple_animal/passive/crab        = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/lizard      = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/mouse       = TRADER_THIS_TYPE,
 								/mob/living/simple_animal/passive/mushroom    = TRADER_THIS_TYPE,
@@ -101,7 +101,7 @@
 								/obj/item/storage/backpack/clown = TRADER_THIS_TYPE,
 								/obj/item/bananapeel             = TRADER_THIS_TYPE,
 								/obj/item/gun/launcher/money     = TRADER_THIS_TYPE,
-								/obj/item/reagent_containers/food/snacks/pie = TRADER_THIS_TYPE,
+								/obj/item/reagent_containers/food/snacks/bananapie = TRADER_THIS_TYPE,
 								/obj/item/bikehorn               = TRADER_THIS_TYPE,
 								/obj/item/reagent_containers/spray/waterflower = TRADER_THIS_TYPE,
 								/obj/item/gun/launcher/pneumatic/small = TRADER_THIS_TYPE,

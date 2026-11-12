@@ -13,7 +13,7 @@
 		"NOTICE: Programs are executed using access credentials of the original terminal session."
 	)
 	pattern = "^prog"
-	skill_needed = SKILL_ADEPT
+	skill_needed = SKILL_TRAINED
 
 /datum/terminal_command/prog/proper_input_entered(text, mob/user, datum/terminal/terminal)
 	. = syntax_error()
@@ -21,7 +21,7 @@
 	if(isnull(arguments))
 		return
 	// Program list
-	if(!arguments.len)
+	if(!length(arguments))
 		. = list()
 		. += "[name]: Listing running programs..."
 		. += "PID Status Filename"
@@ -30,7 +30,7 @@
 				. += "[P.uid] - [(P.program_state == PROGRAM_STATE_ACTIVE ? "active" : "bckgrn")] - [P.filename]"
 		. += ""
 	// Run command with flag only
-	else if(arguments.len == 1)
+	else if(length(arguments) == 1)
 		if(arguments[1] == "-k")
 			for(var/datum/computer_file/program/P in terminal.computer.running_programs)
 				terminal.computer.kill_program_remote(P, 1)
@@ -40,12 +40,18 @@
 				return "[name]: Error; could not modify autorun data."
 			return "[name]: Autorun disabled"
 	// Run command on a pid or filename
-	else if(arguments.len == 2)
+	else if(length(arguments) == 2)
 		if(arguments[1] == "-f")
 			var/datum/computer_file/program/P = get_program_by_pid(arguments[2], terminal)
 			if(!istype(P))
 				return "[name]: Error; invalid pid."
-			(P.program_state == PROGRAM_STATE_ACTIVE ? terminal.computer.minimize_program() : terminal.computer.activate_program(P))
+			(P == terminal.computer.active_program ? terminal.computer.minimize_program(P, user) : terminal.computer.activate_program(P, user))
+			return "[name]: Program focus toggled."
+		else if (arguments[1] == "-fw")
+			var/datum/computer_file/program/P = get_program_by_pid(arguments[2], terminal)
+			if(!istype(P))
+				return "[name]: Error; invalid pid."
+			((P in terminal.computer.running_program_windows) ? terminal.computer.minimize_program(P, user) : terminal.computer.activate_program_new_window(P, user))
 			return "[name]: Program focus toggled."
 		else if(arguments[1] == "-k")
 			var/datum/computer_file/program/P = get_program_by_pid(arguments[2], terminal)
@@ -55,6 +61,13 @@
 			return "[name]: Program [P.filename] terminated."
 		else if(arguments[1] == "-x")
 			var/datum/computer_file/program/P = terminal.computer.run_program_remote(arguments[2], user, 0)
+			if(!istype(P))
+				return "[name]: Error; unable to execute program '[arguments[2]]'."
+			return "[name]: Program '[P.filename]' running with pid [P.uid]."
+		else if(arguments[1] == "-xw")
+			if (!terminal.computer.allow_multiple_windows)
+				return "[name]: Error; unable to run multiple windows on hardware."
+			var/datum/computer_file/program/P = terminal.computer.run_program_new_window(arguments[2], user, 0)
 			if(!istype(P))
 				return "[name]: Error; unable to execute program '[arguments[2]]'."
 			return "[name]: Program '[P.filename]' running with pid [P.uid]."

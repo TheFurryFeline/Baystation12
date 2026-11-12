@@ -1,36 +1,52 @@
-// This is a datum-based artificial intelligence for simple mobs (and possibly others) to use.
-// The neat thing with having this here instead of on the mob is that it is independant of Life(), and that different mobs
-// can use a more or less complex AI by giving it a different datum.
-#define AI_NO_PROCESS			0
-#define AI_PROCESSING			FLAG(0)
-#define AI_FASTPROCESSING		FLAG(1)
+#define AI_NO_PROCESS 0
+#define AI_PROCESSING FLAG_01
+#define AI_FASTPROCESSING FLAG_02
 
-#define START_AIPROCESSING(Datum) if (!(Datum.process_flags & AI_PROCESSING)) {Datum.process_flags |= AI_PROCESSING;SSai.processing += Datum}
-#define STOP_AIPROCESSING(Datum) Datum.process_flags &= ~AI_PROCESSING;SSai.processing -= Datum
-#define START_AIFASTPROCESSING(Datum) if (!(Datum.process_flags & AI_FASTPROCESSING)) {Datum.process_flags |= AI_FASTPROCESSING;SSaifast.processing += Datum}
-#define STOP_AIFASTPROCESSING(Datum) Datum.process_flags &= ~AI_FASTPROCESSING;SSaifast.processing -= Datum
+
+#define START_AIPROCESSING(datum) \
+if (!(datum.process_flags & AI_PROCESSING)) { \
+	datum.process_flags |= AI_PROCESSING; \
+	SSai.ai_holders += datum \
+}
+
+
+#define STOP_AIPROCESSING(datum) \
+	datum.process_flags &= ~AI_PROCESSING; \
+	SSai.ai_holders -= datum
+
+
+#define START_AIFASTPROCESSING(datum) \
+if (!(datum.process_flags & AI_FASTPROCESSING)) { \
+	datum.process_flags |= AI_FASTPROCESSING; \
+	SSaifast.ai_holders += datum \
+}
+
+
+#define STOP_AIFASTPROCESSING(datum) \
+	datum.process_flags &= ~AI_FASTPROCESSING; \
+	SSaifast.ai_holders -= datum
+
 
 /mob/living
-	var/datum/ai_holder/ai_holder = null
-	/// Which `ai_holder` datum to give to the mob when initialized. If `null`, nothing happens.
-	var/ai_holder_type = null
+	var/datum/ai_holder/ai_holder
 	var/image/ai_status_image
 
+
 /mob/living/Initialize()
-	if (ai_holder_type)
-		ai_holder = new ai_holder_type(src)
-		if (istype(src, /mob/living/carbon/human))
-			var/mob/living/carbon/human/H = src
-			H.InitializeHud()
-		ai_status_image = image('icons/misc/buildmode.dmi', src, "ai_0")
-	return ..()
+	. = ..()
+	if (ispath(ai_holder))
+		ai_holder = new ai_holder (src)
+		if (ishuman(src))
+			InitializeHud()
+		ai_status_image = image('icons/misc/buildmode.dmi', src, "ai_0") //:anguish:
+
 
 /mob/living/Destroy()
 	if (ai_holder)
-		GLOB.stat_set_event.unregister(src, ai_holder, /datum/ai_holder/proc/holder_stat_change)
+		GLOB.stat_set_event.unregister(src, ai_holder, TYPE_PROC_REF(/datum/ai_holder, holder_stat_change))
 		QDEL_NULL(ai_holder)
-
 	return ..()
+
 
 /mob/living/Login()
 	if (!stat && ai_holder)
@@ -44,7 +60,9 @@
 
 /datum/ai_holder
 	/// The mob this datum is going to control.
-	var/mob/living/simple_animal/holder = null
+	var/mob/living/holder = null
+	/// The required mob type of the holder.
+	var/holder_required_type = /mob/living
 	/// Determines if the mob should be doing a specific thing, e.g. attacking, following, standing around, etc.
 	var/stance = STANCE_IDLE
 	/// Adjust to make the AI be intentionally dumber, or make it more robust (e.g. dodging grenades).
@@ -61,7 +79,7 @@
 	var/process_flags = 0
 	/// A list used in mass-editing of AI datums, holding a snapshot of the 'before' state
 	var/list/snapshot = null
-	var/list/static/fastprocess_stances = list(
+	var/static/list/fastprocess_stances = list(
 		STANCE_ALERT,
 		STANCE_APPROACH,
 		STANCE_FIGHT,
@@ -70,9 +88,8 @@
 		STANCE_MOVE,
 		STANCE_FOLLOW,
 		STANCE_FLEE,
-		STANCE_DISABLED
 	)
-	var/list/static/noprocess_stances = list(
+	var/static/list/noprocess_stances = list(
 		STANCE_SLEEP
 	)
 
@@ -88,8 +105,18 @@
 	ASSERT(new_holder)
 	holder = new_holder
 	home_turf = get_turf(holder)
+
+	if (!istype(new_holder, holder_required_type))
+		var/mob/new_holder_mob = new_holder
+		src.debug_ai = AI_LOG_ERROR
+		ai_log("New(): Invalid holder type, destroying AI. (Expected: [holder_required_type] Received: [new_holder_mob.type])", AI_LOG_ERROR)
+		QDEL_NULL(src)
+		return
 	manage_processing(AI_PROCESSING)
-	GLOB.stat_set_event.register(holder, src, .proc/holder_stat_change)
+	GLOB.stat_set_event.register(holder, src, PROC_REF(holder_stat_change))
+
+	if (cooperative)
+		build_faction_friends()
 	..()
 
 /datum/ai_holder/Destroy()
@@ -118,6 +145,11 @@
 // Now for the actual AI stuff.
 /datum/ai_holder/proc/set_busy(value = FALSE)
 	busy = value
+
+/// Set the AI as 'busy' for a specific length of time.
+/datum/ai_holder/proc/set_busy_delay(time)
+	set_busy(TRUE)
+	addtimer(new Callback(src, PROC_REF(set_busy), FALSE), time)
 
 /**
  * Makes this ai holder not get processed.
@@ -156,16 +188,20 @@
 
 /// 'Tactical' processes such as moving a step, meleeing an enemy, firing a projectile, and other fairly cheap actions that need to happen quickly.
 /datum/ai_holder/proc/handle_tactics()
+	set background = TRUE
 	if (holder.key && !autopilot)
 		return
-	handle_special_tactic()
+	if (!is_disabled())
+		handle_special_tactic()
 	handle_stance_tactical()
 
 /// 'Strategical' processes that are more expensive on the CPU and so don't get run as often as the above proc, such as A* pathfinding or robust targeting.
 /datum/ai_holder/proc/handle_strategicals()
+	set background = TRUE
 	if (holder.key && !autopilot)
 		return
-	handle_special_strategical()
+	if (!is_disabled())
+		handle_special_strategical()
 	handle_stance_strategical()
 
 /// Override this for special things without polluting the main `handle_tactics()` loop.
@@ -198,20 +234,20 @@
 /// This is called every half a second.
 /datum/ai_holder/proc/handle_stance_tactical()
 	ai_log("========= Fast Process Beginning ==========", AI_LOG_TRACE) // This is to make it easier visually to disinguish between 'blocks' of what a tick did.
-	ai_log("handle_stance_tactical() : Called.", AI_LOG_TRACE)
+	ai_log("handle_stance_tactical() : Entering.", AI_LOG_TRACE)
 
 	if (stance == STANCE_SLEEP)
 		ai_log("handle_stance_tactical() : Going to sleep.", AI_LOG_TRACE)
 		go_sleep()
 		return
 
-	if (target && can_see_target(target))
-		track_target_position()
-
 	if (stance != STANCE_DISABLED && is_disabled()) // Stunned/confused/etc
 		ai_log("handle_stance_tactical() : Disabled.", AI_LOG_TRACE)
 		set_stance(STANCE_DISABLED)
 		return
+
+	if (target && can_see_target(target))
+		track_target_position()
 
 	if (stance in STANCES_COMBAT)
 		// Should resist?  We check this before fleeing so that we can actually flee and not be trapped in a chair.
@@ -250,10 +286,9 @@
 			ai_log("handle_stance_tactical() : STANCE_MOVE, going to walk_to_destination().", AI_LOG_TRACE)
 			walk_to_destination()
 
-		if (STANCE_REPOSITION) // This is the same as above but doesn't stop if an enemy is visible since its an 'in-combat' move order.
+		if (STANCE_REPOSITION) // This is the same as above but stops if an enemy is visible since its an 'in-combat' move order.
 			ai_log("handle_stance_tactical() : STANCE_REPOSITION, going to walk_to_destination().", AI_LOG_TRACE)
-			if (!target && !find_target())
-				walk_to_destination()
+			walk_to_destination()
 
 		if (STANCE_FOLLOW)
 			ai_log("handle_stance_tactical() : STANCE_FOLLOW, going to walk_to_leader().", AI_LOG_TRACE)
@@ -263,25 +298,27 @@
 			ai_log("handle_stance_tactical() : STANCE_FLEE, going to flee_from_target().", AI_LOG_TRACE)
 			flee_from_target()
 
-		if (STANCE_DISABLED)
-			ai_log("handle_stance_tactical() : STANCE_DISABLED.", AI_LOG_TRACE)
-			if (!is_disabled())
-				ai_log("handle_stance_tactical() : No longer disabled.", AI_LOG_TRACE)
-				set_stance(STANCE_IDLE)
-			else
-				handle_disabled()
-
 	ai_log("handle_stance_tactical() : Exiting.", AI_LOG_TRACE)
 	ai_log("========= Fast Process Ending ==========", AI_LOG_TRACE)
 
 /// This is called every two seconds.
 /datum/ai_holder/proc/handle_stance_strategical()
 	ai_log("++++++++++ Slow Process Beginning ++++++++++", AI_LOG_TRACE)
-	ai_log("handle_stance_strategical() : Called.", AI_LOG_TRACE)
+	ai_log("handle_stance_strategical() : Entering.", AI_LOG_TRACE)
 
 	//We got left around for some reason. Goodbye cruel world.
 	if (!holder)
 		qdel(src)
+
+	if (stance == STANCE_SLEEP)
+		ai_log("handle_stance_tactical() : Going to sleep. Exiting.", AI_LOG_TRACE)
+		go_sleep()
+		return
+
+	if (stance != STANCE_DISABLED && is_disabled()) // Stunned/confused/etc
+		ai_log("handle_stance_tactical() : Disabled. Exiting.", AI_LOG_TRACE)
+		set_stance(STANCE_DISABLED)
+		return
 
 	ai_log("handle_stance_strategical() : LTT=[lose_target_time]", AI_LOG_TRACE)
 	if (lose_target_time && (lose_target_time + lose_target_timeout < world.time)) // We were tracking an enemy but they are gone.
@@ -290,10 +327,17 @@
 
 	if (stance in STANCES_COMBAT)
 		request_help() // Call our allies.
+		if (target && hostile && !can_pursue(target))
+			ai_log("handle_stance_stragical() : Target no longer valid, dropping.", AI_LOG_TRACE)
+			remove_target()
 
 	switch(stance)
 		if (STANCE_IDLE)
-			if (speak_chance) // In the long loop since otherwise it wont shut up.
+			if (target)
+				ai_log("handle_stance_strategical() : STANCE_IDLE, target still present. Getting ready to fight.", AI_LOG_TRACE)
+				set_stance(STANCE_FIGHT)
+
+			if (prob(speak_chance)) // In the long loop since otherwise it wont shut up.
 				handle_idle_speaking()
 
 			if (hostile)
@@ -301,25 +345,31 @@
 				find_target()
 
 			if (should_go_home())
-				ai_log("handle_stance_tactical() : STANCE_IDLE, going to go home.", AI_LOG_TRACE)
+				ai_log("handle_stance_strategical() : STANCE_IDLE, going to go home.", AI_LOG_TRACE)
 				go_home()
 
 			else if (should_follow_leader())
-				ai_log("handle_stance_tactical() : STANCE_IDLE, going to follow leader.", AI_LOG_TRACE)
+				ai_log("handle_stance_strategical() : STANCE_IDLE, going to follow leader.", AI_LOG_TRACE)
 				set_stance(STANCE_FOLLOW)
 
 			else if (should_wander())
-				ai_log("handle_stance_tactical() : STANCE_IDLE, going to wander randomly.", AI_LOG_TRACE)
+				ai_log("handle_stance_strategical() : STANCE_IDLE, going to wander randomly.", AI_LOG_TRACE)
 				handle_wander_movement()
 
 		if (STANCE_APPROACH)
-			if (target)
+			if (hostile && find_target()) // In case another target is closer.
 				ai_log("handle_stance_strategical() : STANCE_APPROACH, going to calculate_path([target]).", AI_LOG_TRACE)
 				calculate_path(target)
 				walk_to_target()
+
 		if (STANCE_MOVE)
 			if (hostile && find_target()) // This will switch its stance.
 				ai_log("handle_stance_strategical() : STANCE_MOVE, found target and was inturrupted.", AI_LOG_TRACE)
+
+		if (STANCE_REPOSITION)
+			if (hostile && find_target())
+				ai_log("handle_stance_strategical() : STANCE_REPOSITION, found target and was inturrupted.", AI_LOG_TRACE)
+
 		if (STANCE_FOLLOW)
 			if (hostile && find_target()) // This will switch its stance.
 				ai_log("handle_stance_strategical() : STANCE_FOLLOW, found target and was inturrupted.", AI_LOG_TRACE)
@@ -327,6 +377,14 @@
 				ai_log("handle_stance_strategical() : STANCE_FOLLOW, going to calculate_path([leader]).", AI_LOG_TRACE)
 				calculate_path(leader)
 				walk_to_leader()
+
+		if (STANCE_DISABLED)
+			ai_log("handle_stance_tactical() : STANCE_DISABLED.", AI_LOG_TRACE)
+			if (!is_disabled())
+				ai_log("handle_stance_tactical() : No longer disabled.", AI_LOG_TRACE)
+				set_stance(STANCE_IDLE)
+			else
+				handle_disabled()
 
 	ai_log("handle_stance_strategical() : Exiting.", AI_LOG_TRACE)
 	ai_log("++++++++++ Slow Process Ending ++++++++++", AI_LOG_TRACE)

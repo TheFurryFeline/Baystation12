@@ -5,20 +5,21 @@
 	program_icon_state = "generic"
 	program_key_state = "generic_key"
 	program_menu_icon = "mail-closed"
-	size = 7
+	size = 1
+	processing_size = 0 //It's the only way to ensure people actually have it on.
 	requires_ntnet = TRUE
 	available_on_ntnet = TRUE
 	var/stored_login = ""
 	var/stored_password = ""
-	usage_flags = PROGRAM_ALL
+	usage_flags = PROGRAM_ALL|PROGRAM_NO_KILL
 	category = PROG_OFFICE
 
-	nanomodule_path = /datum/nano_module/email_client
+	nanomodule_path = /datum/nano_module/program/email_client
 
 /datum/computer_file/program/email_client/on_shutdown()
 	// Persistency. Unless you log out, or unless your password changes, this will pre-fill the login data when restarting the program
 	if(NM)
-		var/datum/nano_module/email_client/NME = NM
+		var/datum/nano_module/program/email_client/NME = NM
 		if(NME.current_account)
 			stored_login = NME.stored_login
 			stored_password = NME.stored_password
@@ -31,7 +32,7 @@
 /datum/computer_file/program/email_client/on_startup()
 	. = ..()
 	if(NM)
-		var/datum/nano_module/email_client/NME = NM
+		var/datum/nano_module/program/email_client/NME = NM
 		NME.stored_login = stored_login
 		NME.stored_password = stored_password
 		NME.log_in()
@@ -44,7 +45,7 @@
 
 /datum/computer_file/program/email_client/process_tick()
 	..()
-	var/datum/nano_module/email_client/NME = NM
+	var/datum/nano_module/program/email_client/NME = NM
 	if(!istype(NME))
 		return
 	NME.relayed_process(computer.get_ntnet_speed(computer.get_ntnet_status()))
@@ -57,8 +58,9 @@
 	else
 		ui_header = "ntnrc_idle.gif"
 
-/datum/nano_module/email_client/
+/datum/nano_module/program/email_client
 	name = "Email Client"
+	available_to_ai = TRUE
 	var/stored_login = ""
 	var/stored_password = ""
 	var/error = ""
@@ -81,31 +83,24 @@
 	var/datum/computer_file/data/email_account/current_account = null
 	var/datum/computer_file/data/email_message/current_message = null
 
-/datum/nano_module/email_client/proc/get_ntos()
+/datum/nano_module/program/email_client/proc/get_ntos()
 	var/datum/extension/interactive/ntos/os = get_extension(nano_host(), /datum/extension/interactive/ntos)
 	if(!istype(os))
 		error = "Error accessing system. Are you using a functional and NTOSv2-compliant device?"
 		return
 	return os
 
-/datum/nano_module/email_client/proc/mail_received(datum/computer_file/data/email_message/received_message)
+/datum/nano_module/program/email_client/proc/mail_received(datum/computer_file/data/email_message/received_message)
 	var/mob/living/L = get_holder_of_type(host, /mob/living)
 	if(L)
-		var/list/msg = list()
-		msg += "*--*\n"
-		msg += "<span class='notice'>New mail received from [received_message.source]:</span>\n"
-		msg += "<b>Subject:</b> [received_message.title]\n<b>Message:</b>\n[digitalPencode2html(received_message.stored_data)]\n"
-		if(received_message.attachment)
-			msg += "<b>Attachment:</b> [received_message.attachment.filename].[received_message.attachment.filetype] ([received_message.attachment.size]GQ)\n"
-		msg += "<a href='?src=\ref[src];open;reply=[received_message.uid]'>Reply</a>\n"
-		msg += "*--*"
-		to_chat(L, jointext(msg, null))
+		var/msg = "[SPAN_NOTICE("New mail received from [received_message.source]:")] <b>Subject:</b> [received_message.title]"
+		to_chat(L, msg)
 
-/datum/nano_module/email_client/Destroy()
+/datum/nano_module/program/email_client/Destroy()
 	log_out()
 	. = ..()
 
-/datum/nano_module/email_client/proc/log_in()
+/datum/nano_module/program/email_client/proc/log_in()
 	var/list/id_login
 	var/atom/movable/A = nano_host()
 	var/obj/item/card/id/id = A.GetIdCard()
@@ -149,25 +144,25 @@
 		return FALSE
 
 /// Returns 0 if no new messages were received, 1 if there is an unread message but notification has already been sent, and 2 if there is a new message that appeared in this tick (and therefore notification should be sent by the program).
-/datum/nano_module/email_client/proc/check_for_new_messages(messages_read = FALSE)
+/datum/nano_module/program/email_client/proc/check_for_new_messages(messages_read = FALSE)
 	if(!current_account)
 		return 0
 
 	var/list/allmails = current_account.all_emails()
 
-	if(allmails.len > last_message_count)
+	if(length(allmails) > last_message_count)
 		. = 2
-	else if(allmails.len > read_message_count)
+	else if(length(allmails) > read_message_count)
 		. = 1
 	else
 		. = 0
 
-	last_message_count = allmails.len
+	last_message_count = length(allmails)
 	if(messages_read)
-		read_message_count = allmails.len
+		read_message_count = length(allmails)
 
 
-/datum/nano_module/email_client/proc/log_out()
+/datum/nano_module/program/email_client/proc/log_out()
 	if(current_account)
 		current_account.connected_clients -= src
 	current_account = null
@@ -176,8 +171,8 @@
 	last_message_count = 0
 	read_message_count = 0
 
-/datum/nano_module/email_client/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+/datum/nano_module/program/email_client/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
+	var/list/data = host.initial_data(program)
 
 	// Password has been changed by other client connected to this email account
 	if(current_account)
@@ -234,10 +229,10 @@
 				data["cur_attachment_filename"] = "[current_message.attachment.filename].[current_message.attachment.filetype]"
 				data["cur_attachment_size"] = current_message.attachment.size
 		else
-			data["label_inbox"] = "Inbox ([current_account.inbox.len])"
-			data["label_outbox"] = "Sent ([current_account.outbox.len])"
-			data["label_spam"] = "Spam ([current_account.spam.len])"
-			data["label_deleted"] = "Deleted ([current_account.deleted.len])"
+			data["label_inbox"] = "Inbox ([length(current_account.inbox)])"
+			data["label_outbox"] = "Sent ([length(current_account.outbox)])"
+			data["label_spam"] = "Spam ([length(current_account.spam)])"
+			data["label_deleted"] = "Deleted ([length(current_account.deleted)])"
 			var/list/message_source
 			if(folder == "Inbox")
 				message_source = current_account.inbox
@@ -250,17 +245,18 @@
 
 			if(message_source)
 				data["folder"] = folder
+				data["source_label"] = folder == "Sent" ? "Recipient" : "Source"
 				var/list/all_messages = list()
 				for(var/datum/computer_file/data/email_message/message in message_source)
 					all_messages.Add(list(list(
 						"title" = message.title,
 						"body" = digitalPencode2html(message.stored_data),
-						"source" = message.source,
+						"source" = folder == "Sent" ? message.recipient : message.source,
 						"timestamp" = message.timestamp,
 						"uid" = message.uid
 					)))
 				data["messages"] = all_messages
-				data["messagecount"] = all_messages.len
+				data["messagecount"] = length(all_messages)
 	else
 		data["stored_login"] = stored_login
 		data["stored_password"] = stars(stored_password, 0)
@@ -274,7 +270,7 @@
 		ui.set_initial_data(data)
 		ui.open()
 
-/datum/nano_module/email_client/proc/find_message_by_fuid(fuid)
+/datum/nano_module/program/email_client/proc/find_message_by_fuid(fuid)
 	if(!istype(current_account))
 		return
 
@@ -286,7 +282,7 @@
 		if(message.uid == fuid)
 			return message
 
-/datum/nano_module/email_client/proc/clear_message()
+/datum/nano_module/program/email_client/proc/clear_message()
 	new_message = FALSE
 	msg_title = ""
 	msg_body = ""
@@ -294,7 +290,7 @@
 	msg_attachment = null
 	current_message = null
 
-/datum/nano_module/email_client/proc/relayed_process(netspeed)
+/datum/nano_module/program/email_client/proc/relayed_process(netspeed)
 	download_speed = netspeed
 	if(!downloading)
 		return
@@ -315,7 +311,7 @@
 		download_progress = 0
 	return
 
-/datum/nano_module/email_client/Topic(href, href_list)
+/datum/nano_module/program/email_client/Topic(href, href_list)
 	if(..())
 		return TOPIC_HANDLED
 	var/mob/living/user = usr
@@ -407,6 +403,7 @@
 		else
 			current_account.deleted.Add(M)
 			current_account.inbox.Remove(M)
+			current_account.outbox.Remove(M)
 			current_account.spam.Remove(M)
 		if(current_message == M)
 			current_message = null
@@ -423,8 +420,9 @@
 
 		var/datum/computer_file/data/email_message/message = new()
 		message.title = msg_title
-		message.stored_data = msg_body
+		message.stored_data = sanitize(msg_body, MAX_MESSAGE_LEN, FALSE)
 		message.source = current_account.login
+		message.recipient = msg_recipient
 		message.attachment = msg_attachment
 		if(!current_account.send_mail(msg_recipient, message))
 			error = "Error sending email: this address doesn't exist."
@@ -445,11 +443,35 @@
 		error = null
 		new_message = TRUE
 		msg_recipient = M.source
-		msg_title = "Re: [M.title]"
+		msg_title = M.title
+		if (copytext_char(msg_title, 1, 4) != "Re:")
+			msg_title = "Re: [msg_title]"
 		var/atom/movable/AM = host
 		if(istype(AM))
 			if(ismob(AM.loc))
 				ui_interact(AM.loc)
+		return TOPIC_HANDLED
+
+	if (href_list["forward"])
+		var/datum/computer_file/data/email_message/message = find_message_by_fuid(href_list["forward"])
+		if (!istype(message))
+			return TOPIC_HANDLED
+		error = null
+		new_message = TRUE
+		msg_recipient = null
+		msg_title = message.title
+		if (copytext_char(msg_title, 1, 4) != "Fw:")
+			msg_title = "Fw: [msg_title]"
+		msg_body = "---\n\[b]FORWARDED MESSAGE:\[/b]\n"
+		msg_body += "\[b]SUBJECT\[b]: [message.title]\n"
+		msg_body += "\[b]FROM\[b]: [message.source]\n"
+		msg_body += "\[b]TO\[b]: [message.recipient]\n"
+		msg_body += "---\n"
+		for (var/line in splittext(message.stored_data, "\n"))
+			msg_body += "> [line]\n"
+		var/atom/movable/movable = host
+		if (istype(movable) && ismob(movable.loc))
+			ui_interact(movable.loc)
 		return TOPIC_HANDLED
 
 	if(href_list["view"])

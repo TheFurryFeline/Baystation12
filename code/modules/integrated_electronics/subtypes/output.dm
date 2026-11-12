@@ -48,7 +48,7 @@
 	var/list/nearby_things = range(0, get_turf(src))
 	for(var/mob/M in nearby_things)
 		var/obj/O = assembly ? assembly : src
-		to_chat(M, "<span class='notice'>[icon2html(O, M)] [stuff_to_display]</span>")
+		to_chat(M, SPAN_NOTICE("[icon2html(O, M)] [stuff_to_display]"))
 
 /obj/item/integrated_circuit/output/screen/large
 	name = "large screen"
@@ -60,7 +60,7 @@
 /obj/item/integrated_circuit/output/screen/large/do_work()
 	..()
 	var/obj/O = assembly ? get_turf(assembly) : loc
-	O.visible_message("<span class='notice'>[icon2html(O, viewers(get_turf(O)))]  [stuff_to_display]</span>")
+	O.visible_message(SPAN_NOTICE("[icon2html(O, viewers(get_turf(O)))]  [stuff_to_display]"))
 
 /obj/item/integrated_circuit/output/light
 	name = "light"
@@ -83,7 +83,7 @@
 /obj/item/integrated_circuit/output/light/proc/update_lighting()
 	if(light_toggled)
 		if(assembly)
-			assembly.set_light(light_brightness, 1, 4, 2, light_rgb)
+			assembly.set_light(4, light_brightness, light_rgb)
 	else
 		if(assembly)
 			assembly.set_light(0)
@@ -113,7 +113,7 @@
 	var/brightness = get_pin_data(IC_INPUT, 2)
 
 	if(new_color && isnum(brightness))
-		brightness = Clamp(brightness, 0, 1)
+		brightness = clamp(brightness, 0, 1)
 		light_rgb = new_color
 		light_brightness = brightness
 
@@ -134,6 +134,7 @@
 	activators = list("play sound" = IC_PINTYPE_PULSE_IN)
 	power_draw_per_use = 10
 	var/list/sounds = list()
+	var/list/sound_messages = list()
 
 /obj/item/integrated_circuit/output/sound/Initialize()
 	.= ..()
@@ -152,8 +153,17 @@
 		var/selected_sound = sounds[ID]
 		if(!selected_sound)
 			return
-		vol = Clamp(vol ,0 , 100)
+		vol = clamp(vol ,0 , 100)
 		playsound(get_turf(src), selected_sound, vol, freq, -1)
+		var/text = sound_messages[ID]
+		if(isnull(text))
+			return
+		var/atom/movable/speaking = get_object()
+		speaking.audible_message("\The [speaking][text]")
+		if (assembly)
+			log_say("[assembly] \ref[assembly] : [text]")
+		else
+			log_say("[name] ([type]) : [text]")
 
 /obj/item/integrated_circuit/output/sound/on_data_written()
 	power_draw_per_use =  get_pin_data(IC_INPUT, 2) * 15
@@ -171,6 +181,16 @@
 		"synth no"		= 'sound/machines/synth_no.ogg',
 		"warning buzz"	= 'sound/machines/warning-buzzer.ogg'
 		)
+	sound_messages = list(
+		"beep"			 = " beeps.",
+		"chime"			 = " chimes.",
+		"buzz sigh"		 = " buzzes.",
+		"buzz twice"	 = " buzzes twice.",
+		"ping"			 = " pings.",
+		"synth yes"		 = " emits an affirmative blip.",
+		"synth no"		 = " emits a negative blip.",
+		"warning buzz"	 = " buzzes alarmingly."
+		)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 
 /obj/item/integrated_circuit/output/sound/beepsky
@@ -184,6 +204,15 @@
 		"i am the law"	= 'sound/voice/biamthelaw.ogg',
 		"radio"			= 'sound/voice/bradio.ogg',
 		"secure day"	= 'sound/voice/bsecureday.ogg'
+		)
+	sound_messages = list(
+		"creep"			= "'s speakers skreech, \"Your move, creep.\".",
+		"criminal"		= "'s speakers skreech, \"Criminal Detected.\".",
+		"freeze"		= "'s speakers skreech, \"Freeze, scumbag!\".",
+		"god"			= "'s speakers skreech, \"God made tomorrow for the crooks we don't catch today.\".",
+		"i am the law"	= "'s speakers skreech, \"I am the law!\".",
+		"radio"			= "'s speakers skreech, \"You cannot run a radio.\".",
+		"secure day"	= "'s speakers skreech, \"Have a secure day.\"."
 		)
 	spawn_flags = IC_SPAWN_RESEARCH
 
@@ -200,6 +229,16 @@
 		"keystroke3"	= 'sound/machines/keyboard/keystroke3.ogg',
 		"keystroke4"	= 'sound/machines/keyboard/keystroke4.ogg'
 		)
+	sound_messages = list(
+		"keypress1"		= " emits a mechanical click.",
+		"keypress2"		= " emits a mechanical click.",
+		"keypress3"		= " emits a mechanical click.",
+		"keypress4"		= " emits a mechanical click.",
+		"keystroke1"	= " emits several mechanical clicks.",
+		"keystroke2"	= " emits several mechanical clicks.",
+		"keystroke3"	= " emits several mechanical clicks.",
+		"keystroke4"	= " emits several mechanical clicks.",
+		)
 	spawn_flags = IC_SPAWN_RESEARCH
 
 /obj/item/integrated_circuit/output/sound/electronic
@@ -215,6 +254,17 @@
 		"sparks3"		= 'sound/effects/sparks3.ogg',
 		"sparks4"		= 'sound/effects/sparks4.ogg'
 		)
+	sound_messages = list(
+		"transmit"		= " emits a staticky click.",
+		"turn on"		= " beeps as if powering on.",
+		"radio"			= " emits the sound of static.",
+		"scan"			= " beeps as if scanning.",
+		"sparks1"		= " emits the sound of sparks.",
+		"sparks2"		= " emits the sound of sparks.",
+		"sparks3"		= " emits the sound of sparks.",
+		"sparks4"		= " emits the sound of sparks.",
+		)
+
 	spawn_flags = IC_SPAWN_RESEARCH
 
 /obj/item/integrated_circuit/output/text_to_speech
@@ -265,6 +315,7 @@
 /obj/item/integrated_circuit/output/video_camera/Initialize()
 	. = ..()
 	camera = new(src)
+	camera.set_stat_immunity(MACHINE_STAT_NOPOWER, TRUE)
 	camera.replace_networks(list())
 	on_data_written()
 
@@ -272,7 +323,7 @@
 	QDEL_NULL(camera)
 	return ..()
 
-/obj/item/integrated_circuit/output/video_camera/proc/set_camera_status(var/status)
+/obj/item/integrated_circuit/output/video_camera/proc/set_camera_status(status)
 	if(camera)
 		camera.set_status(status)
 		power_draw_idle = camera.status ? 20 : 0
@@ -334,5 +385,5 @@
 		text_output += "\an [name]"
 	else
 		text_output += "\an ["\improper[name]"] labeled '[displayed_name]'"
-	text_output += " which is currently [get_pin_data(IC_INPUT, 1) ? "lit <font color=[led_color]>*</font>" : "unlit"]."
+	text_output += " which is currently [get_pin_data(IC_INPUT, 1) ? "lit [SPAN_COLOR(led_color, "*")]" : "unlit"]."
 	to_chat(user, text_output)

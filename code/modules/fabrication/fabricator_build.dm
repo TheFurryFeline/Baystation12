@@ -1,4 +1,4 @@
-/obj/machinery/fabricator/proc/update_current_build(var/spend_time)
+/obj/machinery/fabricator/proc/update_current_build(spend_time)
 
 	if(!istype(currently_building) || !is_functioning())
 		return
@@ -9,10 +9,12 @@
 		return
 
 	// Print the item.
+	var/atom/printed_item
 	if(ispath(currently_building.target_recipe.path, /obj/item/stack))
-		new currently_building.target_recipe.path(get_turf(src), amount = currently_building.multiplier)
+		printed_item = new currently_building.target_recipe.path(get_turf(src), amount = currently_building.multiplier)
 	else
-		new currently_building.target_recipe.path(get_turf(src))
+		printed_item = new currently_building.target_recipe.path(get_turf(src))
+	printed_item.PostFabrication()
 	QDEL_NULL(currently_building)
 	get_next_build()
 	update_icon()
@@ -39,7 +41,7 @@
 		stop_building()
 	updateUsrDialog()
 
-/obj/machinery/fabricator/proc/try_queue_build(var/datum/fabricator_recipe/recipe, var/multiplier)
+/obj/machinery/fabricator/proc/try_queue_build(datum/fabricator_recipe/recipe, multiplier)
 
 	// Do some basic sanity checking.
 	if(!is_functioning() || !istype(recipe) || !(recipe in SSfabrication.get_recipes(fabricator_class)))
@@ -70,3 +72,8 @@
 		get_next_build()
 	else
 		start_building()
+
+/// Called after an item is created by a fabricator.
+/atom/proc/PostFabrication()
+	SHOULD_CALL_PARENT(TRUE)
+	return

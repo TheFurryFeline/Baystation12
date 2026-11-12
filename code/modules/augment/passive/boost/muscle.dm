@@ -21,7 +21,7 @@
 		other = owner.internal_organs_by_name["[BP_L_LEG]_aug"]
 	if (other && istype(other)) //we must be second to activate buff
 		var/succesful = TRUE
-		if (owner.get_skill_value(SKILL_HAULING) < SKILL_PROF)
+		if (owner.get_skill_value(SKILL_HAULING) < SKILL_MASTER)
 			succesful = FALSE
 			var/datum/skill_buff/augment/muscle/A
 			A = owner.buff_skill(buffs, 0, buffpath)
@@ -37,7 +37,7 @@
 /obj/item/organ/internal/augment/boost/muscle/onRemove()
 	if (!active)
 		return
-	FOR_BLIND(datum/skill_buff/augment/muscle/D, owner.fetch_buffs_of_type(buffpath, 0))
+	for (var/datum/skill_buff/augment/muscle/D as anything in owner.fetch_buffs_of_type(buffpath, 0))
 		if (D.id != id)
 			continue
 		D.remove()

@@ -3,10 +3,10 @@
 
 /turf/var/permit_ao = TRUE
 /// Current ambient occlusion overlays. Tracked so we can reverse them without dropping all priority overlays.
-/turf/var/tmp/list/ao_overlays
-/turf/var/tmp/ao_neighbors
-/turf/var/tmp/list/ao_overlays_mimic
-/turf/var/tmp/ao_neighbors_mimic
+/turf/var/list/ao_overlays
+/turf/var/ao_neighbors
+/turf/var/list/ao_overlays_mimic
+/turf/var/ao_neighbors_mimic
 /turf/var/ao_queued = AO_UPDATE_NONE
 
 /turf/proc/regenerate_ao()
@@ -28,7 +28,8 @@
 		CALCULATE_NEIGHBORS(src, ao_neighbors, T, AO_TURF_CHECK(T))
 
 /proc/make_ao_image(corner, i, px = 0, py = 0, pz = 0, pw = 0)
-	var/list/cache = SSao.cache
+	RETURN_TYPE(/image)
+	var/list/cache = SSao.image_cache
 	var/cstr = "[corner]"
 	var/key = "[cstr]-[i]-[px]/[py]/[pz]/[pw]"
 
@@ -75,7 +76,7 @@
 
 #define CUT_AO(TARGET, AO_LIST) \
 	if (TARGET && AO_LIST) { \
-		TARGET.overlays -= AO_LIST; \
+		TARGET.CutOverlays(AO_LIST); \
 		AO_LIST.Cut(); \
 	}
 
@@ -89,11 +90,11 @@
 	} \
 	UNSETEMPTY(AO_LIST); \
 	if (AO_LIST) { \
-		TARGET.overlays |= AO_LIST; \
+		TARGET.AddOverlays(AO_LIST); \
 	}
 
 /turf/proc/update_ao()
-	var/list/cache = SSao.cache
+	var/list/cache = SSao.image_cache
 	CUT_AO(shadower, ao_overlays_mimic)
 	CUT_AO(src, ao_overlays)
 	if (z_flags & ZM_MIMIC_BELOW)
@@ -107,10 +108,3 @@
 #undef PROCESS_AO_CORNER
 #undef AO_TURF_CHECK
 #undef AO_SELF_CHECK
-
-/turf/ChangeTurf()
-	var/old_density = density
-	var/old_permit_ao = permit_ao
-	. = ..()
-	if(density != old_density || permit_ao != old_permit_ao)
-		regenerate_ao()

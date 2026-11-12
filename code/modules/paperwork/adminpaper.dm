@@ -7,8 +7,11 @@
 	var/interactions = null
 	var/isCrayon = 0
 	var/origin = null
+	/// Mob. Who this fax is in reply to.
 	var/mob/sender = null
-	var/obj/machinery/photocopier/faxmachine/destination
+	/// List (string). List of GLOB.alldepartments for this fax.
+	var/list/destinations = list()
+	var/should_stamp = TRUE
 
 	var/header = null
 	var/headerOn = TRUE
@@ -16,31 +19,45 @@
 	var/footer = null
 	var/footerOn = FALSE
 
-	var/logo_list = list("sollogo.png","eclogo.png","fleetlogo.png","exologo.png","ntlogo.png","daislogo.png","xynlogo.png","terralogo.png", "sfplogo.png")
+	var/logo_list = list("sollogo.png","eclogo.png","fleetlogo.png","exologo.png","ntlogo.png","daislogo.png","xynlogo.png","terralogo.png", "sfplogo.png", "falogo.png", "zhlogo.png")
 	var/logo = ""
 
 	var/unformatedText = ""
 
-/obj/item/paper/admin/New()
-	..()
+/obj/item/paper/admin/Initialize()
+	. = ..()
 	generateInteractions()
 
 
 /obj/item/paper/admin/proc/generateInteractions()
 	//clear first
 	interactions = null
+	var/sending_to_msg = "Sending to "
+	if (!length(destinations))
+		sending_to_msg += " <i>nobody!</i>"
+	else if (length(destinations) > 1)
+		sending_to_msg += "[length(destinations)] destinations"
+	else
+		sending_to_msg += "[html_encode(destinations[1])]"
 
 	//Snapshot is crazy and likes putting each topic hyperlink on a seperate line from any other tags so it's nice and clean.
-	interactions += "<HR><center><font size= \"1\">The fax will transmit everything above this line</font><br>"
-	interactions += "<A href='?src=\ref[src];confirm=1'>Send fax</A> "
-	interactions += "<A href='?src=\ref[src];penmode=1'>Pen mode: [isCrayon ? "Crayon" : "Pen"]</A> "
-	interactions += "<A href='?src=\ref[src];cancel=1'>Cancel fax</A> "
-	interactions += "<BR>"
-	interactions += "<A href='?src=\ref[src];changelogo=1'>Change logo</A> "
-	interactions += "<A href='?src=\ref[src];changelanguage=1'>Change language ([language])</A> "
-	interactions += "<A href='?src=\ref[src];toggleheader=1'>Toggle Header</A> "
-	interactions += "<A href='?src=\ref[src];togglefooter=1'>Toggle Footer</A> "
-	interactions += "<A href='?src=\ref[src];clear=1'>Clear page</A> "
+	interactions += "<HR><center><span style='font-size: 10px'>The fax will transmit everything above this line</span><br>"
+	if (length(destinations))
+		interactions += "<A href='byond://?src=\ref[src];confirm=1'>Send fax</A> • "
+	else
+		interactions += "<A>Send fax</A> • "
+	interactions += "<A href='byond://?src=\ref[src];penmode=1'>Pen mode: [isCrayon ? "Crayon" : "Pen"]</A> • "
+	interactions += "<A href='byond://?src=\ref[src];cancel=1'>Cancel fax</A><BR>"
+	interactions += "<A href='byond://?src=\ref[src];togglestamp=1'>[should_stamp ? "" : "<i>Not</i> "]Stamped</A> • "
+	if (sender)
+		interactions += "<A>[sending_to_msg]</A><BR>"
+	else
+		interactions += "<A href='byond://?src=\ref[src];destinations=1'>[sending_to_msg]</A><BR>"
+	interactions += "<A href='byond://?src=\ref[src];changelogo=1'>Change logo</A> • "
+	interactions += "<A href='byond://?src=\ref[src];changelanguage=1'>Change language ([language])</A> • "
+	interactions += "<A href='byond://?src=\ref[src];toggleheader=1'>Toggle Header</A> • "
+	interactions += "<A href='byond://?src=\ref[src];togglefooter=1'>Toggle Footer</A> • "
+	interactions += "<A href='byond://?src=\ref[src];clear=1'>Clear page</A> "
 	interactions += "</center>"
 
 /obj/item/paper/admin/proc/generateHeader()
@@ -50,19 +67,19 @@
 	//TODO change logo based on who you're contacting.
 	text = "<center><img src = [logo]></br>"
 	text += "<b>[origin] Quantum Uplink Signed Message</b><br>"
-	text += "<font size = \"1\">Encryption key: [originhash]<br>"
-	text += "Challenge: [challengehash]<br></font></center><hr>"
+	text += "<span style='font-size: 10px'>Encryption key: [originhash]<br>"
+	text += "Challenge: [challengehash]<br></span></center><hr>"
 
 	header = text
 
 /obj/item/paper/admin/proc/generateFooter()
 	var/text = null
 
-	text = "<hr><font size= \"1\">"
+	text = "<hr><span style='font-size: 10px'>"
 	text += "This transmission is intended only for the addressee and may contain confidential information. Any unauthorized disclosure is strictly prohibited. <br><br>"
 	text += "If this transmission is recieved in error, please notify both the sender and the office of [GLOB.using_map.boss_name] Internal Affairs immediately so that corrective action may be taken."
 	text += "Failure to comply is a breach of regulation and may be prosecuted to the fullest extent of the law, where applicable."
-	text += "</font>"
+	text += "</span>"
 
 	footer = text
 
@@ -73,10 +90,8 @@
 	generateFooter()
 	updateDisplay()
 
-obj/item/paper/admin/proc/updateDisplay()
+/obj/item/paper/admin/proc/updateDisplay()
 	show_browser(usr, "<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[headerOn ? header : ""][info_links][stamps][footerOn ? footer : ""][interactions]</BODY></HTML>", "window=[name];can_close=0")
-
-
 
 /obj/item/paper/admin/Topic(href, href_list)
 	if(href_list["write"])
@@ -87,7 +102,7 @@ obj/item/paper/admin/proc/updateDisplay()
 		if(!t)
 			return
 
-		var last_fields_value = fields
+		var/last_fields_value = fields
 
 		unformatedText = t
 
@@ -97,7 +112,7 @@ obj/item/paper/admin/proc/updateDisplay()
 
 
 		if(fields > 50)//large amount of fields creates a heavy load on the server, see updateinfolinks() and addtofield()
-			to_chat(usr, "<span class='warning'>Too many fields. Sorry, you can't do this.</span>")
+			to_chat(usr, SPAN_WARNING("Too many fields. Sorry, you can't do this."))
 			fields = last_fields_value
 			return
 
@@ -124,7 +139,7 @@ obj/item/paper/admin/proc/updateDisplay()
 					info += footer
 				updateinfolinks()
 				close_browser(usr, "window=[name]")
-				admindatum.faxCallback(src, destination)
+				admindatum.faxCallback(src)
 		return
 
 	if(href_list["penmode"])
@@ -161,5 +176,70 @@ obj/item/paper/admin/proc/updateDisplay()
 
 	if (href_list["changelanguage"])
 		choose_language(usr, TRUE)
+		generateInteractions()
 		updateDisplay()
 		return
+
+	if (href_list["destinations"])
+		show_destinations_window()
+
+	if (href_list["adddest"])
+		var/resolved_dest = locate(href_list["adddest"])
+		if (resolved_dest)
+			destinations += resolved_dest
+		show_destinations_window()
+		generateInteractions()
+		updateDisplay()
+		return
+
+	if (href_list["remdest"])
+		var/resolved_dest = locate(href_list["remdest"])
+		if (resolved_dest)
+			destinations -= resolved_dest
+		show_destinations_window()
+		generateInteractions()
+		updateDisplay()
+		return
+
+	if (href_list["alldests"])
+		destinations = GLOB.alldepartments.Copy()
+		show_destinations_window()
+		generateInteractions()
+		updateDisplay()
+		return
+
+	if (href_list["nonedests"])
+		destinations = list()
+		show_destinations_window()
+		generateInteractions()
+		updateDisplay()
+		return
+
+	if (href_list["togglestamp"])
+		should_stamp = !should_stamp
+		generateInteractions()
+		updateDisplay()
+		return
+
+/obj/item/paper/admin/proc/show_destinations_window()
+	var/list/dat = list()
+	var/list/missing_destinations = GLOB.alldepartments - destinations
+	dat += "<div align='center'><b>Select fax desinations.</b><br>"
+	dat += "<a href='byond://?src=\ref[src];alldests=1'>All ON</a> "
+	dat += "<a href='byond://?src=\ref[src];nonedests=1'>All OFF</a><hr>"
+	dat += "<div align='right' style='width:45%;float:left;'><b>Available</b><br>"
+	for (var/dest in missing_destinations)
+		var/refdest = "\ref[dest]"
+		dat += "<a href='byond://?src=\ref[src];adddest=[refdest]'>[html_encode(dest)] &gt;</a>"
+		dat += "<br>"
+	dat += "</div><div style='width:10%;float:center;'>   </div>"
+	dat += "<div align='left' style='width:45%;float:right;'><b>Sending To</b><br>"
+	for (var/dest in destinations)
+		var/refdest = "\ref[dest]"
+		dat += "<a href='byond://?src=\ref[src];remdest=[refdest]'>&lt; [html_encode(dest)]</a>"
+		dat += "<br>"
+	dat += "</div></div>"
+
+	var/datum/browser/panel = new(usr, "Fax Destinations", "Fax Destinations", 650, 720, src)
+	panel.set_content(dat.Join())
+	panel.open()

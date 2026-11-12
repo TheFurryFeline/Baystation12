@@ -1,13 +1,15 @@
 //How far from the edge of overmap zlevel could randomly placed objects spawn
-#define OVERMAP_EDGE 2
+#define OVERMAP_EDGE 3
 //Dimension of overmap (squares 4 lyfe)
 var/global/list/map_sectors = list()
+GLOBAL_LIST_EMPTY(map_stars)
 
-/area/overmap/
+/area/overmap
 	name = "System Map"
 	icon_state = "start"
 	requires_power = 0
 	base_turf = /turf/unsimulated/map
+	dynamic_lighting = 0
 
 /turf/unsimulated/map
 	icon = 'icons/turf/space.dmi'
@@ -30,7 +32,7 @@ var/global/list/map_sectors = list()
 	if(y == 1 || y == GLOB.using_map.overmap_size)
 		numbers += list("[round(x/10)]","[round(x%10)]")
 
-	for(var/i = 1 to numbers.len)
+	for(var/i = 1 to length(numbers))
 		var/image/I = image('icons/effects/numbers.dmi',numbers[i])
 		I.pixel_x = 5*i - 2
 		I.pixel_y = world.icon_size/2 - 3
@@ -44,14 +46,14 @@ var/global/list/map_sectors = list()
 			I.pixel_x = 5*i - 2
 		if(x == GLOB.using_map.overmap_size)
 			I.pixel_x = 5*i + 2
-		overlays += I
+		AddOverlays(I)
 
 //list used to track which zlevels are being 'moved' by the proc below
-var/list/moving_levels = list()
+var/global/list/moving_levels = list()
 //Proc to 'move' stars in spess
 //yes it looks ugly, but it should only fire when state actually change.
 //null direction stops movement
-proc/toggle_move_stars(zlevel, direction)
+/proc/toggle_move_stars(zlevel, direction)
 	if(!zlevel)
 		return
 
@@ -82,3 +84,33 @@ proc/toggle_move_stars(zlevel, direction)
 	var/area/A = get_area(T)
 	var/list/dimensions = A.get_dimensions()
 	return T.x <= TRANSITIONEDGE || T.x >= (dimensions["x"] - TRANSITIONEDGE + 1) || T.y <= TRANSITIONEDGE || T.y >= (dimensions["y"] - TRANSITIONEDGE + 1)
+
+/proc/get_solar_angle(z_level)
+	var/obj/overmap/visitable/ship/sector = map_sectors["[z_level]"]
+	if (!sector || !GLOB.using_map?.using_sun)
+		return GLOB.sun_angle
+	var/obj/overmap/visitable/star/closest_star
+	for (var/obj/overmap/visitable/star/iterator_star in GLOB.map_stars)
+		if (!closest_star || get_dist(sector, iterator_star) < get_dist(sector, closest_star))
+			closest_star = iterator_star
+	if (!closest_star)
+		return 0
+
+	var/angle = dir2angle(get_dir(sector, closest_star)) + sector.get_heading_angle()
+	if (angle > 360)
+		angle -= 360
+	else if (angle < 0)
+		angle += 360
+	return angle
+
+/proc/get_solar_distance_penalty(z_level)
+	var/obj/overmap/visitable/ship/sector = map_sectors["[z_level]"]
+	if (!sector || !GLOB.using_map?.using_sun)
+		return 0
+	var/star_dist = 100 // The void consumes
+	var/obj/overmap/visitable/star/closest_star
+	for (var/obj/overmap/visitable/star/iterator_star in GLOB.map_stars)
+		if (!closest_star || get_dist(sector, iterator_star) < star_dist)
+			star_dist = get_dist(sector, iterator_star)
+			closest_star = iterator_star
+	return (star_dist * 0.1) - (closest_star ? closest_star.star_luminosity : 0)

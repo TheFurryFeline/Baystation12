@@ -26,9 +26,9 @@
 /datum/terminal/proc/can_use(mob/user)
 	if(!user)
 		return FALSE
-	if(!CanInteractWith(user, computer, GLOB.default_state))
-		return FALSE
 	if(!computer || !computer.on)
+		return FALSE
+	if(!CanInteractWith(user, computer, GLOB.default_state))
 		return FALSE
 	return TRUE
 
@@ -67,6 +67,8 @@
 		var/input = sanitize(href_list["input"])
 		history += "> [input]"
 		var/output = parse(input, usr)
+		log_computer_command("[key_name(usr)]: [input]")
+		computer_log_repository.store_computer_log(usr, get_turf(computer.holder), input)
 		if(QDELETED(src)) // Check for exit.
 			return TOPIC_HANDLED
 		history += output

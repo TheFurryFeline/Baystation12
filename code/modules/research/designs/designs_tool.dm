@@ -20,13 +20,13 @@
 	build_path = /obj/item/airlock_brace
 	sort_string = "VAGAC"
 
-/datum/design/item/tool/brace_jack
+/datum/design/item/tool/jack
 	name = "maintenance jack"
 	desc = "A special maintenance tool that can be used to remove airlock braces."
 	id = "bracejack"
 	req_tech = list(TECH_ENGINEERING = 3, TECH_MATERIAL = 2)
 	materials = list(MATERIAL_STEEL = 120)
-	build_path = /obj/item/crowbar/brace_jack
+	build_path = /obj/item/material/twohanded/jack
 	sort_string = "VAGAD"
 
 /datum/design/item/tool/clamp
@@ -100,3 +100,75 @@
 	materials = list(MATERIAL_STEEL = 6000, MATERIAL_GLASS = 6000, MATERIAL_ALUMINIUM = 4000, MATERIAL_PHORON = 4000)
 	build_path = /obj/item/weldingtool/electric
 	sort_string = "VAGAK"
+
+/datum/design/item/tool/power_drill
+	name = "power drill"
+	desc = "a portable power drill that can swap between bolt and screw heads for a range of fixings"
+	id = "power_drill"
+	req_tech = list(TECH_ENGINEERING = 4, TECH_POWER = 4)
+	materials = list(MATERIAL_STEEL = 100, MATERIAL_ALUMINIUM = 100, MATERIAL_PLASTIC = 6000)
+	build_path = /obj/item/swapper/power_drill
+	sort_string = "VAGAL"
+
+/datum/design/item/tool/jaws_of_life
+	name = "hydraulic prying tool"
+	desc = "a portable hydraulic rescue tool that can swap between prying and cutting heads for a range of breaching techniques"
+	id = "jaws_of_life"
+	req_tech = list(TECH_ENGINEERING = 5, TECH_POWER = 4)
+	materials = list(MATERIAL_STEEL = 6000, MATERIAL_ALUMINIUM = 1000, MATERIAL_PLASTIC = 750)
+	build_path = /obj/item/swapper/jaws_of_life
+	sort_string = "VAGAM"
+
+
+/datum/design/item/tool/rcd
+	name = "rapid construction device"
+	desc = "a gun-shaped device that uses compressed matter to build and dismantle various structures."
+	id = "hand_rcd"
+	req_tech = list(TECH_ENGINEERING = 5, TECH_MATERIAL = 4)
+	materials = list(MATERIAL_STEEL = 25000, MATERIAL_PHORON = 4000, MATERIAL_GOLD = 2000, MATERIAL_SILVER = 2000)
+	build_path = /obj/item/rcd
+	sort_string = "VAGAN"
+
+/datum/design/item/tool/missile_payload/AssembleDesignName()
+	..()
+	name = "Missile payload prototype ([item_name])"
+
+/datum/design/item/tool/missile_payload/probe
+	id = "sensor probe"
+	req_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
+	materials = list(MATERIAL_ALUMINIUM = 5000, MATERIAL_SILVER = 150, MATERIAL_GOLD = 150, MATERIAL_GLASS = 3000)
+	build_path = /obj/item/missile_equipment/payload/sensor
+	sort_string = "VDAAA"
+
+/datum/design/item/tool/missile_payload/cargo
+	id = "cargo pod"
+	req_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
+	materials = list(MATERIAL_ALUMINIUM = 5000, MATERIAL_STEEL = 5000)
+	build_path = /obj/item/missile_equipment/payload/cargo
+	sort_string = "VDBAA"
+
+/datum/design/item/tool/missile_thruster/AssembleDesignName()
+	..()
+	name = "Missile thruster prototype ([item_name])"
+	sort_string = "VEAAA"
+
+/datum/design/item/tool/missile_thruster/planetary
+	id = "planetary"
+	req_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
+	materials = list(MATERIAL_ALUMINIUM = 5000, MATERIAL_PHORON = 4000)
+	build_path = /obj/item/missile_equipment/thruster/planet
+	sort_string = "VEBAA"
+
+/datum/design/item/tool/missile_thruster/point
+	id = "pointman"
+	req_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
+	materials = list(MATERIAL_ALUMINIUM = 5000, MATERIAL_PHORON = 4000)
+	build_path = /obj/item/missile_equipment/thruster/point
+	sort_string = "VECAA"
+
+/datum/design/item/tool/missile_thruster/standard
+	id = "standard"
+	req_tech = list(TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
+	materials = list(MATERIAL_ALUMINIUM = 5000, MATERIAL_PHORON = 4000)
+	build_path = /obj/item/missile_equipment/thruster
+	sort_string = "VECAA"

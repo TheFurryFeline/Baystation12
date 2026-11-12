@@ -8,9 +8,7 @@
 	sprite_sheets = list(
 		SPECIES_NABBER = 'icons/mob/species/nabber/onmob_accessories_gas.dmi'
 	)
-	on_rolled = list(
-		"down" = "none"
-	)
+	on_rolled_down = ACCESSORY_ROLLED_NONE
 
 
 /obj/item/clothing/accessory/armband/cargo
@@ -38,7 +36,7 @@
 
 
 /obj/item/clothing/accessory/armband/medgreen
-	name = "EMT armband"
+	name = "\improper EMT armband"
 	desc = "An armband, worn by the crew to display which department they're assigned to. This one is white and green."
 	icon_state = "medgreen"
 
@@ -50,7 +48,7 @@
 
 
 /obj/item/clothing/accessory/armband/whitered
-	name = "\improper corporate armband"
+	name = "corporate armband"
 	desc = "An armband, worn by the crew to display which department they're assigned to. This one is green and white."
 	icon_state = "corpsec_armband"
 

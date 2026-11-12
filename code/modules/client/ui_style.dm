@@ -1,12 +1,21 @@
 
 
-/var/all_ui_styles = list(
+var/global/all_ui_styles = list(
 	"Midnight"     = 'icons/mob/screen/midnight.dmi',
 	"Orange"       = 'icons/mob/screen/orange.dmi',
 	"old"          = 'icons/mob/screen/old.dmi',
 	"White"        = 'icons/mob/screen/white.dmi',
 	"old-noborder" = 'icons/mob/screen/old-noborder.dmi',
 	"minimalist"   = 'icons/mob/screen/minimalist.dmi'
+	)
+
+var/global/all_tooltip_styles = list(
+	"Midnight", //Default for everyone is the first one,
+	"Plasmafire",
+	"Retro",
+	"Slimecore",
+	"Operative",
+	"Clockwork"
 	)
 
 /proc/ui_style2icon(ui_style)
@@ -21,7 +30,7 @@
 	set desc = "Configure your user interface"
 
 	if(!ishuman(usr))
-		to_chat(usr, "<span class='warning'>You must be human to use this verb.</span>")
+		to_chat(usr, SPAN_WARNING("You must be human to use this verb."))
 		return
 
 	var/UI_style_new = input(usr, "Select a style. White is recommended for customization") as null|anything in all_ui_styles

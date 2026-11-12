@@ -21,7 +21,8 @@
 
 /datum/say_list
 	var/list/speak = list()				// Things the mob might say if it talks while idle.
-	var/list/emote_hear = list()		// Hearable emotes it might perform
+	var/list/emote_predef = list()		// Preset emotes that use /singleton/emote/
+	var/list/emote_hear = list()		// Custom hearable emotes it might perform
 	var/list/emote_see = list()			// Unlike speak_emote, the list of things in this variable only show by themselves with no spoken text. IE: Ian barks, Ian yaps
 
 	var/list/say_understood = list()	// When accepting an order.
@@ -41,7 +42,7 @@
 
 
 
-// Subtypes.
+// Example Subtypes.
 
 // This one's pretty dumb, but pirates are dumb anyways and it makes for a good test.
 /datum/say_list/pirate
@@ -74,21 +75,6 @@
 
 	threaten_sound = 'sound/weapons/TargetOn.ogg'
 	stand_down_sound = 'sound/weapons/TargetOff.ogg'
-
-/datum/say_list/malf_drone
-	speak = list("ALERT.","Hostile-ile-ile entities dee-twhoooo-wected.","Threat parameterszzzz- szzet.","Bring sub-sub-sub-systems uuuup to combat alert alpha-a-a.")
-	emote_see = list("beeps menacingly","whirrs threateningly","scans its immediate vicinity")
-
-	say_understood = list("Affirmative.", "Positive.")
-	say_cannot = list("Denied.", "Negative.")
-	say_maybe_target = list("Possible threat detected. Investigating.", "Motion detected.", "Investigating.")
-	say_got_target = list("Threat detected.", "New task: Remove threat.", "Threat removal engaged.", "Engaging target.")
-	say_threaten = list("Motion detected, judging target...")
-	say_stand_down = list("Visual lost.", "Error: Target not found.")
-	say_escalate = list("Viable target found. Removing.", "Engaging target.", "Target judgement complete. Removal required.")
-
-	threaten_sound = 'sound/effects/turret/move1.wav'
-	stand_down_sound = 'sound/effects/turret/move2.wav'
 
 /datum/say_list/crab
 	emote_hear = list("clicks")
@@ -127,3 +113,6 @@
 /* For Meatbag */
 /datum/say_list/parrot/heist
  speak = list("Yaaar!","Squaaak!","Fight me Matey!","BAWWWWK Vox trying to eat me!")
+
+/datum/say_list/thoom
+	speak = list("Q'moo","Q'mooooo","Q'rrrr","Q'emb")

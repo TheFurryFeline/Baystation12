@@ -1,16 +1,16 @@
 /datum/extension/voxform
 	base_type = /datum/extension/voxform
 
-/datum/extension/voxform/proc/check_held_user(var/mob/living/carbon/human/user, var/atom/movable/thing)
+/datum/extension/voxform/proc/check_held_user(mob/living/carbon/human/user, atom/movable/thing)
 	if(!istype(user))
 		return FALSE
-	if(user.species.get_bodytype(user) != SPECIES_VOX && user.species.get_bodytype(user) != SPECIES_VOX_ARMALIS && user.unEquip(thing))
+	if(user.species.get_bodytype(user) != SPECIES_VOX && user.unEquip(thing))
 		to_chat(user, SPAN_WARNING("\The [thing] hisses and wriggles out of your grasp!"))
 		playsound(user, 'sound/voice/BugHiss.ogg', 50, 1)
 		return FALSE
 	return TRUE
 
-/obj/item/gun/special_check(var/mob/living/carbon/human/user)
+/obj/item/gun/special_check(mob/living/carbon/human/user)
 	. = ..()
 	if(!QDELETED(src) && src.loc == user && has_extension(src, /datum/extension/voxform))
 		var/datum/extension/voxform/voxform = get_extension(src, /datum/extension/voxform)
@@ -30,10 +30,37 @@
 	one_hand_penalty = 2 //a little bulky
 	self_recharge = 1
 	firemodes = list(
-		list(mode_name="stunning", burst=1, fire_delay=null, move_delay=null, burst_accuracy=list(30), dispersion=null, projectile_type=/obj/item/projectile/beam/stun/darkmatter, charge_cost = 50),
-		list(mode_name="focused", burst=1, fire_delay=null, move_delay=null, burst_accuracy=list(30), dispersion=null, projectile_type=/obj/item/projectile/beam/darkmatter, charge_cost = 75),
-		list(mode_name="scatter burst", burst=8, fire_delay=null, move_delay=4, burst_accuracy=list(0, 0, 0, 0, 0, 0, 0, 0), dispersion=list(0, 1, 2, 2, 3, 3, 3, 3, 3), projectile_type=/obj/item/projectile/energy/darkmatter, charge_cost = 10),
+		list(
+			"mode_name" = "stunning",
+			"burst" = 1,
+			"fire_delay" = null,
+			"move_delay" = null,
+			"burst_accuracy" = list(30),
+			"dispersion" = null,
+			"projectile_type" = /obj/item/projectile/beam/stun/darkmatter,
+			"charge_cost" = 50
+		),
+		list(
+			"mode_name" = "focused",
+			"burst" = 1,
+			"fire_delay" = null,
+			"move_delay" = null,
+			"burst_accuracy" = list(30),
+			"dispersion" = null,
+			"projectile_type" = /obj/item/projectile/beam/darkmatter,
+			"charge_cost" = 75
+		),
+		list(
+			"mode_name" = "scatter burst",
+			"burst" = 8,
+			"fire_delay" = null,
+			"move_delay" = 4,
+			"burst_accuracy" = list(0, 0, 0, 0, 0, 0, 0, 0),
+			"dispersion" = list(0, 1, 2, 2, 3, 3, 3, 3, 3),
+			"projectile_type" = /obj/item/projectile/energy/darkmatter,
+			"charge_cost" = 10
 		)
+	)
 
 /obj/item/gun/energy/darkmatter/Initialize()
 	. = ..()
@@ -53,11 +80,19 @@
 	self_recharge = 1
 	recharge_time = 10
 	fire_delay = 15
-	projectile_type=/obj/item/projectile/energy/plasmastun/sonic/weak
+	projectile_type = /obj/item/projectile/energy/plasmastun/sonic/weak
 	firemodes = list(
-		list(mode_name="normal", projectile_type=/obj/item/projectile/energy/plasmastun/sonic/weak, charge_cost = 50),
-		list(mode_name="overcharge", projectile_type=/obj/item/projectile/energy/plasmastun/sonic/strong, charge_cost = 200),
+		list(
+			"mode_name" = "normal",
+			"projectile_type" = /obj/item/projectile/energy/plasmastun/sonic/weak,
+			"charge_cost" = 50
+		),
+		list(
+			"mode_name" = "overcharge",
+			"projectile_type" = /obj/item/projectile/energy/plasmastun/sonic/strong,
+			"charge_cost" = 200
 		)
+	)
 
 /obj/item/gun/energy/sonic/Initialize()
 	. = ..()

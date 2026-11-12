@@ -13,8 +13,12 @@
 
 /mob/living/carbon/human/IAttack(atom/A)
 	if (!canClick()) // Still on cooldown from a "click".
-		return FALSE
-	return ClickOn(A) // Except this is an actual fake "click".
+		return ATTACK_ON_COOLDOWN
+	if (!zone_sel)
+		zone_sel = new /obj/screen/zone_sel(null)
+		zone_sel.selecting = BP_CHEST
+	ClickOn(A) // Except this is an actual fake "click".
+	return TRUE
 
 /mob/living/proc/IRangedAttack(atom/A)
 	return FALSE
@@ -79,15 +83,12 @@
 
 	var/dir = get_dir(src, newloc)
 
-	if (!checkMoveCooldown())
-		return MOVEMENT_ON_COOLDOWN
-
 	// Check to make sure moving to newloc won't actually kill us. e.g. we're a slime and trying to walk onto water.
 	if (istype(newloc))
 		if (safety && !newloc.is_safe_to_enter(src))
 			return MOVEMENT_FAILED
 
-	if (!Allow_Spacemove())
+	if (!Process_Spacemove())
 		return MOVEMENT_FAILED
 
 	// Move()ing to another tile successfully returns 32 because BYOND. Would rather deal with TRUE/FALSE-esque terms.
@@ -99,10 +100,7 @@
 	if (!old_T.Adjacent(newloc))
 		return MOVEMENT_FAILED
 
-	. = Move(newloc, dir) ? MOVEMENT_SUCCESSFUL : MOVEMENT_FAILED
+	. = SelfMove(dir) ? MOVEMENT_SUCCESSFUL : MOVEMENT_FAILED
 	if (. == MOVEMENT_SUCCESSFUL)
 		set_dir(get_dir(old_T, newloc))
-		// Apply movement delay.
-		// Player movement has more factors but its all in the client and fixing that would be its own project.
-		SetMoveCooldown(movement_delay())
 	return

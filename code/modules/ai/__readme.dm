@@ -8,7 +8,7 @@ should be compatible with most types of mobs which have the needed Interfaces in
 support them.
 
 When designing a new mob, all that is needed to give a mob an AI is to set
-its 'ai_holder_type' variable to the path of the AI that is desired.
+its 'ai_holder' variable to the path of the AI that is desired.
 
 
 [Seperation]
@@ -132,7 +132,7 @@ avoid infinite loops (I.E. Stance A switches to Stance B, which then
 switches to Stance A, and so on...), and the delay is very short so
 it should not be an issue.
 
-See code/__defines/mob.dm for a list of stance defines, and descriptions
+See code/__defines/ai.dm for a list of stance defines, and descriptions
 about their purpose. Generally, each stance has its own file in the AI
 module folder and are mostly self contained, however some files instead
 deal with general things that other stances may require, such as targeting
@@ -193,7 +193,7 @@ to apply them to a different type of mob will likely result in a lot of bugs
 or ASSERT() failures. The xenobio slime AI is an example of the latter.
 
 To use a specific subtype on a mob, all that is needed is setting the mob's
-ai_holder_type to the subtype desired, and it will create that subtype when
+ai_holder to the subtype desired, and it will create that subtype when
 the mob is initialize()d. Switching to a subtype 'live' will require additional
 effort on the coder.
 

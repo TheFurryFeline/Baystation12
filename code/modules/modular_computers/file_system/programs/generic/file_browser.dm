@@ -6,10 +6,11 @@
 	program_key_state = "generic_key"
 	program_menu_icon = "folder-collapsed"
 	size = 8
+	processing_size = 0.5
 	requires_ntnet = FALSE
 	available_on_ntnet = FALSE
 	undeletable = TRUE
-	nanomodule_path = /datum/nano_module/program/computer_filemanager/
+	nanomodule_path = /datum/nano_module/program/computer_filemanager
 	var/open_file
 	var/error
 	usage_flags = PROGRAM_ALL
@@ -95,7 +96,7 @@
 	name = "NTOS File Manager"
 
 /datum/nano_module/program/computer_filemanager/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
 	var/datum/computer_file/program/filemanager/PRG
 	PRG = program
 
@@ -115,7 +116,7 @@
 		if(!PRG.computer || !PRG.computer.has_component(PART_HDD))
 			data["error"] = "I/O ERROR: Unable to access hard drive."
 		else
-			var/list/files[0]
+			var/list/files = list()
 			for(var/datum/computer_file/F in PRG.computer.get_all_files())
 				files.Add(list(list(
 					"name" = F.filename,
@@ -127,7 +128,7 @@
 			var/obj/item/stock_parts/computer/hard_drive/portable/RHDD = PRG.computer.get_component(PART_DRIVE)
 			if(RHDD)
 				data["usbconnected"] = TRUE
-				var/list/usbfiles[0]
+				var/list/usbfiles = list()
 				for(var/datum/computer_file/F in PRG.computer.get_all_files(disk = RHDD))
 					usbfiles.Add(list(list(
 						"name" = F.filename,

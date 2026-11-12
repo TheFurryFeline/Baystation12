@@ -1,14 +1,10 @@
 /obj/item/clothing/accessory/pride_pin
+	abstract_type = /obj/item/clothing/accessory/pride_pin
 	name = "base pride pin"
+	icon_state = null
 	item_state = "pridepins"
-	on_rolled = list("down" = "none")
+	on_rolled_down = ACCESSORY_ROLLED_NONE
 	slot = ACCESSORY_SLOT_INSIGNIA
-
-
-/obj/item/clothing/accessory/pride_pin/Initialize()
-	. = ..()
-	INIT_SKIP_QDELETED
-	INIT_DISALLOW_TYPE(/obj/item/clothing/accessory/pride_pin)
 
 
 /obj/item/clothing/accessory/pride_pin/transgender
@@ -52,6 +48,10 @@
 	desc = "A pin celebrating asexual pride."
 	icon_state = "asexualpin"
 
+/obj/item/clothing/accessory/pride_pin/aromantic
+	name = "aromantic pride pin"
+	desc = "A pin celebrating aromantic pride."
+	icon_state = "aromanticpin"
 
 /obj/item/clothing/accessory/pride_pin/intersex
 	name = "intersex pride pin"

@@ -17,9 +17,13 @@
 		energy = ARMOR_ENERGY_SMALL,
 		bomb = ARMOR_BOMB_PADDED
 	)
-	slot = ACCESSORY_SLOT_ARMOR_A
+	slot = ACCESSORY_SLOT_ARMOR_ARMS
 	body_location = ARMS
 	flags_inv = CLOTHING_BULKY
+
+	sprite_sheets = list(
+		SPECIES_UNATHI = 'icons/mob/species/unathi/onmob_modular_armor_unathi.dmi'
+		)
 
 
 /obj/item/clothing/accessory/arm_guards/blue
@@ -54,6 +58,33 @@
 		bomb = ARMOR_BOMB_PADDED
 	)
 
+/obj/item/clothing/accessory/arm_guards/heavy
+	name = "heavy arm guards"
+	desc = "A pair of black arm pads reinforced with heavy armor plating. Attaches to a plate carrier."
+	icon_state = "armguards"
+	armor = list(
+		melee = ARMOR_MELEE_MAJOR,
+		bullet = ARMOR_BALLISTIC_PISTOL,
+		laser = ARMOR_LASER_HANDGUNS,
+		energy = ARMOR_ENERGY_RESISTANT,
+		bomb = ARMOR_BOMB_PADDED
+	)
+
+/obj/item/clothing/accessory/arm_guards/heavy/blue
+	desc = "A pair of blue arm pads reinforced with heavy armor plating. Attaches to a plate carrier."
+	icon_state = "armguards_blue"
+
+/obj/item/clothing/accessory/arm_guards/heavy/navy
+	desc = "A pair of navy blue arm pads reinforced with heavy armor plating. Attaches to a plate carrier."
+	icon_state = "armguards_navy"
+
+/obj/item/clothing/accessory/arm_guards/heavy/green
+	desc = "A pair of green pads reinforced with heavy armor plating. Attaches to a plate carrier."
+	icon_state = "armguards_green"
+
+/obj/item/clothing/accessory/arm_guards/heavy/tan
+	desc = "A pair of tan arm pads reinforced with heavy armor plating. Attaches to a plate carrier."
+	icon_state = "armguards_tan"
 
 /obj/item/clothing/accessory/arm_guards/riot
 	name = "riot arm guards"
@@ -67,7 +98,6 @@
 		bomb = ARMOR_BOMB_PADDED
 	)
 	siemens_coefficient = 0.5
-	accessory_flags = EMPTY_BITFIELD
 
 
 /obj/item/clothing/accessory/arm_guards/ballistic
@@ -82,7 +112,6 @@
 		bomb = ARMOR_BOMB_PADDED
 	)
 	siemens_coefficient = 0.7
-	accessory_flags = EMPTY_BITFIELD
 
 
 /obj/item/clothing/accessory/arm_guards/ablative
@@ -97,4 +126,3 @@
 		bomb = ARMOR_BOMB_PADDED
 	)
 	siemens_coefficient = 0
-	accessory_flags = EMPTY_BITFIELD

@@ -24,14 +24,21 @@
 
 #define WARNING_DELAY 20			//seconds between warnings.
 
+///SM Shutdown off. This is the phase during normal operation.
+#define SHUTDOWN_PHASE_OFF 0
+///Active SM shutdown, the SM is depowering rapidly and shedding lots of heat.
+#define SHUTDOWN_PHASE_ONE 1
+/// Final SM shutdown phase, it is holding in a non-reactive state where the setup can be safely modified.
+#define SHUTDOWN_PHASE_TWO 2
+
 /obj/machinery/power/supermatter
 	name = "supermatter core"
 	desc = "A strangely translucent and iridescent crystal. <span class='danger'>You get headaches just from looking at it.</span>"
-	icon = 'icons/obj/supermatter.dmi'
+	icon = 'icons/obj/machines/power/supermatter.dmi'
 	icon_state = "supermatter"
 	density = TRUE
 	anchored = FALSE
-	light_outer_range = 4
+	light_range = 4
 
 	layer = ABOVE_HUMAN_LAYER
 
@@ -63,6 +70,10 @@
 	var/emergency_point = 700
 	var/emergency_alert = "CRYSTAL DELAMINATION IMMINENT."
 	var/explosion_point = 1000
+	var/shutdown_alert = "Supermatter shutdown sequence engaged."
+	var/shutdown_phase_two_alert = "Shutdown sequence complete. Further reactions are now halted. Press shutdown button again to prepare for startup."
+	var/shutdown_complete_alert = "Supermatter shutdown sequence terminated."
+	var/shutdown_aborted_alert = "Supermatter shutdown sequence aborted. Hypermatrix integrity may be compromised."
 
 	light_color = "#927a10"
 	var/base_color = "#927a10"
@@ -105,20 +116,45 @@
 	var/aw_delam = FALSE
 	var/aw_EPR = FALSE
 
+	///Whether or not the shutdown process is currently active
+	var/shutdown_phase = SHUTDOWN_PHASE_OFF
+	/// The next time power/EER will tick down while the shutdown process is active
+	var/next_shutdown_process_time = 0
+	///Modifier to the amount of thermal energy added to the air around the SM during the shutdown phase. Higher = more energy, higher temperature
+	var/shutdown_thermal_modifier = 3.5
+	///Modifier to the rate of power decay during the shutdown phase. Higher = faster power loss
+	var/shutdown_power_modifier = 0.15
+	/// Set when the shutdown process starts. This is the power/EER at the moment the button is pressed, used to scale thermal energy release during shutdown.
+	var/power_at_shutdown_start
+	/// Time after which the shutdown can be aborted/terminated
+	var/cooldown_time = 5 MINUTES
+	///maximum temperature output during shutdown (kelvin)
+	var/max_temperature_shutdown = 15000
+	///How long the aborted phase will last when triggered
+	var/aborted_phase_length = 2 MINUTES
+	var/shutdown_aborted = FALSE
+	var/last_shutdown_time = 0
+
 	var/list/threshholds = list( // List of lists defining the amber/red labeling threshholds in readouts. Numbers are minminum red and amber and maximum amber and red, in that order
-		list("name" = SUPERMATTER_DATA_EER,         "min_h" = -1, "min_l" = -1,  "max_l" = 150,  "max_h" = 300),
+		list("name" = SUPERMATTER_DATA_EER,         "min_h" = -1, "min_l" = -1,  "max_l" = 1100,  "max_h" = 1300),
 		list("name" = SUPERMATTER_DATA_TEMPERATURE, "min_h" = -1, "min_l" = -1,  "max_l" = 4000, "max_h" = 5000),
 		list("name" = SUPERMATTER_DATA_PRESSURE,    "min_h" = -1, "min_l" = -1,  "max_l" = 5000, "max_h" = 10000),
 		list("name" = SUPERMATTER_DATA_EPR,         "min_h" = -1, "min_l" = 1.0, "max_l" = 2.5,  "max_h" = 4.0)
 	)
 
-/obj/machinery/power/supermatter/New()
-	..()
-	uid = gl_uid++
+	uncreated_component_parts = list(
+		/obj/item/stock_parts/radio/receiver,
+		/obj/item/stock_parts/power/apc
+	)
+	public_methods = list(
+		/singleton/public_access/public_method/supermatter_shutdown
+	)
+	stock_part_presets = list(/singleton/stock_part_preset/radio/receiver/supermatter_shutdown = 1)
+
 
 /obj/machinery/power/supermatter/Destroy()
 	GLOB.supermatter_status.raise_event(src, FALSE) //If any alarm was still reporting on this, tell them to stop
-	. = ..()
+	return ..()
 
 /obj/machinery/power/supermatter/proc/handle_admin_warnings()
 	if(disable_adminwarn)
@@ -141,14 +177,14 @@
 	else
 		aw_EPR = FALSE
 
-/obj/machinery/power/supermatter/proc/status_adminwarn_check(var/min_status, var/current_state, var/message, var/send_to_irc = FALSE)
+/obj/machinery/power/supermatter/proc/status_adminwarn_check(min_status, current_state, message, send_to_irc = FALSE)
 	var/status = get_status()
 	if(status >= min_status)
 		if(!current_state)
 			var/area/A = get_area(src)
 			log_and_message_admins(message + " in [A.name]", null, src)
 			if(send_to_irc)
-				send2adminirc(message + " in [A.name]")
+				send_to_admin_discord(message + " in [A.name]")
 		return TRUE
 	else
 		return FALSE
@@ -193,7 +229,7 @@
 	if(exploded)
 		return
 
-	log_and_message_admins("Supermatter delaminating at [x] [y] [z]")
+	log_and_message_admins("Supermatter delaminating at [x] [y] [z]", null, src)
 	anchored = TRUE
 	grav_pulling = 1
 	exploded = 1
@@ -208,7 +244,7 @@
 	for(var/z in affected_z)
 		SSradiation.z_radiate(locate(1, 1, z), DETONATION_RADS, 1)
 
-	for(var/mob/living/mob in GLOB.living_mob_list_)
+	for(var/mob/living/mob in GLOB.alive_mobs)
 		var/turf/TM = get_turf(mob)
 		if(!TM)
 			continue
@@ -219,7 +255,7 @@
 		to_chat(mob, SPAN_DANGER("An invisible force slams you against the ground!"))
 
 	// Effect 2: Z-level wide electrical pulse
-	for(var/obj/machinery/power/apc/A in SSmachines.machinery)
+	for(var/obj/machinery/power/apc/A as anything in MACHINES_OF(/obj/machinery/power/apc))
 		if(!(A.z in affected_z))
 			continue
 
@@ -233,7 +269,7 @@
 		else
 			A.energy_fail(round(DETONATION_SHUTDOWN_APC * random_change))
 
-	for(var/obj/machinery/power/smes/buildable/S in SSmachines.machinery)
+	for(var/obj/machinery/power/smes/buildable/S as anything in MACHINES_OF(/obj/machinery/power/smes/buildable))
 		if(!(S.z in affected_z))
 			continue
 		// Causes SMESes to shut down for a bit
@@ -242,7 +278,7 @@
 
 	// Effect 3: Break solar arrays
 
-	for(var/obj/machinery/power/solar/S in SSmachines.machinery)
+	for(var/obj/machinery/power/solar/S as anything in MACHINES_OF(/obj/machinery/power/solar))
 		if(!(S.z in affected_z))
 			continue
 		if(prob(DETONATION_SOLAR_BREAK_CHANCE))
@@ -252,12 +288,12 @@
 
 	// Effect 4: Medium scale explosion
 	spawn(0)
-		explosion(TS, explosion_power/2, explosion_power, explosion_power * 2, explosion_power * 4, 1)
+		explosion(TS, explosion_power * 3.5)
 		qdel(src)
 
 /obj/machinery/power/supermatter/examine(mob/user)
 	. = ..()
-	if(user.skill_check(SKILL_ENGINES, SKILL_EXPERT))
+	if(user.skill_check(SKILL_ENGINES, SKILL_EXPERIENCED))
 		var/integrity_message
 		switch(get_integrity())
 			if(0 to 30)
@@ -267,16 +303,16 @@
 			else
 				integrity_message = "At a glance, it seems to be in sound shape."
 		to_chat(user, integrity_message)
-		if(user.skill_check(SKILL_ENGINES, SKILL_PROF))
+		if(user.skill_check(SKILL_ENGINES, SKILL_MASTER))
 			var/display_power = power
 			display_power *= (0.85 + 0.3 * rand())
 			display_power = round(display_power, 20)
 			to_chat(user, "Eyeballing it, you place the relative EER at around [display_power] MeV/cm3.")
 
 //Changes color and luminosity of the light to these values if they were not already set
-/obj/machinery/power/supermatter/proc/shift_light(var/lum, var/clr)
-	if(lum != light_outer_range || clr != light_color)
-		set_light(1, 0.1, lum, l_color = clr)
+/obj/machinery/power/supermatter/proc/shift_light(lum, clr)
+	if(lum != light_range || clr != light_color)
+		set_light(lum, 1, l_color = clr)
 
 /obj/machinery/power/supermatter/proc/get_integrity()
 	var/integrity = damage / explosion_point
@@ -369,12 +405,27 @@
 		env.remove(env.total_moles)
 	else
 		damage_archived = damage
+		damage = max(0, damage + clamp((removed.temperature - critical_temperature) / (shutdown_phase ? 50 : 150), -damage_rate_limit, damage_inc_limit))
 
-		damage = max(0, damage + between(-damage_rate_limit, (removed.temperature - critical_temperature) / 150, damage_inc_limit))
+		if (shutdown_phase == SHUTDOWN_PHASE_ONE && (next_shutdown_process_time < world.time))
+			if (get_rads(loc) < ((power * 1.5) * radiation_release_modifier))
+				SSradiation.radiate(src, (power * 1.5) * radiation_release_modifier)
+			if (!(shutdown_phase == SHUTDOWN_PHASE_TWO))
+				power = power - shutdown_power_modifier * (power - (power * 0.025) ** 2 + 10)
+			if (power <= 0.05)
+				shutdown_phase = SHUTDOWN_PHASE_TWO
+				power = 0
+				charging_factor = 0.01
+				power_factor = 3
+				damage_rate_limit = 20
+				thermal_release_modifier = initial(thermal_release_modifier) * 5
+				radiation_release_modifier = radiation_release_modifier * 45
+				GLOB.global_announcer.autosay(shutdown_phase_two_alert, "Supermatter Monitor", "Engineering")
+			next_shutdown_process_time = world.time + 1 SECOND
 
 		//Ok, 100% oxygen atmosphere = best reaction
 		//Maxes out at 100% oxygen pressure
-		oxygen = Clamp((removed.get_by_flag(XGM_GAS_OXIDIZER) - (removed.gas[GAS_NITROGEN] * nitrogen_retardation_factor)) / removed.total_moles, 0, 1)
+		oxygen = clamp((removed.get_by_flag(XGM_GAS_OXIDIZER) - (removed.gas[GAS_NITROGEN] * nitrogen_retardation_factor)) / removed.total_moles, 0, 1)
 
 		//calculate power gain for oxygen reaction
 		var/temp_factor
@@ -389,14 +440,15 @@
 			icon_state = base_icon_state
 
 		temp_factor = ( (equilibrium_power/decay_factor)**3 )/800
-		power = max( (removed.temperature * temp_factor) * oxygen + power, 0)
+		if (!(shutdown_phase == SHUTDOWN_PHASE_TWO))
+			power = max( (removed.temperature * temp_factor) * oxygen + power, 0)
 
 		var/device_energy = power * reaction_power_modifier
 
 		//Release reaction gasses
 		var/heat_capacity = removed.heat_capacity()
 		removed.adjust_multi(GAS_PHORON, max(device_energy / phoron_release_modifier, 0), \
-		                     GAS_OXYGEN, max((device_energy + removed.temperature - T0C) / oxygen_release_modifier, 0))
+							GAS_OXYGEN, max((device_energy + removed.temperature - T0C) / oxygen_release_modifier, 0))
 
 		var/thermal_power = thermal_release_modifier * device_energy
 		if (debug)
@@ -404,8 +456,11 @@
 			visible_message("[src]: Releasing [round(thermal_power)] W.")
 			visible_message("[src]: Releasing additional [round((heat_capacity_new - heat_capacity)*removed.temperature)] W with exhaust gasses.")
 
-		removed.add_thermal_energy(thermal_power)
-		removed.temperature = between(0, removed.temperature, 10000)
+		var/current_thermal_modifier = shutdown_phase ? shutdown_thermal_modifier : 1
+		if (power_at_shutdown_start) //if we're above roughly 1600 eer then the reaction will build rapidly during shutdown and be catastrophic if not stopped
+			current_thermal_modifier = current_thermal_modifier * (power_at_shutdown_start / 500) + power
+		removed.add_thermal_energy(thermal_power * current_thermal_modifier)
+		removed.temperature = clamp(removed.temperature, 0, shutdown_phase ? max_temperature_shutdown : 10000)
 
 		env.merge(removed)
 
@@ -420,7 +475,7 @@
 		var/effect = max(0, min(200, power * config_hallucination_power * sqrt( 1 / max(1,get_dist(subject, src)))) )
 		subject.adjust_hallucination(effect, 0.25 * effect)
 
-	var/level = Interpolate(0, 50, Clamp( (damage - emergency_point) / (explosion_point - emergency_point),0,1))
+	var/level = Interpolate(0, 50, clamp( (damage - emergency_point) / (explosion_point - emergency_point),0,1))
 	var/list/new_color = color_contrast(level )
 	//Apply visual effects based on damage
 	if(rotation_angle != 0)
@@ -431,7 +486,7 @@
 
 	color = new_color
 
-	if (damage >= emergency_point && !filters.len)
+	if (damage >= emergency_point && !length(filters))
 		filters = filter(type="rays", size = 64, color = "#ffd04f", factor = 0.6, density = 12)
 		animate(filters[1], time = 10 SECONDS, offset = 10, loop=-1)
 		animate(time = 10 SECONDS, offset = 0, loop=-1)
@@ -441,14 +496,15 @@
 	else if (damage < emergency_point)
 		filters = null
 
-	SSradiation.radiate(src, power * radiation_release_modifier) //Better close those shutters!
+	if (get_rads(loc) < (power * radiation_release_modifier))
+		SSradiation.radiate(src, power * radiation_release_modifier) //Better close those shutters!
 	power -= (power/decay_factor)**3		//energy losses due to radiation
 	handle_admin_warnings()
 
 	return 1
 
 
-/obj/machinery/power/supermatter/bullet_act(var/obj/item/projectile/Proj)
+/obj/machinery/power/supermatter/bullet_act(obj/item/projectile/Proj)
 	var/turf/L = loc
 	if(!istype(L))		// We don't run process() when we are in space
 		return 0	// This stops people from being able to really power up the supermatter
@@ -457,6 +513,8 @@
 
 	var/proj_damage = Proj.get_structure_damage()
 	if(istype(Proj, /obj/item/projectile/beam))
+		if (shutdown_phase >= SHUTDOWN_PHASE_ONE)
+			damage += 100
 		power += proj_damage * config_bullet_energy	* charging_factor / power_factor
 	else
 		damage += proj_damage * config_bullet_energy
@@ -476,16 +534,17 @@
 	ui_interact(user)
 
 /obj/machinery/power/supermatter/attack_hand(mob/user as mob)
+	var/datum/pronouns/pronouns = user.choose_from_pronouns()
 	user.visible_message(
-		SPAN_WARNING("\The [user] reaches out and touches \the [src], inducing a resonance. For a brief instant, \his body glows brilliantly, then flashes into ash."),
+		SPAN_WARNING("\The [user] reaches out and touches \the [src], inducing a resonance. For a brief instant, [pronouns.his] body glows brilliantly, then flashes into ash."),
 		SPAN_DANGER(FONT_LARGE("You reach out and touch \the [src]. Instantly, you feel a curious sensation as your body turns into new and exciting forms of plasma. That was not a wise decision.")),
 		SPAN_WARNING("You hear an unearthly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.")
 	)
 	Consume(user)
 
 // This is purely informational UI that may be accessed by AIs or robots
-/obj/machinery/power/supermatter/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
-	var/data[0]
+/obj/machinery/power/supermatter/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1)
+	var/data = list()
 
 	data["integrity_percentage"] = round(get_integrity())
 	var/datum/gas_mixture/env = null
@@ -511,11 +570,56 @@
 		ui.set_auto_update(1)
 
 
-/obj/machinery/power/supermatter/attackby(obj/item/W as obj, mob/living/user as mob)
+/obj/machinery/power/supermatter/use_tool(obj/item/W, mob/living/user, list/click_params)
 	if(istype(W, /obj/item/tape_roll))
 		to_chat(user, SPAN_NOTICE("You repair some of the damage to \the [src] with \the [W]."))
 		damage = max(damage - 10, 0)
 		playsound(src, 'sound/effects/tape.ogg', 25)
+
+
+	if (istype(W, /obj/item/device/multitool))
+		if (!user.skill_check(SKILL_ENGINES, SKILL_EXPERIENCED) && !prob(5))
+			if (issilicon(user))
+				user.visible_message(
+					SPAN_DANGER("\The [user] fumbles \the [W], and it sparks against \the [src], causing it to flash into dust!"),
+					SPAN_DANGER("You fumble \the [W], and it sparks against \the [src]. Your vision floods with static as you flash into dust!")
+				)
+				Consume(user)
+				return TRUE
+			var/mob/living/carbon/human/victim = user
+			if (prob(25))
+				if (victim.gloves)
+					victim.visible_message(
+						SPAN_DANGER("\The [victim] fumbles \the [W], and their [victim.gloves.name] graze \the [src] and turn to dust!"),
+						SPAN_DANGER("You fumble \the [W], and your [victim.gloves.name] graze \the [src] - turning them to dust and burning your hands!")
+					)
+					qdel(victim.gloves)
+					victim.apply_damage(25, DAMAGE_BURN, BP_L_HAND)
+					victim.apply_damage(25, DAMAGE_BURN, BP_R_HAND)
+					return TRUE
+			if (prob(50) && !victim.gloves)
+				victim.visible_message(
+					SPAN_DANGER("\The [victim] makes one wrong move with \the [W], and their bare hands graze \the [src], turning them to ash!"),
+					SPAN_DANGER("You make one wrong move with \the [W], causing your bare hands to graze \the [src], and suddenly wish you had remembered your gloves as you turn to ash.")
+				)
+				Consume(victim)
+				return TRUE
+			user.visible_message(
+				SPAN_DANGER("\The [victim] slips with \the [W], but manages to avoid any contact with \the [src]."),
+				SPAN_DANGER("You slip with \the [W], just barely avoiding contact with \the [src]!")
+			)
+			return TRUE
+
+		var/tag = input(user, "Enter the tag to apply to the supermatter. This should match the tag on the shutdown button.", "Enter Tag", "supermatter_crystal") as null | text
+		if (!tag)
+			return TRUE
+		user.visible_message(
+			SPAN_NOTICE("\The [user] uses \the [W] to set the tag on \the [src]."),
+			SPAN_NOTICE("You set the tag on \the [src] with \the [W] to '[tag]'.")
+		)
+		playsound(src, 'sound/machines/click.ogg', 25)
+		id_tag = tag
+		return TRUE
 
 	user.visible_message(
 		SPAN_WARNING("\The [user] touches \a [W] to \the [src], then flinches away as it flashes instantly into dust. Silence blankets the air."),
@@ -523,18 +627,22 @@
 		SPAN_WARNING("For a brief moment, you hear an oppressive, unnatural silence.")
 	)
 
-	user.drop_from_inventory(W)
-	Consume(W)
+	user.apply_damage(150, DAMAGE_RADIATION, damage_flags = DAMAGE_FLAG_DISPERSED)
+	if (user.drop_from_inventory(W))
+		Consume(W)
+		return TRUE
 
-	user.apply_damage(150, IRRADIATE, damage_flags = DAM_DISPERSED)
+	return ..()
 
 
 /obj/machinery/power/supermatter/Bumped(atom/AM as mob|obj)
 	if(istype(AM, /obj/effect))
 		return
 	if(istype(AM, /mob/living))
+		var/mob/victim = AM
+		var/datum/pronouns/pronouns = victim.choose_from_pronouns()
 		AM.visible_message(
-			SPAN_WARNING("\The [AM] slams into \the [src], inducing a resonance. For a brief instant, \his body glows brilliantly, then flashes into ash."),
+			SPAN_WARNING("\The [AM] slams into \the [src], inducing a resonance. For a brief instant, [pronouns.his] body glows brilliantly, then flashes into ash."),
 			SPAN_DANGER(FONT_LARGE("You slam into \the [src], and your mind fills with unearthly shrieking. Your vision floods with light as your body instantly dissolves into dust.")),
 			SPAN_WARNING("You hear an unearthly ringing, then what sounds like a shrilling kettle as you are washed with a wave of heat.")
 		)
@@ -547,7 +655,7 @@
 	Consume(AM)
 
 
-/obj/machinery/power/supermatter/proc/Consume(var/mob/living/user)
+/obj/machinery/power/supermatter/proc/Consume(mob/living/user)
 	if(istype(user))
 		user.dust()
 		power += 200
@@ -563,10 +671,11 @@
 		else
 			to_chat(l, SPAN_WARNING("You hear a muffled, shrill ringing as an intense wave of heat washes over you."))
 	var/rads = 500
-	SSradiation.radiate(src, rads)
+	if (get_rads(loc) < rads) //prevent rads from being reduced if they're already above 500
+		SSradiation.radiate(src, rads)
 
 
-/proc/supermatter_pull(var/atom/target, var/pull_range = 255, var/pull_power = STAGE_FIVE)
+/proc/supermatter_pull(atom/target, pull_range = 255, pull_power = STAGE_FIVE)
 	for(var/atom/A in range(pull_range, target))
 		A.singularity_pull(target, pull_power)
 
@@ -576,16 +685,16 @@
 /obj/machinery/power/supermatter/RepelAirflowDest(n)
 	return
 
-/obj/machinery/power/supermatter/ex_act(var/severity)
-	..()
+/obj/machinery/power/supermatter/ex_act(severity)
+	// not calling parent ex_act as it has a chance to qdel the supermatter
 	switch(severity)
-		if(1.0)
+		if(EX_ACT_DEVASTATING)
 			power *= 4
-		if(2.0)
+		if(EX_ACT_HEAVY)
 			power *= 3
-		if(3.0)
+		if(EX_ACT_LIGHT)
 			power *= 2
-	log_and_message_admins("WARN: Explosion near the Supermatter! New EER: [power].")
+	log_and_message_admins("WARN: Explosion near the Supermatter! New EER: [power].", null, src)
 
 /obj/machinery/power/supermatter/shard //Small subtype, less efficient and more sensitive, but less boom.
 	name = "supermatter shard"
@@ -613,7 +722,7 @@
 
 /obj/machinery/power/supermatter/randomsample/Initialize()
 	. = ..()
-	nitrogen_retardation_factor = rand(0.01, 1)	//Higher == N2 slows reaction more
+	nitrogen_retardation_factor = frand(0.01, 1)	//Higher == N2 slows reaction more
 	thermal_release_modifier = rand(100, 1000000)		//Higher == more heat released during reaction
 	phoron_release_modifier = rand(0, 100000)		//Higher == less phoron released by reaction
 	oxygen_release_modifier = rand(0, 100000)		//Higher == less oxygen released at high temperature/power
@@ -672,103 +781,23 @@
 
 
 //Warning lights
-/obj/effect/spinning_light
-	var/spin_rate = 1 SECOND
-	var/_size = 48
-	var/_factor = 0.5
-	var/_density = 4
-	var/_offset = 30
-	plane = EFFECTS_ABOVE_LIGHTING_PLANE
-	layer = EYE_GLOW_LAYER
-	mouse_opacity = 0
-
-/obj/effect/spinning_light/Initialize()
-	. = ..()
-	filters = filter(type="rays", size = _size, color = COLOR_ORANGE, factor = _factor, density = _density, flags = FILTER_OVERLAY, offset = _offset)
-
-	alpha = 200
-
-	//Rays start rotated which made synchronizing the scaling a bit difficult, so let's move it 45 degrees
-	var matrix/m = new
-	var/matrix/test = new
-	test.Turn(-45)
-	var/matrix/squished = new
-	squished.Scale(1, 0.5)
-	animate(src, transform = (test * m.Turn(90)), spin_rate / 4, loop = -1,)
-	animate(transform =      test * m.Turn(90), spin_rate / 4, loop = -1, )
-	animate(transform =      (test * m.Turn(90)), spin_rate / 4, loop = -1, )
-	animate(transform =      test * matrix(),   spin_rate / 4, loop = -1, )
-
-/obj/machinery/rotating_alarm
-	name = "Industrial alarm"
-	desc = "An industrial rotating alarm light."
-	icon = 'icons/obj/supermatter.dmi'
-	icon_state = "alarm"
-	idle_power_usage = 0
-	active_power_usage = 0
-
-	var/on = FALSE
-	var/construct_type = /obj/machinery/light_construct
-
-	var/static/obj/effect/spinning_light/spin_effect = null
-
-	var/alarm_light_color = COLOR_ORANGE
-	/// This is an angle to rotate the colour of alarm and its light. Default is orange, so, a 45 degree angle clockwise will make it green
-	var/angle = 0
-
-/obj/machinery/rotating_alarm/Initialize()
-	. = ..()
-
-	if(!spin_effect)
-		spin_effect = new(null)
-
-	//Setup colour
-	var/list/color_matrix = color_rotation(angle)
-
-	color = color_matrix
-
-	var/HSV = RGBtoHSV(alarm_light_color)
-	var/RGB = HSVtoRGB(RotateHue(HSV, angle))
-
-	alarm_light_color = RGB
-
-	set_dir(dir) //Set dir again so offsets update correctly
-
-/obj/machinery/rotating_alarm/set_dir(ndir) //Due to effect, offsets cannot be part of sprite, so need to set it for each dir
-	. = ..()
-	if(dir == NORTH)
-		pixel_y = -13
-	if(dir == SOUTH)
-		pixel_y = 28
-	if(dir == WEST)
-		pixel_x = 20
-	if(dir == EAST)
-		pixel_x = -20
-
-/obj/machinery/rotating_alarm/proc/set_on()
-	vis_contents += spin_effect
-	set_light(1, 0.5, 2, 0.3, alarm_light_color)
-	on = TRUE
-
-/obj/machinery/rotating_alarm/proc/set_off()
-	vis_contents -= spin_effect
-	set_light(0)
-	on = FALSE
-
 /obj/machinery/rotating_alarm/supermatter
-	name = "Supermatter alarm"
+	name = "supermatter alarm"
 	desc = "An industrial rotating alarm light. This one is used to monitor supermatter engines."
 
 	frame_type = /obj/item/frame/supermatter_alarm
-	construct_state = /decl/machine_construction/default/item_chassis
+	construct_state = /singleton/machine_construction/default/item_chassis
 	base_type = /obj/machinery/rotating_alarm/supermatter
+
+	angle = 15
+	sound_file = 'sound/obj/machinery/rotating_alarm/supermatter.ogg'
 
 /obj/machinery/rotating_alarm/supermatter/Initialize()
 	. = ..()
-	GLOB.supermatter_status.register_global(src, .proc/check_supermatter)
+	GLOB.supermatter_status.register_global(src, PROC_REF(check_supermatter))
 
 /obj/machinery/rotating_alarm/supermatter/Destroy()
-	GLOB.supermatter_status.unregister_global(src, .proc/check_supermatter)
+	GLOB.supermatter_status.unregister_global(src, PROC_REF(check_supermatter))
 	. = ..()
 
 /obj/machinery/rotating_alarm/supermatter/proc/check_supermatter(obj/machinery/power/supermatter/SM, danger)
@@ -778,3 +807,95 @@
 				set_on()
 			else if (!danger && on)
 				set_off()
+
+/obj/machinery/button/alternate/sm_shutdown
+	name = "Supermatter Shutdown"
+	desc = "A large red button labeled 'EMERGENCY SUPERMATTER SHUTDOWN'. You should probably read the accompanying instructions before pressing it."
+
+/singleton/public_access/public_method/supermatter_shutdown
+	call_proc = TYPE_PROC_REF(/obj/machinery/power/supermatter, shutdown_sm)
+
+/singleton/stock_part_preset/radio/receiver/supermatter_shutdown
+	frequency = BUTTON_FREQ
+	receive_and_call = list("button_active" = /singleton/public_access/public_method/supermatter_shutdown)
+
+/turf/simulated/floor/greengrid/sm
+	desc = "Extremely advanced circuitry embedded into the floor designed to interface with a supermatter crystal."
+
+/obj/machinery/power/supermatter/proc/shutdown_sm()
+	if ((cooldown_time + last_shutdown_time) > world.time)
+		return
+
+	//first stage shutdown
+	if (shutdown_phase == SHUTDOWN_PHASE_OFF && istype(get_turf(src), /turf/simulated/floor/greengrid/sm))
+		shutdown_phase = SHUTDOWN_PHASE_ONE
+		GLOB.global_announcer.autosay(shutdown_alert, "Supermatter Monitor", "Engineering")
+		if (get_rads(loc) < (power * 2 * radiation_release_modifier))
+			SSradiation.radiate(loc, power * 2 * radiation_release_modifier)
+		for(var/turf/simulated/floor/greengrid/sm/sm_turf in oview(2, src))
+			sm_turf.icon_state = "rcircuitanim"
+
+		radiation_release_modifier = (power / 10)
+		thermal_release_modifier = thermal_release_modifier * (power / 250)
+		power_at_shutdown_start = power
+		return
+
+	//shutdown aborted before second stage could start
+	if (shutdown_phase == SHUTDOWN_PHASE_ONE)
+		radiation_release_modifier = 50 * radiation_release_modifier
+		shutdown_phase = SHUTDOWN_PHASE_OFF
+		shutdown_aborted = TRUE
+		var/obj/effect/warp/small/warpeffect = new(get_turf(src))
+				//effect and sound
+		warpeffect.SetTransform(scale = 0)
+		warpeffect.alpha = 255
+		animate(
+			warpeffect,
+			transform = matrix(),
+			alpha = 0,
+			time = 1.25 SECONDS
+		)
+		addtimer(new Callback(GLOBAL_PROC, GLOBAL_PROC_REF(qdel), warpeffect), 1.25 SECONDS)
+		playsound(warpeffect, 'sound/effects/heavy_cannon_blast.ogg', 50, 1)
+
+		var/list/atoms = list()
+		if(isturf(src))
+			atoms = range(src, 6)
+		else
+			atoms = orange(src, 6)
+		for(var/atom/movable/A in atoms)
+			if(A.anchored || !A.simulated) continue
+			A.throw_at(get_edge_target_turf(A,get_dir(src, A)),10,5)
+		addtimer(new Callback(src, PROC_REF(end_abort_phase)), aborted_phase_length)
+		GLOB.global_announcer.autosay(shutdown_aborted_alert, "Supermatter Monitor", "Engineering")
+		for (var/turf/simulated/floor/greengrid/sm/T in oview(2, src))
+			T.icon_state = "gcircuit"
+
+	//end shutdown sequence after second stage, returns SM to normal
+	if (shutdown_phase == SHUTDOWN_PHASE_TWO)
+		if (power <= 0.01)
+			power = 0
+		shutdown_phase = SHUTDOWN_PHASE_OFF
+		GLOB.global_announcer.autosay(shutdown_complete_alert, "Supermatter Monitor", "Engineering")
+		for (var/turf/simulated/floor/greengrid/sm/T in oview(2, src))
+			T.icon_state = "gcircuit"
+		last_shutdown_time = world.time
+
+	radiation_release_modifier = initial(radiation_release_modifier)
+	thermal_release_modifier = initial(thermal_release_modifier)
+	power_at_shutdown_start = 0
+	charging_factor = initial(charging_factor)
+	power_factor = initial(power_factor)
+	damage_rate_limit = initial(damage_rate_limit)
+
+/obj/machinery/power/supermatter/proc/end_abort_phase()
+	radiation_release_modifier = initial(radiation_release_modifier)
+	shutdown_aborted = FALSE
+
+/obj/machinery/power/supermatter/proc/get_phase()
+	if (shutdown_phase == SHUTDOWN_PHASE_OFF)
+		return SPAN_GOOD("READY")
+	else if (shutdown_phase == SHUTDOWN_PHASE_ONE)
+		return SPAN_AVERAGE("SHUTTING DOWN")
+	else if (shutdown_phase == SHUTDOWN_PHASE_TWO)
+		return SPAN_AVERAGE("STANDBY")

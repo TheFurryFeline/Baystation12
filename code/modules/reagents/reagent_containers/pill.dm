@@ -4,7 +4,7 @@
 /obj/item/reagent_containers/pill
 	name = "pill"
 	desc = "A pill."
-	icon = 'icons/obj/chemical.dmi'
+	icon = 'icons/obj/pills.dmi'
 	icon_state = null
 	item_state = "pill"
 	randpixel = 7
@@ -18,58 +18,45 @@
 	if(!icon_state)
 		icon_state = "pill[rand(1, 5)]" //preset pills only use colour changing or unique icons
 
-/obj/item/reagent_containers/pill/attack(mob/M as mob, mob/user as mob, def_zone)
-		//TODO: replace with standard_feed_mob() call.
+/obj/item/reagent_containers/pill/transfer_fed_to_mob(mob/living/user, mob/living/carbon/human/target)
+	if (!istype(target) || !istype(user))
+		return
+	if (reagents.total_volume)
+		reagents.trans_to_mob(target, reagents.total_volume, CHEM_INGEST)
+	qdel(src)
 
-	if(M == user)
-		if(!M.can_eat(src))
-			return
+/obj/item/reagent_containers/pill/self_feed_message(mob/user)
+	to_chat(user, SPAN_NOTICE("You swallow \the [src]"))
 
-		M.visible_message(SPAN_NOTICE("[M] swallows a pill."), SPAN_NOTICE("You swallow \the [src]."), null, 2)
-		if(reagents.total_volume)
-			reagents.trans_to_mob(M, reagents.total_volume, CHEM_INGEST)
-		qdel(src)
-		return 1
+/obj/item/reagent_containers/pill/other_feed_message_start(mob/user, mob/target)
+	user.visible_message(SPAN_WARNING("\The [user] attempts to force \the [target] to swallow \the [src]."))
 
-	else if(istype(M, /mob/living/carbon/human))
-		if(!M.can_force_feed(user, src))
-			return
+/obj/item/reagent_containers/pill/other_feed_message_finish(mob/user, mob/target)
+	user.visible_message(SPAN_WARNING("\The [user] forces \the [target] to swallow \the [src]."))
 
-		user.visible_message(SPAN_WARNING("[user] attempts to force [M] to swallow \the [src]."))
-		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-		if(!do_after(user, 3 SECONDS, M))
-			return
+/obj/item/reagent_containers/pill/use_before(mob/target as mob, mob/user as mob)
+	. = FALSE
+	if (!istype(target))
+		return FALSE
+	if (standard_feed_mob(user, target, DO_MEDICAL))
+		return TRUE
 
-		if (user.get_active_hand() != src)
-			return
+/obj/item/reagent_containers/pill/use_after(atom/target, mob/living/user, click_parameters)
+	if (target.is_open_container() && target.reagents)
+		if (!target.reagents.total_volume)
+			to_chat(user, SPAN_NOTICE("\The [target] is empty. Can't dissolve \the [src]."))
+			return TRUE
 
-		user.visible_message(SPAN_WARNING("[user] forces [M] to swallow \the [src]."))
-		var/contained = reagentlist()
-		if (reagents.should_admin_log())
-			admin_attack_log(user, M, "Fed the victim with [name] (Reagents: [contained])", "Was fed [src] (Reagents: [contained])", "used [src] (Reagents: [contained]) to feed")
-		if(reagents.total_volume)
-			reagents.trans_to_mob(M, reagents.total_volume, CHEM_INGEST)
-		qdel(src)
-		return 1
-
-	return 0
-
-/obj/item/reagent_containers/pill/afterattack(obj/target, mob/user, proximity)
-	if(!proximity) return
-
-	if(target.is_open_container() && target.reagents)
-		if(!target.reagents.total_volume)
-			to_chat(user, "<span class='notice'>[target] is empty. Can't dissolve \the [src].</span>")
-			return
-		to_chat(user, "<span class='notice'>You dissolve \the [src] in [target].</span>")
+		to_chat(user, SPAN_NOTICE("You dissolve \the [src] in \the [target]."))
 
 		if (reagents.should_admin_log())
 			admin_attacker_log(user, "spiked \a [target] with a pill. Reagents: [reagentlist()]")
 		reagents.trans_to(target, reagents.total_volume)
 		for(var/mob/O in viewers(2, user))
-			O.show_message("<span class='warning'>[user] puts something in \the [target].</span>", 1)
+			O.show_message(SPAN_WARNING("\The [user] puts something in \the [target]."), 1)
 		qdel(src)
-	return
+		return TRUE
+	else return FALSE
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Pills. END
@@ -152,7 +139,7 @@
 	icon_state = "pill3"
 /obj/item/reagent_containers/pill/tramadol/New()
 	..()
-	reagents.add_reagent(/datum/reagent/tramadol, 15)
+	reagents.add_reagent(/datum/reagent/opiate/tramadol, 15)
 	color = reagents.get_color()
 
 
@@ -222,7 +209,7 @@
 	icon_state = "pill4"
 /obj/item/reagent_containers/pill/happy/New()
 	..()
-	reagents.add_reagent(/datum/reagent/space_drugs, 15)
+	reagents.add_reagent(/datum/reagent/drugs/hextro, 15)
 	reagents.add_reagent(/datum/reagent/sugar, 15)
 	color = reagents.get_color()
 
@@ -245,7 +232,7 @@
 
 /obj/item/reagent_containers/pill/three_eye/Initialize()
 	. = ..()
-	reagents.add_reagent(/datum/reagent/three_eye, 10)
+	reagents.add_reagent(/datum/reagent/drugs/three_eye, 10)
 	color = reagents.get_color()
 
 /obj/item/reagent_containers/pill/spaceacillin
@@ -272,7 +259,7 @@
 	name = "Noexcutite (15u)"
 	desc = "Feeling jittery? This should calm you down."
 	icon_state = "pill4"
-obj/item/reagent_containers/pill/noexcutite/New()
+/obj/item/reagent_containers/pill/noexcutite/New()
 	..()
 	reagents.add_reagent(/datum/reagent/noexcutite, 15)
 	color = reagents.get_color()
@@ -306,7 +293,7 @@ obj/item/reagent_containers/pill/noexcutite/New()
 	icon_state = "pill4"
 /obj/item/reagent_containers/pill/citalopram/New()
 	..()
-	reagents.add_reagent(/datum/reagent/citalopram, 15)
+	reagents.add_reagent(/datum/reagent/antidepressant/citalopram, 15)
 	color = reagents.get_color()
 
 
@@ -316,17 +303,17 @@ obj/item/reagent_containers/pill/noexcutite/New()
 	icon_state = "pill4"
 /obj/item/reagent_containers/pill/paroxetine/New()
 	..()
-	reagents.add_reagent(/datum/reagent/paroxetine, 10)
+	reagents.add_reagent(/datum/reagent/antidepressant/paroxetine, 10)
 	color = reagents.get_color()
 
 
 /obj/item/reagent_containers/pill/hyronalin
-	name = "Hyronalin (7u)"
+	name = "Hyronalin (10u)"
 	desc = "Used to treat radiation poisoning."
 	icon_state = "pill1"
 /obj/item/reagent_containers/pill/hyronalin/New()
 	..()
-	reagents.add_reagent(/datum/reagent/hyronalin, 7)
+	reagents.add_reagent(/datum/reagent/hyronalin, 10)
 	color = reagents.get_color()
 
 /obj/item/reagent_containers/pill/antirad
@@ -395,3 +382,31 @@ obj/item/reagent_containers/pill/noexcutite/New()
 	..()
 	reagents.add_reagent(/datum/reagent/nutriment/mint, 1) //mint is used as a catalyst in all reactions as of writing
 	color = reagents.get_color()
+
+// Chopping up pills
+
+/obj/item/reagent_containers/pill/use_tool(obj/item/W, mob/living/user, list/click_params)
+	if(is_sharp(W) || istype(W, /obj/item/card/id))
+		user.visible_message(
+			SPAN_WARNING("\The [user] starts to gently cut up \the [src] with \a [W]!"),
+			SPAN_NOTICE("You start to gently cut up \the [src] with \the [W]."),
+			SPAN_WARNING("You hear quiet grinding.")
+		)
+		playsound(loc, 'sound/effects/chop.ogg', 50, 1)
+		if (!do_after(user, 5 SECONDS, src, DO_PUBLIC_UNIQUE))
+			return TRUE
+
+		var/obj/item/reagent_containers/powder/J = new /obj/item/reagent_containers/powder(loc)
+		user.visible_message(
+			SPAN_WARNING("\The [user] gently cuts up \the [src] with \a [W]!"),
+			SPAN_NOTICE("You gently cut up \the [src] with \the [W].")
+		)
+		playsound(loc, 'sound/effects/chop.ogg', 50, 1)
+
+		if(reagents)
+			reagents.trans_to_obj(J, reagents.total_volume)
+		J.get_appearance()
+		qdel(src)
+		return TRUE
+
+	return ..()

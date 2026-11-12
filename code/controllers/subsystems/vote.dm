@@ -3,7 +3,7 @@ SUBSYSTEM_DEF(vote)
 	wait = 1 SECOND
 	priority = SS_PRIORITY_VOTE
 	flags = SS_NO_TICK_CHECK | SS_KEEP_TIMING
-	runlevels = RUNLEVELS_DEFAULT | RUNLEVEL_LOBBY
+	runlevels = RUNLEVELS_PREGAME | RUNLEVELS_GAME
 
 	var/last_started_time        //To enforce delay between votes.
 	var/antag_added              //Enforces a maximum of one added antag per round.
@@ -15,13 +15,13 @@ SUBSYSTEM_DEF(vote)
 	var/list/voting = list()     //Clients recieving UI updates.
 	var/list/vote_prototypes     //To run checks on whether they are available.
 
-/datum/controller/subsystem/vote/Initialize()
+/datum/controller/subsystem/vote/Initialize(start_uptime)
 	vote_prototypes = list()
 	for(var/vote_type in subtypesof(/datum/vote))
 		var/datum/vote/fake_vote = vote_type
 		if(initial(fake_vote.manual_allowed))
 			vote_prototypes[vote_type] = new vote_type
-	return ..()
+
 
 /datum/controller/subsystem/vote/fire(resumed = 0)
 	if(!active_vote)
@@ -45,8 +45,10 @@ SUBSYSTEM_DEF(vote)
 			for(var/client/C in voting)
 				show_panel(C.mob)
 
-/datum/controller/subsystem/vote/stat_entry()
-	..("Vote:[active_vote ? "[active_vote.name], [active_vote.time_remaining]" : "none"]")
+/datum/controller/subsystem/vote/UpdateStat(time)
+	if (PreventUpdateStat(time))
+		return ..()
+	..("Vote: [active_vote ? "[active_vote.name], [active_vote.time_remaining]" : "None"]")
 
 /datum/controller/subsystem/vote/Recover()
 	last_started_time = SSvote.last_started_time
@@ -76,6 +78,10 @@ SUBSYSTEM_DEF(vote)
 	if(!new_vote.setup(creator, automatic))
 		return FALSE
 
+	var/half_vote_duration = round(new_vote.time_remaining * 0.5)
+	addtimer(new Callback(src, PROC_REF(notify_voters)), half_vote_duration SECONDS)
+	addtimer(new Callback(src, PROC_REF(notify_voters), TRUE), 0)
+
 	active_vote = new_vote
 	last_started_time = world.time
 	return TRUE
@@ -87,29 +93,28 @@ SUBSYSTEM_DEF(vote)
 	voting |= C
 
 	. = list()
-	. += "<html><head><title>Voting Panel</title></head><body>"
 	if(active_vote)
 		. += active_vote.interface(C.mob)
 		if(admin)
-			. += "(<a href='?src=\ref[src];cancel=1'>Cancel Vote</a>) "
+			. += "(<a href='byond://?src=\ref[src];cancel=1'>Cancel Vote</a>) "
 	else
 		. += "<h2>Start a vote:</h2><hr><ul>"
 		for(var/vote_type in vote_prototypes)
 			var/datum/vote/vote_datum = vote_prototypes[vote_type]
-			. += "<li><a href='?src=\ref[src];vote=\ref[vote_datum.type]'>"
+			. += "<li><a href='byond://?src=\ref[src];vote=\ref[vote_datum.type]'>"
 			if(vote_datum.can_run(C.mob))
 				. += "[capitalize(vote_datum.name)]"
 			else
-				. += "<font color='grey'>[capitalize(vote_datum.name)] (Disallowed)</font>"
+				. += SPAN_COLOR("grey", "[capitalize(vote_datum.name)] (Disallowed)")
 			. += "</a>"
 			var/toggle = vote_datum.check_toggle()
 			if(admin && toggle)
-				. += "\t(<a href='?src=\ref[src];toggle=1;vote=\ref[vote_datum.type]'>toggle; currently [toggle]</a>)"
+				. += "\t(<a href='byond://?src=\ref[src];toggle=1;vote=\ref[vote_datum.type]'>toggle; currently [toggle]</a>)"
 			. += "</li>"
 		. += "</ul><hr>"
 
-	. += "<a href='?src=\ref[src];close=1' style='position:absolute;right:50px'>Close</a></body></html>"
-	return JOINTEXT(.)
+	. += "<a href='byond://?src=\ref[src];close=1' style='position:absolute;right:50px'>Close</a>"
+	return jointext(., null)
 
 /datum/controller/subsystem/vote/proc/show_panel(mob/user)
 	var/win_x = 450
@@ -117,8 +122,9 @@ SUBSYSTEM_DEF(vote)
 	if(active_vote)
 		win_x = active_vote.win_x
 		win_y = active_vote.win_y
-	show_browser(user, interface(user.client),"window=vote;size=[win_x]x[win_y]")
-	onclose(user, "vote", src)
+	var/datum/browser/popup = new(user, "vote", "Voting Panel", win_x, win_y)
+	popup.set_content(interface(user.client))
+	popup.open()
 
 /datum/controller/subsystem/vote/proc/close_panel(mob/user)
 	show_browser(user, null, "window=vote")
@@ -132,7 +138,47 @@ SUBSYSTEM_DEF(vote)
 	QDEL_NULL(active_vote)
 	reset()
 
-/datum/controller/subsystem/vote/Topic(href,href_list[],hsrc)
+/datum/controller/subsystem/vote/proc/notify_voters(at_start)
+	if (!active_vote)
+		return
+	var/notify_message = "Enter the <b>vote</b> verb or [aref("click here", "vote_panel=1")] \
+		to vote.\nYou have [round(active_vote.time_remaining)] seconds"
+	if (at_start)
+		notify_message = SPAN_SYSTEM("<b>[active_vote.initiator] started \a \
+			[active_vote.name] vote.</b>\n[notify_message] to vote.")
+	else
+		notify_message = SPAN_SYSTEM("<b>The [active_vote.name] vote is half \
+			finished.</b>\n[notify_message] left to vote.")
+	var/notify_sound = sound('sound/ui/vote-notify.ogg', FALSE, FALSE, GLOB.vote_sound_channel, 33)
+	var/already_voted = active_vote.votes
+	var/list/voters = active_vote.get_allowed_voters()
+	for (var/mob/mob as anything in voters)
+		if (mob.ckey in already_voted)
+			continue
+		var/pref = mob.get_preference_value(/datum/client_preference/vote_assertiveness)
+		if (at_start)
+			if (pref == GLOB.PREF_VA_POPUP)
+				show_panel(mob)
+			to_chat(mob, notify_message)
+			sound_to(mob, notify_sound)
+			continue
+		if (pref == GLOB.PREF_VA_HALF_NOTIFY)
+			to_chat(mob, notify_message)
+			sound_to(mob, notify_sound)
+		else if (pref == GLOB.PREF_VA_HALF_POPUP)
+			to_chat(mob, notify_message)
+			sound_to(mob, notify_sound)
+			show_panel(mob)
+	if (!at_start)
+		return
+	notify_message = SPAN_SYSTEM("<b>[active_vote.initiator] started \a [active_vote.name] vote.\
+		</b>\nEnter the <b>vote</b> verb or [aref("click here", "vote_panel=1")] to watch.\n\
+		You cannot participate: [active_vote.get_disallowed_reason()]")
+	for (var/mob/mob as anything in (GLOB.player_list - voters))
+		to_chat(mob, notify_message)
+
+
+/datum/controller/subsystem/vote/Topic(href, list/href_list, hsrc)
 	if(!usr || !usr.client)
 		return	//not necessary but meh...just in-case somebody does something stupid
 
@@ -166,7 +212,6 @@ SUBSYSTEM_DEF(vote)
 	set waitfor = FALSE
 
 	to_world("World restarting due to vote...")
-	SSstatistics.set_field_details("end_error","restart vote")
 	sleep(50)
 	log_game("Rebooting due to restart vote")
 	world.Reboot()

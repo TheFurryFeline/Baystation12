@@ -1,4 +1,4 @@
-GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
+GLOBAL_TYPED_NEW(raiders, /datum/antagonist/raider)
 
 /datum/antagonist/raider
 	id = MODE_RAIDER
@@ -13,12 +13,14 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 	hard_cap = 6
 	hard_cap_round = 10
 	initial_spawn_req = 3
-	initial_spawn_target = 4
+	initial_spawn_target = 3
 	min_player_age = 14
 
 	id_type = /obj/item/card/id/syndicate
 
 	faction = "pirate"
+	no_prior_faction = TRUE
+
 	base_to_load = /datum/map_template/ruin/antag_spawn/heist
 
 	var/list/raider_uniforms = list(
@@ -44,6 +46,8 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		/obj/item/clothing/head/pirate,
 		/obj/item/clothing/mask/bandana/red,
 		/obj/item/clothing/head/hgpiratecap,
+		/obj/item/clothing/head/helmet/nvgmount/nvg,
+		/obj/item/clothing/head/helmet/nvgmount/thermal // raiders can have a little nvg, as a treat
 		)
 
 	var/list/raider_suits = list(
@@ -55,7 +59,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		/obj/item/clothing/suit/storage/toggle/hoodie,
 		/obj/item/clothing/suit/storage/toggle/hoodie/black,
 		/obj/item/clothing/suit/unathi/mantle,
-		/obj/item/clothing/suit/poncho/colored,
+		/obj/item/clothing/suit/poncho,
 		)
 
 	var/list/raider_guns = list(
@@ -95,7 +99,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 		/obj/item/clothing/accessory/storage/holster/hip
 		)
 
-/datum/antagonist/raider/update_access(var/mob/living/player)
+/datum/antagonist/raider/update_access(mob/living/player)
 	for(var/obj/item/storage/wallet/W in player.contents)
 		for(var/obj/item/card/id/id in W.contents)
 			id.SetName("[player.real_name]'s Passport")
@@ -132,7 +136,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 
 /datum/antagonist/raider/proc/is_raider_crew_safe()
 
-	if(!current_antagonists || current_antagonists.len == 0)
+	if(!current_antagonists || length(current_antagonists) == 0)
 		return 0
 
 	for(var/datum/mind/player in current_antagonists)
@@ -140,7 +144,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 			return 0
 	return 1
 
-/datum/antagonist/raider/equip(var/mob/living/carbon/human/player)
+/datum/antagonist/raider/equip(mob/living/carbon/human/player)
 
 	if(!..())
 		return 0
@@ -175,7 +179,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 
 	return 1
 
-/datum/antagonist/raider/proc/equip_weapons(var/mob/living/carbon/human/player)
+/datum/antagonist/raider/proc/equip_weapons(mob/living/carbon/human/player)
 	var/new_gun = pick(raider_guns)
 	var/new_holster = pick(raider_holster) //raiders don't start with any backpacks, so let's be nice and give them a holster if they can use it.
 	var/turf/T = get_turf(player)
@@ -210,11 +214,11 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 	if(holster)
 		var/obj/item/clothing/under/uniform = player.w_uniform
 		if(istype(uniform) && uniform.can_attach_accessory(holster))
-			uniform.attackby(holster, player)
+			uniform.use_tool(holster, player)
 		else
 			player.put_in_any_hand_if_possible(holster)
 
-/datum/antagonist/raider/proc/equip_ammo(var/mob/living/carbon/human/player, var/obj/item/gun/gun)
+/datum/antagonist/raider/proc/equip_ammo(mob/living/carbon/human/player, obj/item/gun/gun)
 	if(istype(gun, /obj/item/gun/projectile))
 		var/obj/item/gun/projectile/bullet_thrower = gun
 		if(bullet_thrower.magazine_type)
@@ -244,7 +248,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 	if(holster)
 		var/obj/item/clothing/under/uniform = vox.w_uniform
 		if(istype(uniform) && uniform.can_attach_accessory(holster))
-			uniform.attackby(holster, vox)
+			uniform.use_tool(holster, vox)
 		else
 			vox.put_in_any_hand_if_possible(holster)
 
@@ -264,56 +268,7 @@ GLOBAL_DATUM_INIT(raiders, /datum/antagonist/raider, new)
 				/obj/item/rig/unathi
 	)
 
-/obj/random/raider/lilgun
-	name = "Random Raider Light Weapon"
-	desc = "This is a random raider sidearm."
-	icon = 'icons/obj/guns/pistol.dmi'
-	icon_state = "secguncomp"
 
-/obj/random/raider/lilgun/spawn_choices()
-	return list(/obj/item/gun/projectile/pistol/sec,
-				/obj/item/gun/energy/gun,
-				/obj/item/gun/energy/stunrevolver,
-				/obj/item/gun/projectile/shotgun/doublebarrel/sawn,
-				/obj/item/gun/energy/xray/pistol,
-				/obj/item/gun/energy/pulse_rifle/pistol,
-				/obj/item/gun/energy/plasmacutter,
-				/obj/item/gun/energy/incendiary_laser,
-				/obj/item/gun/projectile/automatic/machine_pistol,
-				/obj/item/gun/projectile/pistol/military/alt,
-				/obj/item/gun/projectile/pistol/holdout,
-				/obj/item/gun/projectile/revolver,
-				/obj/item/gun/projectile/revolver/medium,
-				/obj/item/gun/energy/retro,
-				/obj/item/gun/projectile/pistol/throwback,
-				/obj/item/gun/energy/ionrifle/small
-	)
-
-/obj/random/raider/biggun
-	name = "Random Raider Heavy Weapon"
-	desc = "This is a random raider rifle."
-	icon = 'icons/obj/guns/assault_rifle.dmi'
-	icon_state = "arifle"
-
-/obj/random/raider/biggun/spawn_choices()
-	return list(/obj/item/gun/energy/lasercannon,
-				/obj/item/gun/energy/laser,
-				/obj/item/gun/energy/captain,
-				/obj/item/gun/energy/pulse_rifle,
-				/obj/item/gun/energy/pulse_rifle/carbine,
-				/obj/item/gun/energy/sniperrifle,
-				/obj/item/gun/projectile/shotgun/doublebarrel,
-				/obj/item/gun/energy/xray,
-				/obj/item/gun/projectile/automatic/battlerifle,
-				/obj/item/gun/projectile/sniper/semistrip,
-				/obj/item/gun/projectile/sniper/garand,
-				/obj/item/gun/projectile/automatic/assault_rifle,
-				/obj/item/gun/projectile/automatic/sec_smg,
-				/obj/item/gun/energy/crossbow/largecrossbow,
-				/obj/item/gun/projectile/shotgun/pump/combat,
-				/obj/item/gun/energy/ionrifle,
-				/obj/item/gun/projectile/shotgun/pump
-	)
 
 /obj/item/vox_changer/raider
 	allowed_role = "Raider"

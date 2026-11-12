@@ -48,6 +48,11 @@
 	use_power_cost = 0//Already handled by defib, but it's 150 Wh, normal defib takes 100
 	device = /obj/item/shockpaddles/rig
 
+/obj/item/rig_module/device/defib/Initialize()
+	. = ..()
+	var/obj/item/shockpaddles/rig/paddles = device
+	paddles.module = src
+
 /obj/item/rig_module/device/drill
 	name = "hardsuit mounted drill"
 	desc = "A very heavy diamond-tipped drill."
@@ -96,7 +101,7 @@
 	scanner.put_disk_in_hand(holder.wearer)
 
 /obj/item/rig_module/device/rcd
-	name = "RCD mount"
+	name = "\improper RCD mount"
 	desc = "A cell-powered rapid construction device for a hardsuit."
 	icon_state = "rcd"
 	interface_name = "mounted RCD"
@@ -124,9 +129,8 @@
 	if(!target.Adjacent(holder.wearer))
 		return 0
 
-	var/resolved = target.attackby(device,holder.wearer)
-	if(!resolved && device && target)
-		device.afterattack(target,holder.wearer,1)
+	var/mob/user = holder.wearer
+	device.resolve_attackby(target, user)
 	return 1
 
 
@@ -151,7 +155,7 @@
 		list("dylovene",      "dylovene",      /datum/reagent/dylovene,          80),
 		list("hyronalin",     "hyronalin",     /datum/reagent/hyronalin,         80),
 		list("spaceacillin",  "spaceacillin",  /datum/reagent/spaceacillin,      80),
-		list("tramadol",      "tramadol",      /datum/reagent/tramadol,          80)
+		list("tramadol",      "tramadol",      /datum/reagent/opiate/tramadol,          80)
 		)
 
 	var/max_reagent_volume = 80 //Used when refilling.
@@ -166,12 +170,14 @@
 		list("dylovene",      "dylovene",      /datum/reagent/dylovene,          20),
 		list("glucose",       "glucose",       /datum/reagent/nutriment/glucose, 80),
 		list("hyronalin",     "hyronalin",     /datum/reagent/hyronalin,         20),
+		list("bicaridine",    "bicaridine",    /datum/reagent/bicaridine,        20),
 		list("dermaline",     "dermaline",     /datum/reagent/dermaline,         20),
 		list("spaceacillin",  "spaceacillin",  /datum/reagent/spaceacillin,      20),
-		list("tramadol",      "tramadol",      /datum/reagent/tramadol,          20)
+		list("coagulant",     "coagulant",     /datum/reagent/coagulant,         20),
+		list("tramadol",      "tramadol",      /datum/reagent/opiate/tramadol,          20)
 		)
 
-/obj/item/rig_module/chem_dispenser/accepts_item(var/obj/item/input_item, var/mob/living/user)
+/obj/item/rig_module/chem_dispenser/accepts_item(obj/item/input_item, mob/living/user)
 
 	if(!input_item.is_open_container())
 		return 0
@@ -199,9 +205,9 @@
 				break
 
 	if(total_transferred)
-		to_chat(user, "<span class='info'>You transfer [total_transferred] units into the suit reservoir.</span>")
+		to_chat(user, SPAN_INFO("You transfer [total_transferred] units into the suit reservoir."))
 	else
-		to_chat(user, "<span class='danger'>None of the reagents seem suitable.</span>")
+		to_chat(user, SPAN_DANGER("None of the reagents seem suitable."))
 	return 1
 
 /obj/item/rig_module/chem_dispenser/engage(atom/target)
@@ -212,7 +218,7 @@
 	var/mob/living/carbon/human/H = holder.wearer
 
 	if(!charge_selected)
-		to_chat(H, "<span class='danger'>You have not selected a chemical type.</span>")
+		to_chat(H, SPAN_DANGER("You have not selected a chemical type."))
 		return 0
 
 	var/datum/rig_charge/charge = charges[charge_selected]
@@ -220,9 +226,9 @@
 	if(!charge)
 		return 0
 
-	var/chems_to_use = 10
+	var/chems_to_use = 5
 	if(charge.charges <= 0)
-		to_chat(H, "<span class='danger'>Insufficient chems!</span>")
+		to_chat(H, SPAN_DANGER("Insufficient chems!"))
 		return 0
 	else if(charge.charges < chems_to_use)
 		chems_to_use = charge.charges
@@ -237,8 +243,8 @@
 		target_mob = H
 
 	if(target_mob != H)
-		to_chat(H, "<span class='danger'>You inject [target_mob] with [chems_to_use] unit\s of [charge.display_name].</span>")
-	to_chat(target_mob, "<span class='danger'>You feel a rushing in your veins as [chems_to_use] unit\s of [charge.display_name] [chems_to_use == 1 ? "is" : "are"] injected.</span>")
+		to_chat(H, SPAN_DANGER("You inject [target_mob] with [chems_to_use] unit\s of [charge.display_name]."))
+	to_chat(target_mob, SPAN_CLASS("danger", "You feel a rushing in your veins as [chems_to_use] unit\s of [charge.display_name] [chems_to_use == 1 ? "is" : "are"] injected."))
 	target_mob.reagents.add_reagent(charge.product_type, chems_to_use)
 
 	charge.charges -= chems_to_use
@@ -248,19 +254,36 @@
 
 /obj/item/rig_module/chem_dispenser/combat
 
-	name = "combat chemical injector"
+	name = "combat chemical dispenser"
 	desc = "A complex web of tubing and needles suitable for hardsuit use."
+	max_reagent_volume = 60 // Equivalent to a beaker, a bit less than the injector since this is tailored for individual usage
 
 	charges = list(
-		list("synaptizine", "synaptizine", /datum/reagent/synaptizine,       30),
-		list("hyperzine",   "hyperzine",   /datum/reagent/hyperzine,         30),
-		list("oxycodone",   "oxycodone",   /datum/reagent/tramadol/oxycodone,         30),
-		list("glucose",     "glucose",     /datum/reagent/nutriment/glucose, 80),
+		list("synaptizine", "synaptizine", /datum/reagent/synaptizine,        30),
+		list("hyperzine",   "hyperzine",   /datum/reagent/hyperzine,          30),
+		list("oxycodone",   "oxycodone",   /datum/reagent/opiate/oxycodone, 30),
+		list("glucose",     "glucose",     /datum/reagent/nutriment/glucose,  60)
 		)
 
 	interface_name = "combat chem dispenser"
 	interface_desc = "Dispenses loaded chemicals directly into the bloodstream."
 
+/obj/item/rig_module/chem_dispenser/combat/ert
+	name = "\improper ERT combat chemical auto-injector"
+	desc = "A complex web of tubing and needles suitable for hardsuit use."
+	max_reagent_volume = 30 // ERT has access to most chems in large quantities, so prevent them from going too crazy
+
+	charges = list(
+		list("synaptizine",   "synaptizine",   /datum/reagent/synaptizine,        10),
+		list("inaprovaline",  "inaprovaline",  /datum/reagent/inaprovaline,       30),
+		list("oxycodone",     "oxycodone",     /datum/reagent/opiate/oxycodone, 10),
+		list("tricordrazine", "tricordrazine", /datum/reagent/tricordrazine,      15),
+		list("coagulant",     "coagulant",     /datum/reagent/coagulant,          15),
+		list("dexalin plus",  "dexalin plus",  /datum/reagent/dexalinp,           30),
+		list("glucose",       "glucose",       /datum/reagent/nutriment/glucose,  30)
+		)
+
+	interface_name = "combat chemical auto-injector"
 
 /obj/item/rig_module/chem_dispenser/injector
 
@@ -274,6 +297,21 @@
 
 	interface_name = "mounted chem injector"
 	interface_desc = "Dispenses loaded chemicals via an arm-mounted injector."
+
+/obj/item/rig_module/chem_dispenser/injector/ert
+	name = "\improper ERT mounted chemical injector"
+	max_reagent_volume = 50
+
+	charges = list(
+		list("dexalin plus",  "dexalin plus",  /datum/reagent/dexalinp,           50),
+		list("inaprovaline",  "inaprovaline",  /datum/reagent/inaprovaline,       50),
+		list("dermaline",     "dermaline",     /datum/reagent/dermaline,          30),
+		list("bicaridine",    "bicaridine",    /datum/reagent/bicaridine,         40),
+		list("oxycodone",     "oxycodone",     /datum/reagent/opiate/oxycodone, 40),
+		list("dylovene",      "dylovene",      /datum/reagent/dylovene,           50)
+		)
+
+	interface_name = "mounted chemical injector"
 
 /obj/item/rig_module/voice
 
@@ -308,7 +346,7 @@
 	holder.speech = null
 	holder.verbs -= /obj/item/rig/proc/alter_voice
 
-/obj/item/rig_module/voice/engage()
+/obj/item/rig_module/voice/engage(atom/target)
 
 	if(!..())
 		return 0
@@ -322,17 +360,17 @@
 		if("Enable")
 			active = 1
 			voice_holder.active = 1
-			to_chat(usr, "<span class='info'>You enable the speech synthesiser.</span>")
+			to_chat(usr, SPAN_INFO("You enable the speech synthesiser."))
 		if("Disable")
 			active = 0
 			voice_holder.active = 0
-			to_chat(usr, "<span class='info'>You disable the speech synthesiser.</span>")
+			to_chat(usr, SPAN_INFO("You disable the speech synthesiser."))
 		if("Set Name")
 			var/raw_choice = sanitize(input(usr, "Please enter a new name.")  as text|null, MAX_NAME_LEN)
 			if(!raw_choice)
 				return 0
 			voice_holder.voice = raw_choice
-			to_chat(usr, "<span class='info'>You are now mimicking <B>[voice_holder.voice]</B>.</span>")
+			to_chat(usr, SPAN_INFO("You are now mimicking <B>[voice_holder.voice]</B>."))
 	return 1
 
 /obj/item/rig_module/maneuvering_jets
@@ -358,29 +396,18 @@
 	origin_tech = list(TECH_MATERIAL = 6,  TECH_ENGINEERING = 7)
 	var/obj/item/tank/jetpack/rig/jets
 
-/obj/item/rig_module/maneuvering_jets/engage()
+/obj/item/rig_module/maneuvering_jets/engage(atom/target)
 	if(!..())
 		return 0
 	jets.toggle_rockets()
 	return 1
 
 /obj/item/rig_module/maneuvering_jets/activate()
-
-	if(active)
-		return 0
-
-	active = 1
-
-	spawn(1)
-		if(suit_overlay_active)
-			suit_overlay = suit_overlay_active
-		else
-			suit_overlay = null
-		holder.update_icon()
-
+	if(!..())
+		return FALSE
 	if(!jets.on)
 		jets.toggle()
-	return 1
+	return TRUE
 
 /obj/item/rig_module/maneuvering_jets/deactivate()
 	if(!..())
@@ -458,10 +485,10 @@
 	if(!target)
 		if(device == stamp)
 			device = deniedstamp
-			to_chat(holder.wearer, "<span class='notice'>Switched to denied stamp.</span>")
+			to_chat(holder.wearer, SPAN_NOTICE("Switched to denied stamp."))
 		else if(device == deniedstamp)
 			device = stamp
-			to_chat(holder.wearer, "<span class='notice'>Switched to rubber stamp.</span>")
+			to_chat(holder.wearer, SPAN_NOTICE("Switched to rubber stamp."))
 		return 1
 
 /obj/item/rig_module/device/decompiler
@@ -475,6 +502,7 @@
 
 /obj/item/rig_module/cooling_unit
 	name = "mounted cooling unit"
+	icon_state = "cooling"
 	toggleable = 1
 	origin_tech = list(TECH_MAGNET = 2, TECH_MATERIAL = 2, TECH_ENGINEERING = 5)
 	interface_name = "mounted cooling unit"
@@ -498,3 +526,109 @@
 	H.bodytemperature -= temp_adj
 	active_power_cost = round((temp_adj/max_cooling)*charge_consumption)
 	return active_power_cost
+
+/obj/item/rig_module/kinetic_module
+	name = "gravikinetic module"
+	desc = "A point-gravity manipulator module for the hardsuit."
+	icon_state = "kinetic"
+	selectable = TRUE
+	use_power_cost = 20 KILOWATTS
+
+	interface_name = "gravikinetic module"
+	interface_desc = "A directed point-gravity manipulator module for lifting and moving things out of reach."
+	origin_tech = list(TECH_MAGNET = 2, TECH_MATERIAL = 6,  TECH_ENGINEERING = 6)
+
+	var/atom/movable/locked
+	var/datum/beam = null
+	var/max_dist = 4
+	var/obj/effect/warp/small/warpeffect = null
+
+/obj/item/rig_module/kinetic_module/proc/beamdestroyed()
+	if(beam)
+		GLOB.destroyed_event.unregister(beam, src, PROC_REF(beamdestroyed))
+		beam = null
+	if(locked)
+		if(holder.wearer)
+			to_chat(holder.wearer, SPAN_NOTICE("Lock on \the [locked] disengaged."))
+		endanimation()
+		locked = null
+	//It's possible beam self destroyed, match active
+	if(active)
+		deactivate()
+
+/obj/item/rig_module/kinetic_module/proc/endanimation()
+	if(locked)
+		animate(locked,pixel_y= initial(locked.pixel_y), time = 0)
+
+/obj/item/rig_module/kinetic_module/deactivate()
+	. = ..()
+	if(beam)
+		QDEL_NULL(beam)
+
+/obj/item/rig_module/kinetic_module/engage(atom/target, mob/living/user, inrange, params)
+	. = ..()
+	if(.)
+		if(!locked && (get_dist(holder.wearer, target) <= max_dist))
+			var/atom/movable/AM = target
+			if(!istype(AM) || AM.anchored || !AM.simulated)
+				to_chat(user, SPAN_NOTICE("Unable to lock on [target]."))
+				return
+			locked = AM
+			beam = holder.wearer.Beam(BeamTarget = target, icon_state = "r_beam", maxdistance = max_dist, beam_type = /obj/ebeam/warp)
+			GLOB.destroyed_event.register(beam, src, PROC_REF(beamdestroyed))
+
+			animate(target,pixel_y= initial(target.pixel_y) - 2,time=1 SECOND, easing = SINE_EASING, flags = ANIMATION_PARALLEL, loop = -1)
+			animate(pixel_y= initial(target.pixel_y) + 2,time=1 SECOND)
+
+			active = TRUE
+
+			to_chat(user, SPAN_NOTICE("Locked on [AM]."))
+			return
+		else if(target != locked)
+			if(locked in view(holder.wearer))
+				endanimation() //End animation without waiting for delete, so throw won't be affected
+				locked.throw_at(target, 14, 1.5, holder.wearer)
+				locked = null
+				deactivate()
+
+				holder.cell.use(use_power_cost * CELLRATE)
+
+			else
+				deactivate()
+
+/obj/item/rig_module/radiation
+	name = "radiation shielding module"
+	desc = "Highly advanced electromagnetic radiation cloak that allows most harmful radiation to pass through the suit harmlessly."
+	icon_state = "rad_resist"
+	selectable = TRUE
+	toggleable = TRUE
+	disruptive = FALSE
+	use_power_cost = 80 KILOWATTS
+	active_power_cost = 20 KILOWATTS
+	passive_power_cost = 0
+
+	interface_name = "radiation shielding module"
+	interface_desc = "Electromagnetic radiation cloak that allows most harmful radiation to pass around the suit, instead of through the wearer."
+	origin_tech = list(TECH_BIO = 3, TECH_MAGNET = 3, TECH_ENGINEERING = 5)
+
+	var/radiation_protection = ARMOR_RAD_SHIELDED
+	var/initial_protection = ARMOR_RAD_MINOR
+
+/obj/item/rig_module/radiation/activate()
+	if(!..())
+		return FALSE
+
+	initial_protection = holder.armor["rad"]
+	for(var/obj/item/piece in list(holder.gloves,holder.helmet,holder.boots,holder.chest))
+		piece.armor["rad"] = radiation_protection
+
+	holder.wearer.alpha = 200
+
+/obj/item/rig_module/radiation/deactivate()
+	if(!..())
+		return FALSE
+
+	for(var/obj/item/piece in list(holder.gloves,holder.helmet,holder.boots,holder.chest))
+		piece.armor["rad"] = initial_protection
+
+	holder.wearer.alpha = 255

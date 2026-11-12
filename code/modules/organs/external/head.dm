@@ -25,10 +25,18 @@
 	var/graffiti_style
 
 /obj/item/organ/external/head/proc/get_eye_overlay()
-	if(glowing_eyes)
-		var/obj/item/organ/internal/eyes/eyes = owner.internal_organs_by_name[owner.species.vision_organ ? owner.species.vision_organ : BP_EYES]
-		if(eyes)
-			return eyes.get_special_overlay()
+	if (!glowing_eyes || !owner)
+		return
+
+	var/obj/item/organ/internal/eyes/eyes = owner.internal_organs_by_name[owner.species.vision_organ ? owner.species.vision_organ : BP_EYES]
+	if (!eyes)
+		return
+
+	for (var/obj/item/equipped as anything in owner.get_equipped_items())
+		if (HAS_FLAGS(equipped.body_parts_covered, EYES))
+			return
+
+	return eyes.get_special_overlay()
 
 /obj/item/organ/external/head/proc/get_eyes()
 	var/obj/item/organ/internal/eyes/eyes = owner.internal_organs_by_name[owner.species.vision_organ ? owner.species.vision_organ : BP_EYES]
@@ -39,9 +47,9 @@
 	. = ..()
 
 	if(forehead_graffiti && graffiti_style)
-		to_chat(user, "<span class='notice'>It has \"[forehead_graffiti]\" written on it in [graffiti_style]!</span>")
+		to_chat(user, SPAN_NOTICE("It has \"[forehead_graffiti]\" written on it in [graffiti_style]!"))
 
-/obj/item/organ/external/head/proc/write_on(var/mob/penman, var/style)
+/obj/item/organ/external/head/proc/write_on(mob/penman, style)
 	var/head_name = name
 	var/atom/target = src
 	if(owner)
@@ -49,34 +57,34 @@
 		target = owner
 
 	if(forehead_graffiti)
-		to_chat(penman, "<span class='notice'>There is no room left to write on [head_name]!</span>")
+		to_chat(penman, SPAN_NOTICE("There is no room left to write on [head_name]!"))
 		return
 
 	var/graffiti = sanitizeSafe(input(penman, "Enter a message to write on [head_name]:") as text|null, MAX_NAME_LEN)
 	if(graffiti)
 		if(!target.Adjacent(penman))
-			to_chat(penman, "<span class='notice'>[head_name] is too far away.</span>")
+			to_chat(penman, SPAN_NOTICE("[head_name] is too far away."))
 			return
 
 		if(owner && owner.check_head_coverage())
-			to_chat(penman, "<span class='notice'>[head_name] is covered up.</span>")
+			to_chat(penman, SPAN_NOTICE("[head_name] is covered up."))
 			return
 
-		penman.visible_message("<span class='warning'>[penman] begins writing something on [head_name]!</span>", "You begin writing something on [head_name].")
+		penman.visible_message(SPAN_WARNING("[penman] begins writing something on [head_name]!"), "You begin writing something on [head_name].")
 
-		if(do_after(penman, 3 SECONDS, target))
+		if(do_after(penman, 3 SECONDS, target, DO_PUBLIC_UNIQUE))
 			if(owner && owner.check_head_coverage())
-				to_chat(penman, "<span class='notice'>[head_name] is covered up.</span>")
+				to_chat(penman, SPAN_NOTICE("[head_name] is covered up."))
 				return
 
-			penman.visible_message("<span class='warning'>[penman] writes something on [head_name]!</span>", "You write something on [head_name].")
+			penman.visible_message(SPAN_WARNING("[penman] writes something on [head_name]!"), "You write something on [head_name].")
 			forehead_graffiti = graffiti
 			graffiti_style = style
 
 /obj/item/organ/external/head/get_agony_multiplier()
 	return (owner && owner.headcheck(organ_tag)) ? 1.50 : 1
 
-/obj/item/organ/external/head/robotize(var/company, var/skip_prosthetics, var/keep_organs)
+/obj/item/organ/external/head/robotize(company, skip_prosthetics, keep_organs)
 	if(company)
 		var/datum/robolimb/R = all_robolimbs[company]
 		if(R)
@@ -90,12 +98,23 @@
 	if (!(status & ORGAN_DISFIGURED))
 		if (brute_dam > 40)
 			if (prob(50))
-				disfigure("brute")
+				disfigure(INJURY_TYPE_BRUISE)
 		if (burn_dam > 40)
-			disfigure("burn")
+			disfigure(INJURY_TYPE_BURN)
+
+/obj/item/organ/external/head/get_icon_key()
+	. = ..()
+
+	if(owner?.makeup_style && !BP_IS_ROBOTIC(src) && (species && (species.appearance_flags & SPECIES_APPEARANCE_HAS_LIPS)))
+		. += "[owner.makeup_style]"
+	else
+		. += "nolips"
+
+	var/obj/item/organ/internal/eyes/eyes = owner.internal_organs_by_name[owner.species.vision_organ ? owner.species.vision_organ : BP_EYES]
+	if(eyes)
+		. += "[rgb(eyes.eye_colour[1], eyes.eye_colour[2], eyes.eye_colour[3])]"
 
 /obj/item/organ/external/head/on_update_icon()
-
 	..()
 
 	if(owner)
@@ -103,37 +122,37 @@
 		if(draw_eyes)
 			var/icon/I = get_eyes()
 			if(I)
-				overlays |= I
-				mob_icon.Blend(I, ICON_OVERLAY)
+				var/mutable_appearance/eye_appearance = mutable_appearance(I, flags = DEFAULT_APPEARANCE_FLAGS)
+				mob_overlays |= eye_appearance
 
 			// Floating eyes or other effects.
 			var/image/eye_glow = get_eye_overlay()
-			if(eye_glow) overlays |= eye_glow
+			if(eye_glow)
+				AddOverlays(eye_glow)
 
-		if(owner.lip_style && !BP_IS_ROBOTIC(src) && (species && (species.appearance_flags & HAS_LIPS)))
-			var/icon/lip_icon = new/icon('icons/mob/human_races/species/human/lips.dmi', "lips_[owner.lip_style]_s")
-			overlays |= lip_icon
-			mob_icon.Blend(lip_icon, ICON_OVERLAY)
+		if(owner.makeup_style && !BP_IS_ROBOTIC(src) && (species && (species.appearance_flags & SPECIES_APPEARANCE_HAS_LIPS)))
+			var/mutable_appearance/lip_appearance = mutable_appearance('icons/mob/human_races/species/human/lips.dmi', "lips_[owner.makeup_style]_s",flags = DEFAULT_APPEARANCE_FLAGS)
+			mob_overlays |= lip_appearance
 
-		overlays |= get_hair_icon()
-
-	return mob_icon
+	SetOverlays(mob_overlays)
+	var/hair_icon = get_hair_icon()
+	AddOverlays(hair_icon)
 
 /obj/item/organ/external/head/proc/get_hair_icon()
 	var/image/res = image(species.icon_template,"")
-	if(owner.f_style)
-		var/datum/sprite_accessory/facial_hair_style = GLOB.facial_hair_styles_list[owner.f_style]
+	if(owner?.facial_hair_style)
+		var/datum/sprite_accessory/facial_hair_style = GLOB.facial_hair_styles_list[owner.facial_hair_style]
 		if(facial_hair_style)
 			if(!facial_hair_style.species_allowed || (species.get_bodytype(owner) in facial_hair_style.species_allowed))
 				if(!facial_hair_style.subspecies_allowed || (species.name in facial_hair_style.subspecies_allowed))
 					var/icon/facial_s = new/icon("icon" = facial_hair_style.icon, "icon_state" = "[facial_hair_style.icon_state]_s")
 					if(facial_hair_style.do_coloration & DO_COLORATION_USER)
-						facial_s.Blend(rgb(owner.r_facial, owner.g_facial, owner.b_facial), facial_hair_style.blend)
-					res.overlays |= facial_s
+						facial_s.Blend(owner.facial_hair_color, facial_hair_style.blend)
+					res.AddOverlays(facial_s)
 
-	if (owner.h_style)
+	if (owner?.head_hair_style)
 		var/icon/HI
-		var/datum/sprite_accessory/hair/H = GLOB.hair_styles_list[owner.h_style]
+		var/datum/sprite_accessory/hair/H = GLOB.hair_styles_list[owner.head_hair_style]
 		if ((owner.head?.flags_inv & BLOCKHEADHAIR) && !(H.flags & VERY_SHORT))
 			H = GLOB.hair_styles_list["Short Hair"]
 		if (H)
@@ -149,12 +168,14 @@
 				if (M.draw_target == MARKING_TARGET_HAIR)
 					var/color = markings[E]
 					var/icon/I = icon(M.icon, M.icon_state)
-					I.Blend(HI, ICON_AND)
-					I.Blend(color, ICON_MULTIPLY)
-					ADD_SORTED(sorted_hair_markings, list(list(M.draw_order, I)), /proc/cmp_marking_order)
+					if(istype(M, /datum/sprite_accessory/marking/hair_fade))
+						I.Blend(HI, ICON_AND)
+					I.Blend(color, M.blend)
+					ADD_SORTED(sorted_hair_markings, list(list(M.draw_order, I)), GLOBAL_PROC_REF(cmp_marking_order))
 			for (var/entry in sorted_hair_markings)
 				HI.Blend(entry[2], ICON_OVERLAY)
-			res.overlays |= HI
+			//TODO : Add emissive blocker here if hair should block it. Else, leave as is
+			res.AddOverlays(HI)
 
 	var/list/sorted_head_markings = list()
 	for (var/E in markings)
@@ -162,8 +183,8 @@
 		if (M.draw_target == MARKING_TARGET_HEAD)
 			var/color = markings[E]
 			var/icon/I = icon(M.icon, M.icon_state)
-			if ((M.do_coloration & DO_COLORATION_AUTO) && owner.h_style)
-				var/datum/sprite_accessory/hair/H = GLOB.hair_styles_list[owner.h_style]
+			if ((M.do_coloration & DO_COLORATION_AUTO) && owner.head_hair_style)
+				var/datum/sprite_accessory/hair/H = GLOB.hair_styles_list[owner.head_hair_style]
 				if ((~H.flags & HAIR_BALD) && (M.do_coloration & DO_COLORATION_HAIR) && length(h_col) >= 3)
 					I.MapColors(
 						1,0,0,0,
@@ -178,7 +199,7 @@
 						0,1,0,0,
 						0,0,1,0,
 						0,0,0,1,
-						(200 + s_tone) / 255, (150 + s_tone) / 255, (123 + s_tone) / 255, 0
+						(200 + skin_tone) / 255, (150 + skin_tone) / 255, (123 + skin_tone) / 255, 0
 					)
 			else
 				var/list/rgb = rgb2num(color)
@@ -189,10 +210,9 @@
 					0,0,0,1,
 					rgb[1] / 255, rgb[2] / 255, rgb[3] / 255, 0
 				)
-			icon_cache_key += "[M.name][color]"
-			ADD_SORTED(sorted_head_markings, list(list(M.draw_order, I)), /proc/cmp_marking_order)
+			ADD_SORTED(sorted_head_markings, list(list(M.draw_order, I)), GLOBAL_PROC_REF(cmp_marking_order))
 	for (var/entry in sorted_head_markings)
-		res.overlays |= entry[2]
+		res.AddOverlays(entry[2])
 
 	return res
 

@@ -1,10 +1,10 @@
 /obj/machinery/mining
-	icon = 'icons/obj/mining_drill.dmi'
+	icon = 'icons/obj/machines/mining/mining_drill.dmi'
 	anchored = FALSE
 	use_power = POWER_USE_OFF //The drill takes power directly from a cell.
 	density = TRUE
 	layer = ABOVE_HUMAN_LAYER //So it draws over mobs in the tile north of it.
-	construct_state = /decl/machine_construction/default/panel_closed
+	construct_state = /singleton/machine_construction/default/panel_closed
 	uncreated_component_parts = null
 	stat_immune = 0
 
@@ -58,7 +58,7 @@
 		system_error("system configuration error")
 		return
 
-	if(stat & NOPOWER)
+	if(!is_powered())
 		system_error("insufficient charge")
 		return
 
@@ -83,17 +83,17 @@
 			T.diggable = 0
 	else if(istype(get_turf(src), /turf/simulated/floor))
 		var/turf/simulated/floor/T = get_turf(src)
-		T.ex_act(2.0)
+		T.ex_act(EX_ACT_HEAVY)
 
 	//Dig out the tasty ores.
-	if(resource_field.len)
+	if(length(resource_field))
 		var/turf/simulated/harvesting = pick(resource_field)
 
-		while(resource_field.len && !harvesting.resources)
+		while(length(resource_field) && !harvesting.resources)
 			harvesting.has_resources = 0
 			harvesting.resources = null
 			resource_field -= harvesting
-			if(resource_field.len)
+			if(length(resource_field))
 				harvesting = pick(resource_field)
 
 		if(!harvesting || !harvesting.resources)
@@ -104,15 +104,15 @@
 
 		for(var/metal in ore_types)
 
-			if(contents.len >= capacity)
+			if(length(contents) >= capacity)
 				system_error("insufficient storage space")
 				set_active(FALSE)
 				need_player_check = 1
 				update_icon()
 				return
 
-			if(contents.len + total_harvest >= capacity)
-				total_harvest = capacity - contents.len
+			if(length(contents) + total_harvest >= capacity)
+				total_harvest = capacity - length(contents)
 
 			if(total_harvest <= 0) break
 			if(harvesting.resources[metal])
@@ -142,7 +142,7 @@
 		need_player_check = 1
 		update_icon()
 
-/obj/machinery/mining/drill/proc/set_active(var/new_active)
+/obj/machinery/mining/drill/proc/set_active(new_active)
 	if(active != new_active)
 		active = new_active
 		update_use_power(active ? POWER_USE_ACTIVE : POWER_USE_OFF)
@@ -167,27 +167,35 @@
 		update_icon()
 		return TRUE
 	if(supported && !panel_open)
-		if(!(stat & NOPOWER))
+		if(is_powered())
 			set_active(!active)
 			if(active)
-				visible_message("<span class='notice'>\The [src] lurches downwards, grinding noisily.</span>")
+				visible_message(SPAN_NOTICE("\The [src] lurches downwards, grinding noisily."))
 				need_update_field = 1
 			else
-				visible_message("<span class='notice'>\The [src] shudders to a grinding halt.</span>")
+				visible_message(SPAN_NOTICE("\The [src] shudders to a grinding halt."))
 		else
-			to_chat(user, "<span class='notice'>The drill is unpowered.</span>")
+			to_chat(user, SPAN_NOTICE("The drill is unpowered."))
 	else
-		to_chat(user, "<span class='notice'>Turning on a piece of industrial machinery without sufficient bracing or wires exposed is a bad idea.</span>")
+		to_chat(user, SPAN_NOTICE("Turning on a piece of industrial machinery without sufficient bracing or wires exposed is a bad idea."))
 
 	update_icon()
 	return TRUE
 
 /obj/machinery/mining/drill/on_update_icon()
+	ClearOverlays()
+	if(panel_open)
+		AddOverlays("mining_drill_panel")
 	if(need_player_check)
-		icon_state = "mining_drill_error"
+		AddOverlays(emissive_appearance(icon, "mining_drill_lights_error"))
+		AddOverlays("mining_drill_lights_error")
+		icon_state = "mining_drill_braced"
 	else if(active)
-		var/status = Clamp(round( (contents.len / capacity) * 4 ), 0, 3)
-		icon_state = "mining_drill_active[status]"
+		icon_state = "mining_drill_braced"
+		AddOverlays("mining_drill_active")
+		var/status = clamp(round( (length(contents) / capacity) * 4 ), 0, 3)
+		AddOverlays(emissive_appearance(icon, "mining_drill_lights_[status]"))
+		AddOverlays("mining_drill_lights_[status]")
 	else if(supported)
 		icon_state = "mining_drill_braced"
 	else
@@ -196,30 +204,30 @@
 
 /obj/machinery/mining/drill/RefreshParts()
 	..()
-	harvest_speed = Clamp(total_component_rating_of_type(/obj/item/stock_parts/micro_laser), 0, 10)
-	capacity = 200 * Clamp(total_component_rating_of_type(/obj/item/stock_parts/matter_bin), 0, 10)
-	var/charge_multiplier = Clamp(total_component_rating_of_type(/obj/item/stock_parts/capacitor), 0.1, 10)
+	harvest_speed = clamp(total_component_rating_of_type(/obj/item/stock_parts/micro_laser), 0, 10)
+	capacity = 200 * clamp(total_component_rating_of_type(/obj/item/stock_parts/matter_bin), 0, 10)
+	var/charge_multiplier = clamp(total_component_rating_of_type(/obj/item/stock_parts/capacitor), 0.1, 10)
 	change_power_consumption(initial(active_power_usage) / charge_multiplier, POWER_USE_ACTIVE)
 
 /obj/machinery/mining/drill/proc/check_supports()
 
 	supported = 0
 
-	if((!supports || !supports.len) && initial(anchored) == 0)
+	if((!supports || !length(supports)) && initial(anchored) == 0)
 		anchored = FALSE
 		set_active(FALSE)
 	else
 		anchored = TRUE
 
-	if(supports && supports.len >= braces_needed)
+	if(supports && length(supports) >= braces_needed)
 		supported = 1
 
 	update_icon()
 
-/obj/machinery/mining/drill/proc/system_error(var/error)
+/obj/machinery/mining/drill/proc/system_error(error)
 
 	if(error)
-		src.visible_message("<span class='notice'>\The [src] flashes a '[error]' warning.</span>")
+		src.visible_message(SPAN_NOTICE("\The [src] flashes a '[error]' warning."))
 	need_player_check = 1
 	set_active(FALSE)
 	update_icon()
@@ -246,18 +254,18 @@
 	if(B)
 		for(var/obj/item/ore/O in contents)
 			O.forceMove(B)
-		to_chat(usr, "<span class='notice'>You unload the drill's storage cache into the ore box.</span>")
+		to_chat(usr, SPAN_NOTICE("You unload the drill's storage cache into the ore box."))
 	else
-		to_chat(usr, "<span class='notice'>You must move an ore box up to the drill before you can unload it.</span>")
+		to_chat(usr, SPAN_NOTICE("You must move an ore box up to the drill before you can unload it."))
 
 
 /obj/machinery/mining/brace
 	name = "mining drill brace"
 	desc = "A machinery brace for an industrial drill. It looks easily two feet thick."
 	icon_state = "mining_brace"
-	obj_flags = OBJ_FLAG_ROTATABLE
+	obj_flags = OBJ_FLAG_ROTATABLE | OBJ_FLAG_ANCHORABLE
 	interact_offline = 1
-	
+
 	machine_name = "mining drill brace"
 	machine_desc = "A mobile support strut that provides support for the head of a mining drill when anchored. Placed on either side of the drill head."
 
@@ -268,26 +276,20 @@
 		return SPAN_NOTICE("You can't work with the brace of a running drill!")
 	return ..()
 
-/obj/machinery/mining/brace/attackby(obj/item/W as obj, mob/user as mob)
+/obj/machinery/mining/brace/use_tool(obj/item/W, mob/living/user, list/click_params)
 	if(connected && connected.active)
-		to_chat(user, "<span class='notice'>You can't work with the brace of a running drill!</span>")
+		to_chat(user, SPAN_NOTICE("You can't work with the brace of a running drill!"))
 		return TRUE
-	if(component_attackby(W, user))
-		return TRUE
-	if(isWrench(W))
 
-		if(istype(get_turf(src), /turf/space))
-			to_chat(user, "<span class='notice'>You can't anchor something to empty space. Idiot.</span>")
-			return
+	return ..()
 
-		playsound(src.loc, 'sound/items/Ratchet.ogg', 100, 1)
-		to_chat(user, "<span class='notice'>You [anchored ? "un" : ""]anchor the brace.</span>")
+/obj/machinery/mining/brace/post_anchor_change()
+	if (anchored)
+		connect()
+	else
+		disconnect()
 
-		anchored = !anchored
-		if(anchored)
-			connect()
-		else
-			disconnect()
+	..()
 
 /obj/machinery/mining/brace/proc/connect()
 

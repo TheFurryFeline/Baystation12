@@ -8,7 +8,7 @@
 	desc = "A basic blue apron."
 	icon_state = "apron"
 	item_state = "apron"
-	blood_overlay_type = "armor"
+	blood_overlay_type = "armorblood"
 	body_parts_covered = 0
 	species_restricted = null
 	allowed = list (/obj/item/reagent_containers/spray/plantbgone,/obj/item/device/scanner/plant,/obj/item/seeds,/obj/item/reagent_containers/glass/bottle,/obj/item/material/minihoe)
@@ -34,6 +34,13 @@
 	desc = "This suit says to you 'hush'!"
 	icon_state = "chaplain_hoodie"
 	body_parts_covered = UPPER_TORSO|ARMS
+	allowed = list (
+		/obj/item/nullrod,
+		/obj/item/storage/bible,
+		/obj/item/reagent_containers/food/drinks/bottle/holywater,
+		/obj/item/material/cross
+	)
+	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA, ACCESSORY_SLOT_DECOR)
 
 //Chaplain
 /obj/item/clothing/suit/nun
@@ -59,7 +66,7 @@
 	desc = "A basic, dull, white chef's apron."
 	icon_state = "apronchef"
 	species_restricted = null
-	blood_overlay_type = "armor"
+	blood_overlay_type = "armorblood"
 	body_parts_covered = 0
 
 //Security
@@ -87,9 +94,23 @@
 	desc = "A rugged canvas trenchcoat, designed and created by TX Fabrication Corp. The coat is externally impact resistant - perfect for your next act of autodefenestration!"
 	icon_state = "detective"
 	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
-	blood_overlay_type = "coat"
+	blood_overlay_type = "coatblood"
 	body_parts_covered = UPPER_TORSO|ARMS
-	allowed = list(/obj/item/tank/emergency,/obj/item/device/flashlight,/obj/item/gun/energy,/obj/item/gun/projectile,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/melee/baton,/obj/item/handcuffs,/obj/item/storage/fancy/cigarettes,/obj/item/flame/lighter,/obj/item/device/taperecorder)
+	allowed = list(
+		/obj/item/tank/oxygen_emergency,
+		/obj/item/tank/oxygen_emergency_extended,
+		/obj/item/tank/nitrogen_emergency,
+		/obj/item/device/flashlight,
+		/obj/item/gun/energy,
+		/obj/item/gun/projectile,
+		/obj/item/ammo_magazine,
+		/obj/item/ammo_casing,
+		/obj/item/melee/baton,
+		/obj/item/handcuffs,
+		/obj/item/storage/fancy/smokable,
+		/obj/item/flame/lighter,
+		/obj/item/device/taperecorder
+	)
 	armor = list(
 		melee = ARMOR_MELEE_KNIVES,
 		bullet = ARMOR_BALLISTIC_SMALL,
@@ -97,7 +118,7 @@
 		energy = ARMOR_ENERGY_MINOR
 		)
 
-/obj/item/clothing/suit/storage/det_trench/ft/
+/obj/item/clothing/suit/storage/det_trench/ft
 	desc = "A rugged canvas trenchcoat, designed and created by TX Fabrication Corp. This one wouldn't block much of anything."
 	armor = null
 
@@ -109,9 +130,20 @@
 /obj/item/clothing/suit/storage/forensics
 	name = "jacket"
 	desc = "A forensics technician jacket."
-	item_state = "det_suit"
 	body_parts_covered = UPPER_TORSO|ARMS
-	allowed = list(/obj/item/tank/emergency,/obj/item/device/flashlight,/obj/item/gun/energy,/obj/item/gun/projectile,/obj/item/ammo_magazine,/obj/item/ammo_casing,/obj/item/melee/baton,/obj/item/handcuffs,/obj/item/device/taperecorder)
+	allowed = list(
+		/obj/item/tank/oxygen_emergency,
+		/obj/item/tank/oxygen_emergency_extended,
+		/obj/item/tank/nitrogen_emergency,
+		/obj/item/device/flashlight,
+		/obj/item/gun/energy,
+		/obj/item/gun/projectile,
+		/obj/item/ammo_magazine,
+		/obj/item/ammo_casing,
+		/obj/item/melee/baton,
+		/obj/item/handcuffs,
+		/obj/item/device/taperecorder
+	)
 	armor = list(
 		melee = ARMOR_MELEE_SMALL,
 		bullet = ARMOR_BALLISTIC_MINOR,
@@ -134,11 +166,27 @@
 	name = "hazard vest"
 	desc = "A high-visibility vest used in work zones."
 	icon_state = "hazard"
-	blood_overlay_type = "armor"
+	blood_overlay_type = "armorblood"
 	species_restricted = null
-	allowed = list (/obj/item/device/scanner/gas, /obj/item/device/flashlight, /obj/item/device/multitool, /obj/item/device/radio, /obj/item/device/t_scanner, \
-	/obj/item/crowbar, /obj/item/screwdriver, /obj/item/weldingtool, /obj/item/wirecutters, /obj/item/wrench, /obj/item/tank/emergency, \
-	/obj/item/clothing/mask/gas, /obj/item/taperoll/engineering)
+	allowed = list (
+		/obj/item/device/scanner/gas,
+		/obj/item/device/flashlight,
+		/obj/item/device/multitool,
+		/obj/item/device/radio,
+		/obj/item/device/t_scanner,
+		/obj/item/crowbar,
+		/obj/item/screwdriver,
+		/obj/item/weldingtool,
+		/obj/item/wirecutters,
+		/obj/item/wrench,
+		/obj/item/tank/oxygen_emergency,
+		/obj/item/tank/oxygen_emergency_extended,
+		/obj/item/tank/nitrogen_emergency,
+		/obj/item/clothing/mask/gas,
+		/obj/item/taperoll/engineering,
+		/obj/item/clothing/head/deckcrew,
+		/obj/item/clothing/head/hardhat
+	)
 	body_parts_covered = UPPER_TORSO
 	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
 
@@ -149,7 +197,7 @@
 
 /obj/item/clothing/suit/storage/hazardvest/white
 	name = "white hazard vest"
-	desc = "A high-visibility vest used in work zones. This one has a blue cross!"
+	desc = "A high-visibility vest used in work zones. This one is white!"
 	icon_state = "hazard_w"
 
 /obj/item/clothing/suit/storage/hazardvest/green
@@ -157,12 +205,31 @@
 	desc = "A high-visibility vest used in work zones. This one is green!"
 	icon_state = "hazard_g"
 
+/obj/item/clothing/suit/storage/hazardvest/yellow
+	name = "yellow hazard vest"
+	desc = "A high-visibility vest used in work zones. This one is yellow!"
+	icon_state = "hazard_y"
+
+/obj/item/clothing/suit/storage/hazardvest/red
+	name = "red hazard vest"
+	desc = "A high-visibility vest used in work zones. This one is red!"
+	icon_state = "hazard_r"
+
+/obj/item/clothing/suit/storage/hazardvest/purple
+	name = "purple hazard vest"
+	desc = "A high-visibility vest used in work zones. This one is purple!"
+	icon_state = "hazard_p"
+
+/obj/item/clothing/suit/storage/hazardvest/med
+	name = "medical hazard vest"
+	desc = "A high-visibility vest used in work zones. This one is has a blue cross!"
+	icon_state = "hazard_med"
 
 /obj/item/clothing/suit/storage/toggle/highvis
 	name = "high visibility jacket"
 	desc = "A loose-fitting, high visibility jacket to help crew be recognizable in high traffic areas with large industrial equipment. Don't catch the Charon's landing gear with your teeth!"
 	icon_state = "highvis"
-	blood_overlay_type = "coat"
+	blood_overlay_type = "coatblood"
 	body_parts_covered = UPPER_TORSO|ARMS
 	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
 
@@ -171,7 +238,15 @@
 	name = "suit jacket"
 	desc = "A snappy dress jacket."
 	icon_state = "suitjacket"
-	blood_overlay_type = "coat"
+	blood_overlay_type = "coatblood"
+	body_parts_covered = UPPER_TORSO|ARMS
+	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
+
+/obj/item/clothing/suit/storage/toggle/suit_double
+	name = "double-breasted suit jacket"
+	desc = "A snappy, double-breasted dress jacket."
+	icon_state = "suitjacket_double"
+	blood_overlay_type = "coatblood"
 	body_parts_covered = UPPER_TORSO|ARMS
 	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
 
@@ -192,9 +267,20 @@
 	name = "first responder jacket"
 	desc = "A high-visibility jacket worn by medical first responders."
 	icon_state = "fr_jacket"
-	blood_overlay_type = "armor"
-	allowed = list(/obj/item/stack/medical, /obj/item/reagent_containers/dropper, /obj/item/reagent_containers/hypospray, /obj/item/reagent_containers/syringe, \
-	/obj/item/device/scanner/health, /obj/item/device/flashlight, /obj/item/device/radio, /obj/item/tank/emergency, /obj/item/reagent_containers/ivbag)
+	blood_overlay_type = "armorblood"
+	allowed = list(
+		/obj/item/stack/medical,
+		/obj/item/reagent_containers/dropper,
+		/obj/item/reagent_containers/hypospray,
+		/obj/item/reagent_containers/syringe,
+		/obj/item/device/scanner/health,
+		/obj/item/device/flashlight,
+		/obj/item/device/radio,
+		/obj/item/tank/oxygen_emergency,
+		/obj/item/tank/oxygen_emergency_extended,
+		/obj/item/tank/nitrogen_emergency,
+		/obj/item/reagent_containers/ivbag
+	)
 	body_parts_covered = UPPER_TORSO|ARMS
 	valid_accessory_slots = list(ACCESSORY_SLOT_INSIGNIA)
 
@@ -208,21 +294,27 @@
 	desc = "A white jacket often worn in emergency medical and reanimation services across human space."
 	icon_state = "medical_jacket"
 
-/obj/item/clothing/suit/storage/medical_chest_rig
-	name = "\improper MT chest-rig"
-	desc = "A black chest-rig with blue pouches worn by medical first responders, meant to carry their equipment. It has a blue 'Medic' tag on its chest."
-	icon_state = "Med-chest-rig"
-	blood_overlay_type = "armor"
-	allowed = list(/obj/item/stack/medical, /obj/item/reagent_containers/dropper, /obj/item/reagent_containers/hypospray, /obj/item/reagent_containers/syringe, \
-	/obj/item/device/scanner/health, /obj/item/device/flashlight, /obj/item/device/radio, /obj/item/tank/emergency, /obj/item/reagent_containers/ivbag,/obj/item/clothing/head/hardhat/EMS)
-	body_parts_covered = UPPER_TORSO
-
 /obj/item/clothing/suit/surgicalapron
 	name = "surgical apron"
 	desc = "A sterile blue apron for performing surgery."
 	icon_state = "surgical"
-	blood_overlay_type = "armor"
+	blood_overlay_type = "armorblood"
 	body_parts_covered = UPPER_TORSO|LOWER_TORSO
-	allowed = list(/obj/item/stack/medical, /obj/item/reagent_containers/dropper, /obj/item/reagent_containers/hypospray, /obj/item/reagent_containers/syringe, \
-	/obj/item/device/scanner/health, /obj/item/device/flashlight, /obj/item/device/radio, /obj/item/tank/emergency,/obj/item/scalpel,/obj/item/retractor,/obj/item/hemostat, \
-	/obj/item/cautery,/obj/item/bonegel,/obj/item/FixOVein)
+	allowed = list(
+		/obj/item/stack/medical,
+		/obj/item/reagent_containers/dropper,
+		/obj/item/reagent_containers/hypospray,
+		/obj/item/reagent_containers/syringe,
+		/obj/item/device/scanner/health,
+		/obj/item/device/flashlight,
+		/obj/item/device/radio,
+		/obj/item/tank/oxygen_emergency,
+		/obj/item/tank/oxygen_emergency_extended,
+		/obj/item/tank/nitrogen_emergency,
+		/obj/item/scalpel,
+		/obj/item/retractor,
+		/obj/item/hemostat,
+		/obj/item/cautery,
+		/obj/item/bonegel,
+		/obj/item/FixOVein
+	)

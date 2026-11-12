@@ -27,7 +27,7 @@
 	var/interact_page = 0
 	var/components_per_page = 10
 	/// Spark system used for creating sparks while the assembly is damaged and destroyed.
-	var/datum/effect/effect/system/spark_spread/spark_system
+	var/datum/effect/spark_spread/spark_system
 	var/adrone = FALSE
 	pass_flags = 0
 	anchored = FALSE
@@ -60,38 +60,36 @@
 		to_chat(user, SPAN_NOTICE("The maintenance panel [opened ? "can be" : "is"] <b>screwed</b> in place."))
 
 	if((isobserver(user) && ckeys_allowed_to_scan[user.ckey]) || check_rights(R_ADMIN, 0, user))
-		to_chat(user, "You can <a href='?src=\ref[src];ghostscan=1'>scan</a> this circuit.");
+		to_chat(user, "You can <a href='byond://?src=\ref[src];ghostscan=1'>scan</a> this circuit.")
 
-/obj/item/device/electronic_assembly/handle_death_change(new_death_state)
-	. = ..()
-	if (new_death_state)
-		visible_message(SPAN_WARNING("\The [src] falls to pieces!"))
-		if(w_class == ITEM_SIZE_HUGE)
-			if(adrone)
-				new /obj/effect/decal/cleanable/blood/gibs/robot(loc)
-			new /obj/item/stack/material/steel(loc, rand(7, 10))
-		else if(w_class == ITEM_SIZE_LARGE)
-			if(adrone)
-				new /obj/effect/decal/cleanable/blood/gibs/robot(loc)
-			new /obj/item/stack/material/steel(loc, rand(3, 6))
-		else if(w_class == ITEM_SIZE_NORMAL)
-			new /obj/item/stack/material/steel(loc, rand(1, 3))
-		else
-			new /obj/item/stack/material/steel(loc)
-		if(battery && battery.charge > 0)
-			spark_system.start()
-		playsound(loc, 'sound/items/electronic_assembly_empty.ogg', 100, 1)
-		icon = 0
-		addtimer(CALLBACK(src, .proc/fall_apart), 5.1)
+/obj/item/device/electronic_assembly/on_death()
+	visible_message(SPAN_WARNING("\The [src] falls to pieces!"))
+	if(w_class == ITEM_SIZE_HUGE)
+		if(adrone)
+			new /obj/decal/cleanable/blood/gibs/robot(loc)
+		new /obj/item/stack/material/steel(loc, rand(7, 10))
+	else if(w_class == ITEM_SIZE_LARGE)
+		if(adrone)
+			new /obj/decal/cleanable/blood/gibs/robot(loc)
+		new /obj/item/stack/material/steel(loc, rand(3, 6))
+	else if(w_class == ITEM_SIZE_NORMAL)
+		new /obj/item/stack/material/steel(loc, rand(1, 3))
+	else
+		new /obj/item/stack/material/steel(loc)
+	if(battery && battery.charge > 0)
+		spark_system.start()
+	playsound(loc, 'sound/items/electronic_assembly_empty.ogg', 100, 1)
+	icon = 0
+	addtimer(new Callback(src, PROC_REF(fall_apart)), 5.1)
 
-/obj/item/device/electronic_assembly/post_health_change(health_mod, damage_type)
+/obj/item/device/electronic_assembly/post_health_change(health_mod, prior_health, damage_type)
 	..()
-	if (get_damage_percentage() >= 0.75)
+	if (get_damage_percentage() >= 75)
 		if(battery && battery.charge > 0)
 			visible_message(SPAN_WARNING("\The [src] sputters and sparks!"))
 			spark_system.start()
 		opened = TRUE
-		on_update_icon()
+		queue_icon_update()
 
 /obj/item/device/electronic_assembly/proc/check_interactivity(mob/user)
 	return (!user.incapacitated() && CanUseTopic(user))
@@ -102,7 +100,7 @@
 		var/o_access = O.GetAccess()
 		. |= o_access
 
-/obj/item/device/electronic_assembly/Bump(atom/AM)
+/obj/item/device/electronic_assembly/Bump(atom/AM, called)
 	collw = weakref(AM)
 	.=..()
 	if(istype(AM, /obj/machinery/door/airlock) ||  istype(AM, /obj/machinery/door/window))
@@ -114,7 +112,7 @@
 	.=..()
 	START_PROCESSING(SScircuit, src)
 	matter[MATERIAL_STEEL] = round((max_complexity + max_components) / 4) * SScircuit.cost_multiplier
-	spark_system = new /datum/effect/effect/system/spark_spread
+	spark_system = new /datum/effect/spark_spread
 	spark_system.set_up(7, 0, src)
 	spark_system.attach(src)
 
@@ -135,7 +133,7 @@
 		P.make_energy()
 
 	var/power_failure = FALSE
-	if(get_damage_percentage() >= 0.75 && prob(1))
+	if(get_damage_percentage() >= 75 && prob(1))
 		if(battery && battery.charge > 0)
 			visible_message(SPAN_WARNING("\The [src] sparks violently!"))
 			spark_system.start()
@@ -159,12 +157,13 @@
 
 	if(opened)
 		open_interact(user)
-	closed_interact(user)
+	else
+		closed_interact(user)
 
 /obj/item/device/electronic_assembly/proc/closed_interact(mob/user)
 	var/HTML = list()
 	HTML += "<html><head><title>[src.name]</title></head><body>"
-	HTML += "<br><a href='?src=\ref[src];refresh=1'>\[Refresh\]</a>"
+	HTML += "<br><a href='byond://?src=\ref[src];refresh=1'>\[Refresh\]</a>"
 	HTML += "<br><br>"
 
 	var/listed_components = FALSE
@@ -173,12 +172,12 @@
 		if(topic_data)
 			listed_components = TRUE
 			HTML += "<b>[circuit.displayed_name]: </b>"
-			if(topic_data.len != 1)
+			if(length(topic_data) != 1)
 				HTML += "<br>"
 			for(var/entry in topic_data)
 				var/href = topic_data[entry]
 				if(href)
-					HTML += "<a href=?src=\ref[circuit];[href]>[entry]</a>"
+					HTML += "<a href='byond://?src=\ref[circuit];[href]'>[entry]</a>"
 				else
 					HTML += entry
 				HTML += "<br>"
@@ -196,13 +195,13 @@
 
 	HTML += "<html><head><title>[name]</title></head><body>"
 
-	HTML += "<a href='?src=\ref[src]'>\[Refresh\]</a>  |  <a href='?src=\ref[src];rename=1'>\[Rename\]</a><br>"
+	HTML += "<a href='byond://?src=\ref[src]'>\[Refresh\]</a>  |  <a href='byond://?src=\ref[src];rename=1'>\[Rename\]</a><br>"
 	HTML += "[total_part_size]/[max_components] space taken up in the assembly.<br>"
 	HTML += "[total_complexity]/[max_complexity] complexity in the assembly.<br>"
 	if(battery)
-		HTML += "[round(battery.charge, 0.1)]/[battery.maxcharge] ([round(battery.percent(), 0.1)]%) cell charge. <a href='?src=\ref[src];remove_cell=1'>\[Remove\]</a>"
+		HTML += "[round(battery.charge, 0.1)]/[battery.maxcharge] ([round(battery.percent(), 0.1)]%) cell charge. <a href='byond://?src=\ref[src];remove_cell=1'>\[Remove\]</a>"
 	else
-		HTML += "<span class='danger'>No power cell detected!</span>"
+		HTML += SPAN_DANGER("No power cell detected!")
 
 	if(length(assembly_components))
 		HTML += "<br><br>"
@@ -211,13 +210,13 @@
 		var/start_index = ((components_per_page * interact_page) + 1)
 		for(var/i = start_index to min(length(assembly_components), start_index + (components_per_page - 1)))
 			var/obj/item/integrated_circuit/circuit = assembly_components[i]
-			HTML += "\[ <a href='?src=\ref[src];component=\ref[circuit];set_slot=1'>[i]</a> \] | "
-			HTML += "<a href='?src=\ref[circuit];component=\ref[circuit];rename=1'>\[R\]</a> | "
+			HTML += "\[ <a href='byond://?src=\ref[src];component=\ref[circuit];set_slot=1'>[i]</a> \] | "
+			HTML += "<a href='byond://?src=\ref[src];component=\ref[circuit];rename_component=1'>\[R\]</a> | "
 			if(circuit.removable)
-				HTML += "<a href='?src=\ref[src];component=\ref[circuit];remove=1'>\[-\]</a> | "
+				HTML += "<a href='byond://?src=\ref[src];component=\ref[circuit];remove=1'>\[-\]</a> | "
 			else
 				HTML += "\[-\] | "
-			HTML += "<a href='?src=\ref[circuit];examine=1'>[circuit.displayed_name]</a>"
+			HTML += "<a href='byond://?src=\ref[src];component=\ref[circuit];examine_component=1'>[circuit.displayed_name]</a>"
 			HTML += "<br>"
 
 		if(length(assembly_components) > components_per_page)
@@ -226,7 +225,7 @@
 				if((i-1) == interact_page)
 					HTML += " [i]"
 				else
-					HTML += " <a href='?src=\ref[src];select_page=[i-1]'>[i]</a>"
+					HTML += " <a href='byond://?src=\ref[src];select_page=[i-1]'>[i]</a>"
 			HTML += " \]"
 
 	HTML += "</body></html>"
@@ -235,7 +234,7 @@
 /obj/item/device/electronic_assembly/Topic(href, href_list)
 	if(href_list["ghostscan"])
 		if((isobserver(usr) && ckeys_allowed_to_scan[usr.ckey]) || check_rights(R_ADMIN,0,usr))
-			if(assembly_components.len)
+			if(length(assembly_components))
 				var/saved = "On circuit printers with cloning enabled, you may use the code below to clone the circuit:<br><br><code>[SScircuit.save_electronic_assembly(src)]</code>"
 				show_browser(usr, saved, "window=circuit_scan;size=500x600;border=1;can_resize=1;can_close=1;can_minimize=1")
 			else
@@ -272,22 +271,27 @@
 
 			add_allowed_scanner(usr.ckey)
 
-			var/current_pos = list_find(assembly_components, component)
+			var/current_pos = assembly_components.Find(component)
 
 			if(href_list["remove"])
 				try_remove_component(component, usr)
 
-			else
-				// Adjust the position
-				if(href_list["set_slot"])
-					var/selected_slot = input("Select a new slot", "Select slot", current_pos) as null|num
-					if(!check_interactivity(usr))
-						return 0
-					if(selected_slot < 1 || selected_slot > length(assembly_components))
-						return 0
+			else if (href_list["rename_component"])
+				component.rename_component()
 
-					assembly_components.Remove(component)
-					assembly_components.Insert(selected_slot, component)
+			else if(href_list["set_slot"])
+				var/selected_slot = input("Select a new slot", "Select slot", current_pos) as null|num
+				if(!check_interactivity(usr))
+					return 0
+				if(selected_slot < 1 || selected_slot > length(assembly_components))
+					return 0
+
+				assembly_components.Remove(component)
+				assembly_components.Insert(selected_slot, component)
+
+			else if (href_list["examine_component"])
+				component.interact(usr)
+				return
 
 
 	interact(usr) // To refresh the UI.
@@ -315,12 +319,12 @@
 		icon_state = initial(icon_state) + "-open"
 	else
 		icon_state = initial(icon_state)
-	overlays.Cut()
+	ClearOverlays()
 	if(detail_color == COLOR_ASSEMBLY_BLACK) //Black colored overlay looks almost but not exactly like the base sprite, so just cut the overlay and avoid it looking kinda off.
 		return
 	var/image/detail_overlay = image('icons/obj/assemblies/electronic_setups.dmi', src,"[icon_state]-color")
 	detail_overlay.color = detail_color
-	overlays += detail_overlay
+	AddOverlays(detail_overlay)
 
 /obj/item/device/electronic_assembly/examine(mob/user)
 	. = ..()
@@ -407,12 +411,12 @@
 	remove_component(IC)
 	if(!silent)
 		to_chat(user, SPAN_NOTICE("You pop \the [IC] out of the case, and slide it out."))
-		playsound(src, 'sound/items/crowbar.ogg', 50, 1)
+		playsound(src, 'sound/items/Crowbar.ogg', 50, 1)
 		user.put_in_hands(IC)
 	add_allowed_scanner(user.ckey)
 
 	// Make sure we're not on an invalid page
-	interact_page = Clamp(interact_page, 0, ceil(length(assembly_components)/components_per_page)-1)
+	interact_page = clamp(interact_page, 0, ceil(length(assembly_components)/components_per_page)-1)
 
 	return TRUE
 
@@ -434,107 +438,151 @@
 				visible_message(SPAN_NOTICE("\The [user] points \the [src] towards \the [target]."))
 
 
-/obj/item/device/electronic_assembly/attackby(obj/item/I, mob/living/user)
-	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	if(istype(I, /obj/item/wrench))
-		if(istype(loc, /turf) && (IC_FLAG_ANCHORABLE & circuit_flags))
-			user.visible_message(SPAN_NOTICE("\The [user] wrenches \the [src]'s anchoring bolts [anchored ? "back" : "into position"]."))
-			playsound(get_turf(user), 'sound/items/Ratchet.ogg',50)
-			if(user.do_skilled(5 SECONDS, SKILL_CONSTRUCTION, src))
-				anchored = !anchored
-	else if(istype(I, /obj/item/integrated_circuit))
-		if(!user.canUnEquip(I))
-			return FALSE
-		if(try_add_component(I, user))
-			return TRUE
-		else
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
-			return ..()
-	else if(istype(I, /obj/item/device/multitool) || istype(I, /obj/item/device/integrated_electronics/wirer) || istype(I, /obj/item/device/integrated_electronics/debugger))
-		if(opened)
-			interact(user)
-			return TRUE
-		else
-			to_chat(user, SPAN_DANGER("\The [src]'s hatch is closed, so you can't fiddle with the internal components."))
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
-			return ..()
-	else if(istype(I, /obj/item/cell))
-		if(!opened)
-			to_chat(user, SPAN_DANGER("\The [src]'s hatch is closed, so you can't access \the [src]'s power supply."))
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
-			return ..()
-		if(battery)
-			to_chat(user, SPAN_DANGER("\The [src] already has \a [battery] installed. Remove it first if you want to replace it."))
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
-			return ..()
-		var/obj/item/cell/cell = I
-		if(user.unEquip(I,loc))
-			user.drop_from_inventory(I, loc)
-			cell.forceMove(src)
-			battery = cell
-			playsound(get_turf(src), 'sound/items/Deconstruct.ogg', 50, 1)
-			to_chat(user, SPAN_NOTICE("You slot \the [cell] inside \the [src]."))
-			return TRUE
-		return FALSE
-	else if(istype(I, /obj/item/device/integrated_electronics/detailer))
-		var/obj/item/device/integrated_electronics/detailer/D = I
-		detail_color = D.detail_color
+/obj/item/device/electronic_assembly/use_tool(obj/item/tool, mob/user, list/click_params)
+	// Assembly Detailer - Set color
+	if (istype(tool, /obj/item/device/integrated_electronics/detailer))
+		var/obj/item/device/integrated_electronics/detailer/detailer = tool
+		detail_color = detailer.detail_color
 		update_icon()
-	else if(istype(I, /obj/item/screwdriver))
-		var/hatch_locked = FALSE
-		for(var/obj/item/integrated_circuit/manipulation/hatchlock/H in assembly_components)
-			// If there's more than one hatch lock, only one needs to be enabled for the assembly to be locked
-			if(H.lock_enabled)
-				hatch_locked = TRUE
-				break
+		user.visible_message(
+			SPAN_NOTICE("\The [user] re-colors \a [src] with \a [tool]."),
+			SPAN_NOTICE("You re-color \the [src] with \the [tool].")
+		)
+		return TRUE
 
-		if(hatch_locked)
-			to_chat(user, SPAN_NOTICE("The screws are covered by a locking mechanism!"))
-			return FALSE
+	// Integrated Circuit - Install circuit
+	if (istype(tool, /obj/item/integrated_circuit))
+		if (!user.canUnEquip(tool))
+			FEEDBACK_UNEQUIP_FAILURE(user, tool)
+			return TRUE
+		if (try_add_component(tool, user))
+			return TRUE
+		return ..()
 
-		playsound(src, 'sound/items/Screwdriver.ogg', 25)
+	// Multitool, wirer, debugger - Interact
+	if (isMultitool(tool) || istype(tool, /obj/item/device/integrated_electronics/wirer) || istype(tool, /obj/item/device/integrated_electronics/debugger))
+		if (!opened)
+			USE_FEEDBACK_FAILURE("\The [src]'s hatch needs to be opened before you can access the internal components.")
+			return TRUE
+		interact(user)
+		return TRUE
+
+	// Power Cell - Install battery
+	if (istype(tool, /obj/item/cell))
+		if (!opened)
+			USE_FEEDBACK_FAILURE("\The [src]'s hatch needs to be opened before you can install \the [tool].")
+			return TRUE
+		if (battery)
+			USE_FEEDBACK_FAILURE("\The [src] already has \a [battery] installed.")
+			return TRUE
+		if (!user.unEquip(tool, src))
+			FEEDBACK_UNEQUIP_FAILURE(user, tool)
+			return TRUE
+		battery = tool
+		playsound(src, 'sound/items/Deconstruct.ogg', 50, TRUE)
+		user.visible_message(
+			SPAN_NOTICE("\The [user] installs \a [tool] into \a [src]."),
+			SPAN_NOTICE("You install \the [tool] into \the [src].")
+		)
+		return TRUE
+
+	// Screwdriver - Toggle panel
+	if (isScrewdriver(tool))
+		for (var/obj/item/integrated_circuit/manipulation/hatchlock/hatchlock in assembly_components)
+			if (hatchlock.lock_enabled)
+				USE_FEEDBACK_FAILURE("\The [src]'s [hatchlock.name] is locked and prevents you from opening the panel.")
+				return TRUE
+		playsound(src, 'sound/items/Screwdriver.ogg', 50, TRUE)
 		opened = !opened
-		to_chat(user, SPAN_NOTICE("You [opened ? "open" : "close"] the maintenance hatch of \the [src]."))
 		update_icon()
-	else if(isCoil(I))
-		var/obj/item/stack/cable_coil/C = I
-		if(health_damaged() && do_after(user, 10, src) && C.use(1))
-			user.visible_message(SPAN_NOTICE("\The [user] patches up \the [src]."))
-			restore_health(5)
-	else
-		if(user.a_intent == I_HURT && (!(user.l_hand == src || user.r_hand == src))) // Kill it
-			user.do_attack_animation(src)
-			playsound(loc, 'sound/weapons/genhit1.ogg', 100, 1)
-			to_chat(user, SPAN_WARNING("\The [user] hits \the [src] with \the [I]!"))
-			damage_health(I.force)
-		else
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
+		user.visible_message(
+			SPAN_NOTICE("\The [user] [opened ? "opens" : "closes"] \a [src]'s panel with \a [tool]."),
+			SPAN_NOTICE("You [opened ? "open" : "close"] \the [src]'s panel with \the [tool].")
+		)
+		return TRUE
+
+	// Wrench - Toggle anchoring bolts
+	if (isWrench(tool))
+		if (!HAS_FLAGS(circuit_flags, IC_FLAG_ANCHORABLE))
+			USE_FEEDBACK_FAILURE("\The [src] can't be anchored.")
+			return TRUE
+		if (!isturf(loc))
+			USE_FEEDBACK_FAILURE("\The [src] needs to be on the floor to be anchored.")
+			return TRUE
+		playsound(src, 'sound/items/Ratchet.ogg', 50, TRUE)
+		user.visible_message(
+			SPAN_NOTICE("\The [user] starts wrenching \a [src] [anchored ? "from" : "to"] the floor with \a [tool]."),
+			SPAN_NOTICE("You start wrenching \the [src] [anchored ? "from" : "to"] the floor with \the [tool].")
+		)
+		if (!user.do_skilled(tool.toolspeed, SKILL_CONSTRUCTION, src, do_flags = DO_REPAIR_CONSTRUCT) || !user.use_sanity_check(src, tool))
+			return TRUE
+		if (!HAS_FLAGS(circuit_flags, IC_FLAG_ANCHORABLE))
+			USE_FEEDBACK_FAILURE("\The [src] can't be anchored.")
+			return TRUE
+		if (!isturf(loc))
+			USE_FEEDBACK_FAILURE("\The [src] needs to be on the floor to be anchored.")
+			return TRUE
+		user.visible_message(
+			SPAN_NOTICE("\The [user] wrenches \a [src] [anchored ? "from" : "to"] the floor with \a [tool]."),
+			SPAN_NOTICE("You wrenches \the [src] [anchored ? "from" : "to"] the floor with \the [tool].")
+		)
+		anchored = !anchored
+		return TRUE
+
+	// Cable Coil - Repair damage
+	if (isCoil(tool))
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] doesn't need repair.")
+			return TRUE
+		var/obj/item/stack/cable_coil/cable = tool
+		if (!cable.can_use(5))
+			USE_FEEDBACK_STACK_NOT_ENOUGH(cable, 5, "to repair \the [src].")
+			return TRUE
+		user.visible_message(
+			SPAN_NOTICE("\The [user] starts repairing some of \a [src]'s damage with [cable.get_vague_name(TRUE)]."),
+			SPAN_NOTICE("You start repairing some of \the [src]'s damage with [cable.get_exact_name(5)].")
+		)
+		if (!user.do_skilled(1 SECOND, SKILL_DEVICES, src) || !user.use_sanity_check(src, tool))
+			return TRUE
+		if (!health_damaged())
+			USE_FEEDBACK_FAILURE("\The [src] doesn't need repair.")
+			return TRUE
+		if (!cable.use(5))
+			USE_FEEDBACK_STACK_NOT_ENOUGH(cable, 5, "to repair \the [src].")
+			return TRUE
+		restore_health(5)
+		user.visible_message(
+			SPAN_NOTICE("\The [user] repairs some of \a [src]'s damage with [cable.get_vague_name(TRUE)]."),
+			SPAN_NOTICE("You repair some of \the [src]'s damage with [cable.get_exact_name(5)].")
+		)
+		return TRUE
+
+	// Everything else - Handle component reactions
+	var/result = FALSE
+	for (var/obj/item/integrated_circuit/component in assembly_components)
+		if (component.attackby_react(tool, user, user.a_intent))
+			result = TRUE
+	if (result)
+		return TRUE
+
+	return ..()
+
 
 /obj/item/device/electronic_assembly/attack_self(mob/user)
 	interact(user)
 
-/obj/item/device/electronic_assembly/bullet_act(var/obj/item/projectile/P)
+/obj/item/device/electronic_assembly/bullet_act(obj/item/projectile/P)
 	if(istype(P,/obj/item/projectile/beam))
 		playsound(loc, SOUNDS_LASER_METAL, 100, 1)
 	else if(istype(P,/obj/item/projectile/bullet))
 		playsound(loc, SOUNDS_BULLET_METAL, 100, 1)
-	damage_health(P.damage, P.damage_type)
-
-/obj/item/device/electronic_assembly/attack_generic(mob/user, damage)
-	user.visible_message(SPAN_WARNING("\The [user] smashes \the [src]!"), SPAN_WARNING("You smash \the [src]!"))
-	attack_animation(user)
-	damage_health(damage)
+	..()
 
 /obj/item/device/electronic_assembly/emp_act(severity)
-	. = ..()
 	for(var/I in src)
 		var/atom/movable/AM = I
 		AM.emp_act(severity)
+	. = ..()
 
 // Returns true if power was successfully drawn.
 /obj/item/device/electronic_assembly/proc/draw_power(amount)
@@ -737,9 +785,10 @@
 	max_complexity = IC_COMPLEXITY_BASE * 2
 	health_max = 40
 
-/obj/item/device/electronic_assembly/wallmount/afterattack(var/atom/a, var/mob/user, var/proximity)
-	if(proximity && istype(a ,/turf) && a.density)
-		mount_assembly(a,user)
+/obj/item/device/electronic_assembly/wallmount/use_after(atom/target, mob/living/user, click_parameters)
+	if(isturf(target) && target.density)
+		mount_assembly(target,user)
+		return TRUE
 
 /obj/item/device/electronic_assembly/wallmount/heavy
 	name = "heavy wall-mounted electronic assembly"
@@ -759,7 +808,7 @@
 	max_complexity = IC_COMPLEXITY_BASE
 
 /obj/item/device/electronic_assembly/pickup()
-	transform = matrix() //Reset the matrix.
+	ClearTransform()
 
 /obj/item/device/electronic_assembly/wallmount/proc/mount_assembly(turf/on_wall, mob/user) //Yeah, this is admittedly just an abridged and kitbashed version of the wallframe attach procs.
 	var/ndir = get_dir(on_wall, user)
@@ -769,32 +818,33 @@
 	if(T.density)
 		to_chat(user, SPAN_DANGER("You cannot place \the [src] on this spot!"))
 		return
-	if(gotwallitem(T, ndir))
-		to_chat(user, SPAN_DANGER("There's already an item on this wall!"))
+	var/wall_item = get_wall_item(T, ndir)
+	if(wall_item)
+		to_chat(user, SPAN_DANGER("There's already \a [wall_item] on this wall!"))
 		return
 	playsound(loc, 'sound/machines/click.ogg', 75, 1)
 	user.visible_message("[user.name] attaches [src] to the wall.",
-		"<span class='notice'>You attach [src] to the wall.</span>",
-		"<span class='italics'>You hear clicking.</span>")
+		SPAN_NOTICE("You attach [src] to the wall."),
+		SPAN_CLASS("italics", "You hear clicking."))
 	if(user.unEquip(src,T))
-		var/matrix/M = matrix()
+		var/rotation = 0
 		switch(ndir)
 			if(NORTH)
+				rotation = 180
 				pixel_y = -32
 				pixel_x = 0
-				M.Turn(180)
 			if(SOUTH)
 				pixel_y = 21
 				pixel_x = 0
 			if(EAST)
+				rotation = 90
 				pixel_x = -27
 				pixel_y = 0
-				M.Turn(270)
 			if(WEST)
+				rotation = 270
 				pixel_x = 27
 				pixel_y = 0
-				M.Turn(90)
-		transform = M
+		SetTransform(rotation = rotation)
 
 #undef IC_MAX_SIZE_BASE
 #undef IC_COMPLEXITY_BASE

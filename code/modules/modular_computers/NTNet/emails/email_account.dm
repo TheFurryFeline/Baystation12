@@ -1,4 +1,4 @@
-/datum/computer_file/data/email_account/
+/datum/computer_file/data/email_account
 	var/list/inbox = list()
 	var/list/outbox = list()
 	var/list/spam = list()
@@ -32,7 +32,7 @@
 		fullname = _fullname
 	if(_assignment)
 		assignment = _assignment
-	ADD_SORTED(ntnet_global.email_accounts, src, /proc/cmp_emails_asc)
+	ADD_SORTED(ntnet_global.email_accounts, src, GLOBAL_PROC_REF(cmp_emails_asc))
 	..()
 
 /datum/computer_file/data/email_account/Destroy()
@@ -62,7 +62,7 @@
 	ntnet_global.add_log_with_ids_check("EMAIL LOG: [login] -> [recipient.login] title: [message.title].", intrusion = FALSE)
 	return TRUE
 
-/datum/computer_file/data/email_account/proc/receive_mail(var/datum/computer_file/data/email_message/received_message, var/relayed)
+/datum/computer_file/data/email_account/proc/receive_mail(datum/computer_file/data/email_message/received_message, relayed)
 	received_message.set_timestamp()
 	if(!ntnet_global.intrusion_detection_enabled)
 		inbox.Add(received_message)
@@ -80,18 +80,18 @@
 		spam.Add(received_message)
 	else
 		inbox.Add(received_message)
-		for(var/datum/nano_module/email_client/ec in connected_clients)
+		for(var/datum/nano_module/program/email_client/ec in connected_clients)
 			ec.mail_received(received_message)
 	return TRUE
 
 // Address namespace (@internal-services.net) for email addresses with special purpose only!.
-/datum/computer_file/data/email_account/service/
+/datum/computer_file/data/email_account/service
 	can_login = FALSE
 
-/datum/computer_file/data/email_account/service/broadcaster/
+/datum/computer_file/data/email_account/service/broadcaster
 	login = EMAIL_BROADCAST
 
-/datum/computer_file/data/email_account/service/broadcaster/receive_mail(var/datum/computer_file/data/email_message/received_message, var/relayed)
+/datum/computer_file/data/email_account/service/broadcaster/receive_mail(datum/computer_file/data/email_message/received_message, relayed)
 	if(suspended || !istype(received_message) || relayed)
 		return FALSE
 	// Possibly exploitable for user spamming so keep admins informed.

@@ -1,4 +1,4 @@
-GLOBAL_DATUM_INIT(deathsquad, /datum/antagonist/deathsquad, new)
+GLOBAL_TYPED_NEW(deathsquad, /datum/antagonist/deathsquad)
 
 /datum/antagonist/deathsquad
 	id = MODE_DEATHSQUAD
@@ -16,6 +16,7 @@ GLOBAL_DATUM_INIT(deathsquad, /datum/antagonist/deathsquad, new)
 	initial_spawn_target = 6
 
 	faction = "deathsquad"
+	no_prior_faction = TRUE
 
 	var/deployed = 0
 
@@ -23,7 +24,7 @@ GLOBAL_DATUM_INIT(deathsquad, /datum/antagonist/deathsquad, new)
 	if(..())
 		deployed = 1
 
-/datum/antagonist/deathsquad/equip(var/mob/living/carbon/human/player)
+/datum/antagonist/deathsquad/equip(mob/living/carbon/human/player)
 	if(!..())
 		return
 
@@ -42,7 +43,7 @@ GLOBAL_DATUM_INIT(deathsquad, /datum/antagonist/deathsquad, new)
 		player.equip_to_slot_or_del(new /obj/item/plastique(player), slot_l_store)
 	player.equip_to_slot_or_del(new /obj/item/gun/projectile/revolver(player), slot_belt)
 	player.equip_to_slot_or_del(new /obj/item/gun/energy/pulse_rifle(player), slot_r_hand)
-	player.equip_to_slot_or_del(new /obj/item/rig/ert/assetprotection(player), slot_back)
+	player.equip_to_slot_or_del(new /obj/item/rig/combat(player), slot_back)
 	player.equip_to_slot_or_del(new /obj/item/melee/energy/sword(player), slot_l_hand)
 	player.implant_loyalty(player)
 
@@ -52,7 +53,7 @@ GLOBAL_DATUM_INIT(deathsquad, /datum/antagonist/deathsquad, new)
 		id.icon_state = "centcom"
 	create_radio(DTH_FREQ, player)
 
-/datum/antagonist/deathsquad/update_antag_mob(var/datum/mind/player)
+/datum/antagonist/deathsquad/update_antag_mob(datum/mind/player)
 
 	..()
 

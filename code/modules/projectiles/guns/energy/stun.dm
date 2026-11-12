@@ -7,11 +7,24 @@
 	max_shots = 5
 	projectile_type = /obj/item/projectile/beam/stun
 	combustion = 0
+	manufacturer = MANUFACTURER_NANOTRASEN
 
 	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock),
+		list(
+			"mode_name" = "stun",
+			"projectile_type" = /obj/item/projectile/beam/stun
+		),
+		list(
+			"mode_name" = "shock",
+			"projectile_type" = /obj/item/projectile/beam/stun/shock
 		)
+	)
+
+/obj/item/gun/energy/taser/disposable
+	name = "disposable electrolaser"
+	desc = "The NT Mk30 NL is a small, disposable gun used for non-lethal takedowns. This is a cheaper model commonly issued to police forces to supplement their service weapons. It can switch between high and low intensity stun shots."
+	max_shots = 10
+	disposable = TRUE
 
 /obj/item/gun/energy/taser/carbine
 	name = "electrolaser carbine"
@@ -29,9 +42,15 @@
 	wielded_item_state = "tasercarbine-wielded"
 
 	firemodes = list(
-		list(mode_name="stun", projectile_type=/obj/item/projectile/beam/stun/heavy),
-		list(mode_name="shock", projectile_type=/obj/item/projectile/beam/stun/shock/heavy),
+		list(
+			"mode_name" = "stun",
+			"projectile_type" = /obj/item/projectile/beam/stun/heavy
+		),
+		list(
+			"mode_name" = "shock",
+			"projectile_type" = /obj/item/projectile/beam/stun/shock/heavy
 		)
+	)
 
 /obj/item/gun/energy/taser/mounted
 	name = "mounted electrolaser"
@@ -55,6 +74,7 @@
 	projectile_type = /obj/item/projectile/energy/electrode
 	max_shots = 6
 	combustion = 0
+	manufacturer = MANUFACTURER_AL_MALIKI_MOSLEY
 
 /obj/item/gun/energy/stunrevolver/rifle
 	name = "stun rifle"
@@ -73,7 +93,7 @@
 	wielded_item_state = "stunrifle-wielded"
 
 /obj/item/gun/energy/crossbow
-	name = "mini energy-crossbow"
+	name = "mini energy crossbow"
 	desc = "A weapon favored by many mercenary stealth specialists."
 	icon = 'icons/obj/guns/energy_crossbow.dmi'
 	icon_state = "crossbow"
@@ -89,6 +109,7 @@
 	self_recharge = 1
 	charge_meter = 0
 	combustion = 0
+	manufacturer = MANUFACTURER_FALLBACK
 
 /obj/item/gun/energy/crossbow/ninja
 	name = "energy dart thrower"
@@ -119,6 +140,7 @@
 	max_shots = 4
 	projectile_type = /obj/item/projectile/energy/plasmastun
 	combustion = 0
+	manufacturer = MANUFACTURER_MARS_MILITARY
 
 /obj/item/gun/energy/confuseray
 	name = "disorientator"
@@ -131,3 +153,4 @@
 	max_shots = 4
 	projectile_type = /obj/item/projectile/beam/confuseray
 	combustion = 0
+	manufacturer = MANUFACTURER_WARD_TAKAHASHI

@@ -42,7 +42,7 @@
 				last_newpatient_speak = world.time
 			break
 
-/mob/living/bot/medbot/UnarmedAttack(var/mob/living/carbon/human/H, var/proximity)
+/mob/living/bot/medbot/UnarmedAttack(mob/living/carbon/human/H, proximity)
 	if(!..())
 		return
 
@@ -55,7 +55,7 @@
 	if(busy)
 		return
 
-	if(H.stat == DEAD)
+	if(H.is_dead())
 		var/death_message = pick("No! NO!", "Live, damnit! LIVE!", "I... I've never lost a patient before. Not today, I mean.")
 		say(death_message)
 		target = null
@@ -69,46 +69,70 @@
 		return
 
 	icon_state = "medibots"
-	visible_message("<span class='warning'>[src] is trying to inject [H]!</span>")
+	visible_message(SPAN_WARNING("[src] is trying to inject [H]!"))
 	if(declare_treatment)
 		var/area/location = get_area(src)
 		broadcast_medical_hud_message("[src] is treating <b>[H]</b> in <b>[location]</b>", src)
 	busy = 1
 	update_icons()
-	if(do_after(src, 3 SECONDS, H))
+	if(do_after(src, 3 SECONDS, H, DO_DEFAULT | DO_USER_UNIQUE_ACT | DO_PUBLIC_PROGRESS))
 		if(t == 1)
 			reagent_glass.reagents.trans_to_mob(H, injection_amount, CHEM_BLOOD)
 		else
 			H.reagents.add_reagent(t, injection_amount)
-		visible_message("<span class='warning'>[src] injects [H] with the syringe!</span>")
+		visible_message(SPAN_WARNING("[src] injects [H] with the syringe!"))
 	busy = 0
 	update_icons()
 
 /mob/living/bot/medbot/update_icons()
-	overlays.Cut()
+	ClearOverlays()
 	if(skin)
-		overlays += image('icons/mob/bot/medibot_skins.dmi', "medskin_[skin]")
+		AddOverlays(image('icons/mob/bot/medibot_skins.dmi', "[skin]"))
 	if(busy)
 		icon_state = "medibots"
 	else
 		icon_state = "medibot[on]"
 
-/mob/living/bot/medbot/attackby(var/obj/item/O, var/mob/user)
-	if(istype(O, /obj/item/reagent_containers/glass))
-		if(locked)
-			to_chat(user, "<span class='notice'>You cannot insert a beaker because the panel is locked.</span>")
-			return
-		if(!isnull(reagent_glass))
-			to_chat(user, "<span class='notice'>There is already a beaker loaded.</span>")
-			return
 
-		if(!user.unEquip(O, src))
-			return
-		reagent_glass = O
-		to_chat(user, "<span class='notice'>You insert [O].</span>")
-		return
-	else
-		..()
+/mob/living/bot/medbot/get_construction_info()
+	return list(
+		"Add a robotic <b>Left Arm</b> or <b>Right Arm</b> to a <b>First-Aid Kit</b>.",
+		"Add a <b>Health Analyzer</b>.",
+		"Add a <b>Proximity Sensor</b> to complete the medbot."
+	)
+
+
+/mob/living/bot/medbot/get_interactions_info()
+	. = ..()
+	.["Beaker"] = "<p>Installs the beaker into \the [initial(name)]. If installed, it will use the contents of the beaker for injections instead of tricordrazine. Only one beaker can be installed at a time. The access panel must be unlocked.</p>"
+
+
+/mob/living/bot/medbot/get_antag_interactions_info()
+	. = ..()
+	.[CODEX_INTERACTION_EMAG] += "<p>Causes \the [initial(name)] to synthesize and inject toxins instead of tricordrazine. It will also try to inject any mob in sight except the one who emagged it, regardless of injury state.</p>"
+
+
+/mob/living/bot/medbot/use_tool(obj/item/tool, mob/user, list/click_params)
+	// Beaker - Inserts a beaker
+	if (istype(tool, /obj/item/reagent_containers/glass))
+		if (locked)
+			USE_FEEDBACK_FAILURE("\The [src]'s access panel must be open before you can insert a beaker.")
+			return TRUE
+		if (reagent_glass)
+			USE_FEEDBACK_FAILURE("\The [src] already has \a [reagent_glass] installed.")
+			return TRUE
+		if (!user.unEquip(tool, src))
+			FEEDBACK_UNEQUIP_FAILURE(user, tool)
+			return TRUE
+		reagent_glass = tool
+		user.visible_message(
+			SPAN_NOTICE("\The [user] installs \a [tool] into \the [src]."),
+			SPAN_NOTICE("You install \the [tool] into \the [src].")
+		)
+		return TRUE
+
+	return ..()
+
 
 /mob/living/bot/medbot/GetInteractTitle()
 	. = "<head><title>Medibot v1.0 controls</title></head>"
@@ -118,49 +142,49 @@
 	. = ..()
 	. += "<br>Beaker: "
 	if(reagent_glass)
-		. += "<A href='?src=\ref[src];command=eject'>Loaded \[[reagent_glass.reagents.total_volume]/[reagent_glass.reagents.maximum_volume]\]</a>"
+		. += "<A href='byond://?src=\ref[src];command=eject'>Loaded \[[reagent_glass.reagents.total_volume]/[reagent_glass.reagents.maximum_volume]\]</a>"
 	else
 		. += "None loaded"
 
 /mob/living/bot/medbot/GetInteractPanel()
 	. = "Healing threshold: "
-	. += "<a href='?src=\ref[src];command=adj_threshold;amount=-10'>--</a> "
-	. += "<a href='?src=\ref[src];command=adj_threshold;amount=-5'>-</a> "
+	. += "<a href='byond://?src=\ref[src];command=adj_threshold;amount=-10'>--</a> "
+	. += "<a href='byond://?src=\ref[src];command=adj_threshold;amount=-5'>-</a> "
 	. += "[heal_threshold] "
-	. += "<a href='?src=\ref[src];command=adj_threshold;amount=5'>+</a> "
-	. += "<a href='?src=\ref[src];command=adj_threshold;amount=10'>++</a>"
+	. += "<a href='byond://?src=\ref[src];command=adj_threshold;amount=5'>+</a> "
+	. += "<a href='byond://?src=\ref[src];command=adj_threshold;amount=10'>++</a>"
 
 	. += "<br>Injection level: "
-	. += "<a href='?src=\ref[src];command=adj_inject;amount=-5'>-</a> "
+	. += "<a href='byond://?src=\ref[src];command=adj_inject;amount=-5'>-</a> "
 	. += "[injection_amount] "
-	. += "<a href='?src=\ref[src];command=adj_inject;amount=5'>+</a> "
+	. += "<a href='byond://?src=\ref[src];command=adj_inject;amount=5'>+</a> "
 
-	. += "<br>Reagent source: <a href='?src=\ref[src];command=use_beaker'>[use_beaker ? "Loaded Beaker (When available)" : "Internal Synthesizer"]</a>"
-	. += "<br>Treatment report is [declare_treatment ? "on" : "off"]. <a href='?src=\ref[src];command=declaretreatment'>Toggle</a>"
-	. += "<br>The speaker switch is [vocal ? "on" : "off"]. <a href='?src=\ref[src];command=togglevoice'>Toggle</a>"
+	. += "<br>Reagent source: <a href='byond://?src=\ref[src];command=use_beaker'>[use_beaker ? "Loaded Beaker (When available)" : "Internal Synthesizer"]</a>"
+	. += "<br>Treatment report is [declare_treatment ? "on" : "off"]. <a href='byond://?src=\ref[src];command=declaretreatment'>Toggle</a>"
+	. += "<br>The speaker switch is [vocal ? "on" : "off"]. <a href='byond://?src=\ref[src];command=togglevoice'>Toggle</a>"
 
 /mob/living/bot/medbot/GetInteractMaintenance()
 	. = "Injection mode: "
 	switch(emagged)
 		if(0)
-			. += "<a href='?src=\ref[src];command=emag'>Treatment</a>"
+			. += "<a href='byond://?src=\ref[src];command=emag'>Treatment</a>"
 		if(1)
-			. += "<a href='?src=\ref[src];command=emag'>Random (DANGER)</a>"
+			. += "<a href='byond://?src=\ref[src];command=emag'>Random (DANGER)</a>"
 		if(2)
 			. += "ERROROROROROR-----"
 
-/mob/living/bot/medbot/ProcessCommand(var/mob/user, var/command, var/href_list)
+/mob/living/bot/medbot/ProcessCommand(mob/user, command, href_list)
 	..()
 	if(CanAccessPanel(user))
 		switch(command)
 			if("adj_threshold")
 				if(!locked || issilicon(user))
 					var/adjust_num = text2num(href_list["amount"])
-					heal_threshold = Clamp(heal_threshold + adjust_num, 5, 75)
+					heal_threshold = clamp(heal_threshold + adjust_num, 5, 75)
 			if("adj_inject")
 				if(!locked || issilicon(user))
 					var/adjust_num = text2num(href_list["amount"])
-					injection_amount = Clamp(injection_amount + adjust_num, 5, 15)
+					injection_amount = clamp(injection_amount + adjust_num, 5, 15)
 			if("use_beaker")
 				if(!locked || issilicon(user))
 					use_beaker = !use_beaker
@@ -170,7 +194,7 @@
 						reagent_glass.dropInto(src.loc)
 						reagent_glass = null
 					else
-						to_chat(user, "<span class='notice'>You cannot eject the beaker because the panel is locked.</span>")
+						to_chat(user, SPAN_NOTICE("You cannot eject the beaker because the panel is locked."))
 			if("togglevoice")
 				if(!locked || issilicon(user))
 					vocal = !vocal
@@ -184,13 +208,13 @@
 				if(emagged < 2)
 					emagged = !emagged
 
-/mob/living/bot/medbot/emag_act(var/remaining_uses, var/mob/user)
+/mob/living/bot/medbot/emag_act(remaining_uses, mob/user)
 	. = ..()
 	if(!emagged)
 		if(user)
-			to_chat(user, "<span class='warning'>You short out [src]'s reagent synthesis circuits.</span>")
+			to_chat(user, SPAN_WARNING("You short out [src]'s reagent synthesis circuits."))
 			ignore_list |= user
-		visible_message("<span class='warning'>[src] buzzes oddly!</span>")
+		visible_message(SPAN_WARNING("[src] buzzes oddly!"))
 		flick("medibot_spark", src)
 		target = null
 		busy = 0
@@ -201,10 +225,10 @@
 
 /mob/living/bot/medbot/explode()
 	on = 0
-	visible_message("<span class='danger'>[src] blows apart!</span>")
+	visible_message(SPAN_DANGER("[src] blows apart!"))
 	var/turf/Tsec = get_turf(src)
 
-	new /obj/item/storage/firstaid(Tsec)
+	new /obj/item/storage/firstaid/empty(Tsec)
 	new /obj/item/device/assembly/prox_sensor(Tsec)
 	new /obj/item/device/scanner/health(Tsec)
 	if (prob(50))
@@ -214,17 +238,17 @@
 		reagent_glass.forceMove(Tsec)
 		reagent_glass = null
 
-	var/datum/effect/effect/system/spark_spread/s = new /datum/effect/effect/system/spark_spread
+	var/datum/effect/spark_spread/s = new /datum/effect/spark_spread
 	s.set_up(3, 1, src)
 	s.start()
 	qdel(src)
 	return
 
-/mob/living/bot/medbot/confirmTarget(var/mob/living/carbon/human/H)
+/mob/living/bot/medbot/confirmTarget(mob/living/carbon/human/H)
 	if(!..())
 		return 0
 
-	if(H.stat == DEAD) // He's dead, Jim
+	if(H.is_dead()) // He's dead, Jim
 		return 0
 
 	if(emagged)

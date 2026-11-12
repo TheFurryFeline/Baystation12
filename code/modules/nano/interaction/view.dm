@@ -1,7 +1,7 @@
 /*
 	This state checks that the src_object is in view of the user.
 */
-GLOBAL_DATUM_INIT(view_state, /datum/topic_state/view, new)
+GLOBAL_TYPED_NEW(view_state, /datum/topic_state/view)
 
 /datum/topic_state/view/can_use_topic(src_object, mob/user)
 	return user.view_can_use_topic(src_object)
@@ -13,7 +13,7 @@ GLOBAL_DATUM_INIT(view_state, /datum/topic_state/view, new)
 		return shared_nano_interaction(src_object)
 	return STATUS_CLOSE
 
-/mob/observer/ghost/view_can_use_topic(var/src_object)
+/mob/observer/ghost/view_can_use_topic(src_object)
 	if(can_admin_interact())
 		return STATUS_INTERACTIVE
 	return ..()

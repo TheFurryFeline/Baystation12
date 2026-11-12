@@ -40,7 +40,7 @@
 
 //Performs functions relating to setting up the question and choices, if relevant.
 /datum/vote/proc/setup_vote(mob/creator, automatic)
-	initiator = (!automatic && istype(creator)) ? creator.ckey : "the server"
+	initiator = (!automatic && istype(creator)) ? creator.ckey : "The game"
 	for(var/choice in choices)
 		display_choices[choice] = choice // Default behavior is that the choice name is displayed directly.
 
@@ -48,15 +48,7 @@
 	start_time = world.time
 	status = VOTE_STATUS_ACTIVE
 	time_remaining = round(config.vote_period/10)
-
-	var/text = get_start_text()
-
-	log_vote(text)
-	to_world("<font color='purple'><b>[text]</b>\nType <b>vote</b> or click <a href='?src=\ref[SSvote];vote_panel=1'>here</a> to place your votes.\nYou have [config.vote_period/10] seconds to vote.</font>")
-	sound_to(world, sound('sound/ambience/alarm4.ogg', repeat = 0, wait = 0, volume = 50, channel = GLOB.vote_sound_channel))
-
-/datum/vote/proc/get_start_text()
-	return "[capitalize(name)] vote started by [initiator]."
+	log_vote("[capitalize(name)] vote started by [initiator].")
 
 //Modifies the vote totals based on non-voting mobs.
 /datum/vote/proc/handle_default_votes()
@@ -71,11 +63,11 @@
 	var/list/remaining_votes = votes.Copy()
 	while(length(result) < result_length)
 		remaining_choices = shuffle(remaining_choices)
-		sortTim(remaining_choices, /proc/cmp_numeric_dsc, TRUE)
+		sortTim(remaining_choices, GLOBAL_PROC_REF(cmp_numeric_dsc), TRUE)
 		if(!length(remaining_votes) || !length(remaining_choices))  // we ran out of options or votes, you get what we have
-			result += remaining_choices.Copy(1, Clamp(result_length - length(result) + 1, 0, length(remaining_choices) + 1))
+			result += remaining_choices.Copy(1, clamp(result_length - length(result) + 1, 0, length(remaining_choices) + 1))
 			break
-		else 
+		else
 			// 50% majority or we don't have enough candidates to be picky, declare the winner and remove it from the possible candidates
 			if(remaining_choices[remaining_choices[1]] > length(remaining_votes) / 2 || length(remaining_choices) <= result_length - length(result))
 				var/winner = remaining_choices[1]
@@ -84,10 +76,10 @@
 			else // no winner, remove the biggest loser and go again
 				var/loser = remaining_choices[length(remaining_choices)]
 				remove_candidate(remaining_choices, remaining_votes, loser)
-			
+
 // Remove candidate from choice_list and any votes for it from vote_list, transfering first choices to second
 /datum/vote/proc/remove_candidate(list/choice_list, list/vote_list, candidate)
-	var/candidate_index = list_find(choices, candidate) // use choices instead of choice_list because we need the original indexing
+	var/candidate_index = choices.Find(candidate) // use choices instead of choice_list because we need the original indexing
 	choice_list -= candidate
 	for(var/ckey in vote_list)
 		if(length(votes[ckey]) && vote_list[ckey][1] == candidate_index && length(vote_list[ckey]) > 1)
@@ -104,8 +96,13 @@
 		return 1
 
 	var/text = get_result_announcement()
+	var/admin_text = get_vote_statistics()
+	log_vote(admin_text)
 	log_vote(text)
-	to_world("<font color='purple'>[text]</font>")	
+	to_world(SPAN_COLOR("purple", "[text]\n"))
+
+	for (var/client/C in GLOB.admins)
+		to_chat(C, SPAN_COLOR("purple", "[admin_text]"))
 
 	if(!(result[result[1]] > 0))
 		return 1
@@ -123,10 +120,32 @@
 				runner_ups += display_choices[runner_up]
 			text += english_list(runner_ups)
 
-	return JOINTEXT(text)
+	return jointext(text, null)
 
-/datum/vote/proc/submit_vote(var/mob/voter, var/vote)
-	if(mob_not_participating(voter))
+/datum/vote/proc/get_vote_statistics()
+	var/list/text = list()
+	text += "<b>Total Votes: [length(votes)]/[length(GLOB.clients)]</b>\n"
+	text += "\n"
+	text += "<b>Votes Per Option:</b>"
+	for(var/R in result)
+		if (result[R] > 0)
+			text += "\n[R]: [result[R]]"
+	return jointext(text, null)
+
+
+/datum/vote/proc/mob_can_vote(mob/voter)
+	if (check_rights(R_MOD, FALSE, voter))
+		return TRUE
+	if (config.vote_no_dead)
+		if (voter.stat == DEAD)
+			return FALSE
+		if (isghost(voter))
+			return FALSE
+	return TRUE
+
+
+/datum/vote/proc/submit_vote(mob/voter, vote)
+	if(!mob_can_vote(voter))
 		return
 
 	var/ckey = voter.ckey
@@ -149,10 +168,6 @@
 		if(votes[ckey][1] == vote)
 			choices[choice] += 1
 
-// Checks if the mob is participating in the round sufficiently to vote, as per config settings.
-/datum/vote/proc/mob_not_participating(mob/voter)
-	if(config.vote_no_dead && voter.stat == DEAD && !voter.client.holder)
-		return 1
 
 //null = no toggle set. This is for UI purposes; a text return will give a link (toggle; currently "return") in the vote panel.
 /datum/vote/proc/check_toggle()
@@ -173,7 +188,7 @@
 
 /datum/vote/proc/interface(mob/user)
 	. = list()
-	if(mob_not_participating(user))
+	if(!mob_can_vote(user))
 		. += "<h2>You can't participate in this vote unless you're participating in the round.</h2><br>"
 		return
 	if(question)
@@ -185,18 +200,18 @@
 	. += additional_header
 	. += "</tr>"
 
-	for(var/i = 1, i <= choices.len, i++)
+	for(var/i = 1, i <= length(choices), i++)
 		var/choice = choices[i]
 		var/voted_for = votes[user.ckey] && (i in votes[user.ckey])
 
-		. += "<tr><td><a href='?src=\ref[src];choice=[i]'[voted_for ? " style='font-weight: bold'" : ""]>"
+		. += "<tr><td><a href='byond://?src=\ref[src];choice=[i]'[voted_for ? " style='font-weight: bold'" : ""]>"
 		. += "[display_choices[choice]]"
 		. += "</a></td>"
 
 		. += "<td style='text-align: center;'>"
 		if(voted_for)
 			var/list/vote = votes[user.ckey]
-			. += "[list_find(vote, i)]"
+			. += "[vote.Find(i)]"
 		. += "</td>"
 
 		if (additional_text[choice])
@@ -217,3 +232,11 @@
 		return
 
 	submit_vote(user, choice)
+
+
+/datum/vote/proc/get_allowed_voters()
+	return GLOB.player_list.Copy()
+
+
+/datum/vote/proc/get_disallowed_reason()
+	return

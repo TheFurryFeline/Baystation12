@@ -44,6 +44,9 @@
 /obj/item/card/id/torch/crew/medical/senior
 	job_access_type = /datum/job/senior_doctor
 
+/obj/item/card/id/torch/crew/medical/chemist
+	job_access_type = /datum/job/chemist
+
 /obj/item/card/id/torch/contractor/medical
 	job_access_type = /datum/job/doctor
 	detail_color = COLOR_PALE_BLUE_GRAY
@@ -54,6 +57,9 @@
 /obj/item/card/id/torch/contractor/chemist
 	job_access_type = /datum/job/chemist
 	detail_color = COLOR_PALE_BLUE_GRAY
+
+/obj/item/card/id/torch/crew/medical/counselor
+	job_access_type = /datum/job/psychiatrist
 
 /obj/item/card/id/torch/contractor/medical/counselor
 	job_access_type = /datum/job/psychiatrist
@@ -111,6 +117,10 @@
 	job_access_type = DEFAULT_JOB_TYPE
 	detail_color = COLOR_CIVIE_GREEN
 
+/obj/item/card/id/torch/crew/service/chief_steward
+	job_access_type = /datum/job/chief_steward
+	extra_details = list("onegoldstripe")
+
 /obj/item/card/id/torch/crew/service/janitor
 	job_access_type = /datum/job/janitor
 
@@ -123,9 +133,6 @@
 /obj/item/card/id/torch/contractor/service //unused
 	job_access_type = DEFAULT_JOB_TYPE
 	detail_color = COLOR_CIVIE_GREEN
-
-/obj/item/card/id/torch/contractor/service/bartender
-	job_access_type = /datum/job/bartender
 
 
 /obj/item/card/id/torch/crew/representative

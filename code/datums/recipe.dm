@@ -1,148 +1,244 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * *
- * /datum/recipe by rastaf0            13 apr 2011 *
- * * * * * * * * * * * * * * * * * * * * * * * * * *
- * This is powerful and flexible recipe system.
- * It exists not only for food.
- * supports both reagents and objects as prerequisites.
- * In order to use this system you have to define a deriative from /datum/recipe
- * * reagents are reagents. Acid, milc, booze, etc.
- * * items are objects. Fruits, tools, circuit boards.
- * * result is type to create as new object
- * * time is optional parameter, you shall use in in your machine,
- * * default /datum/recipe/ procs does not rely on this parameter.
- *
- *  Functions you need:
- *  /datum/recipe/proc/make(var/obj/container as obj)
- *    Creates result inside container,
- *    deletes prerequisite reagents,
- *    transfers reagents from prerequisite objects,
- *    deletes all prerequisite objects (even not needed for recipe at the moment).
- *
- *  /proc/select_recipe(list/datum/recipe/avaiable_recipes, obj/obj as obj, exact = 1)
- *    Wonderful function that select suitable recipe for you.
- *    obj is a machine (or magik hat) with prerequisites,
- *    exact = 0 forces algorithm to ignore superfluous stuff.
- *
- *
- *  Functions you do not need to call directly but could:
- *  /datum/recipe/proc/check_reagents(var/datum/reagents/avail_reagents)
- *  /datum/recipe/proc/check_items(var/obj/container as obj)
- *
- * */
+/singleton/cooking_recipe
+	/// An /atom/movable/... path. Required.
+	var/atom/result_path
+	var/result_quantity = 1 //number of instances of result that are created.
 
-/datum/recipe
+	/// A base ds time for how long the recipe waits before completing.
+	var/time = 10 SECONDS
+
+	/// A map? of (/datum/reagent/... = amount). Highest specificity first. Reagent is transfered to final item.
+	var/list/datum/reagent/required_reagents
+
+	/// A map of (/datum/reagent/... = amount); get consumed and is not transfered to final item.
+	var/list/datum/reagent/consumed_reagents
+
+	/// A list? of (/obj/item/...). Highest specificity first. Multiple entries for multiple same items.
+	var/list/obj/item/required_items
+
+	/// A map? of ("fruit tag" = amount).
+	var/list/required_produce
+
+	/// What scent does it give off when cooked?
+	var/datum/extension/scent/cooked_scent
+
+	/// The sum of required_produce entries. Generated.
+	var/produce_amount
+
+	/// The sum length of each required_* for sorting. Generated. Must be > 0.
+	var/weight
+
+	// Codex values.
 	var/display_name
-	var/list/reagents // example: = list(/datum/reagent/drink/juice/berry = 5) // do not list same reagent twice
-	var/list/items    // example: = list(/obj/item/crowbar, /obj/item/welder) // place /foo/bar before /foo
-	var/list/fruit    // example: = list("fruit" = 3)
-	var/result        // example: = /obj/item/reagent_containers/food/snacks/donut/normal
-	var/time = 100    // 1/10 part of second
-	var/hidden_from_codex = FALSE
+	var/hidden_from_codex
 	var/lore_text
 	var/mechanics_text
 	var/antag_text
 
-/datum/recipe/proc/check_reagents(var/datum/reagents/avail_reagents)
-	. = 1
-	for (var/r_r in reagents)
-		var/aval_r_amnt = avail_reagents.get_reagent_amount(r_r)
-		if (!(abs(aval_r_amnt - reagents[r_r])<0.5)) //if NOT equals
-			if (aval_r_amnt>reagents[r_r])
-				. = 0
-			else
-				return -1
-	if ((reagents?(reagents.len):(0)) < avail_reagents.reagent_list.len)
-		return 0
-	return .
+	#define RECIPE_REAGENT_REPLACE		0 //Reagents in the ingredients are discarded.
+	#define RECIPE_REAGENT_MAX			1 //The result will contain the maximum of each reagent present between the two pools. Compiletime result, and sum of ingredients
+	#define RECIPE_REAGENT_MIN 			2 //As above, but the minimum, ignoring zero values.
+	#define RECIPE_REAGENT_SUM 			3 //The entire quantity of the ingredients are added to the result
 
-/datum/recipe/proc/check_fruit(var/obj/container)
-	. = 1
-	if(fruit && fruit.len)
-		var/list/checklist = list()
-		 // You should trust Copy().
-		checklist = fruit.Copy()
-		for(var/obj/item/reagent_containers/food/snacks/grown/G in container)
-			if(!G.seed || !G.seed.kitchen_tag || isnull(checklist[G.seed.kitchen_tag]))
-				continue
-			checklist[G.seed.kitchen_tag]--
-		for(var/ktag in checklist)
-			if(!isnull(checklist[ktag]))
-				if(checklist[ktag] < 0)
-					. = 0
-				else if(checklist[ktag] > 0)
-					. = -1
-					break
-	return .
+	var/reagent_mix = RECIPE_REAGENT_SUM	//How to handle reagent differences between the ingredients and the results
 
-/datum/recipe/proc/check_items(var/obj/container as obj)
-	. = 1
-	if (items && items.len)
-		var/list/checklist = list()
-		checklist = items.Copy() // You should really trust Copy
-		for(var/obj/O in container.InsertedContents())
-			if(istype(O,/obj/item/reagent_containers/food/snacks/grown))
-				continue // Fruit is handled in check_fruit().
-			var/found = 0
-			for(var/i = 1; i < checklist.len+1; i++)
-				var/item_type = checklist[i]
-				if (istype(O,item_type))
-					checklist.Cut(i, i+1)
-					found = 1
-					break
-			if (!found)
-				. = 0
-		if (checklist.len)
-			. = -1
-	return .
+	/// Which appliances this recipe can be made in.
+	var/appliance = COOKING_APPLIANCE_MIX
 
-//general version
-/datum/recipe/proc/make(var/obj/container as obj)
-	var/obj/result_obj = new result(container)
-	for (var/obj/O in (container.InsertedContents()-result_obj))
-		O.reagents.trans_to_obj(result_obj, O.reagents.total_volume)
-		qdel(O)
-	container.reagents.clear_reagents()
-	return result_obj
+/singleton/cooking_recipe/proc/get_appliance_names()
+	var/list/appliance_names
+	if(appliance & COOKING_APPLIANCE_GRILL)
+		LAZYADD(appliance_names, "a grill")
+	if(appliance & COOKING_APPLIANCE_MIX)
+		LAZYADD(appliance_names, "a mixing bowl or plate")
+	if(appliance & COOKING_APPLIANCE_FRYER)
+		LAZYADD(appliance_names, "a fryer")
+	if(appliance & COOKING_APPLIANCE_OVEN)
+		LAZYADD(appliance_names, "an oven")
+	if(appliance & COOKING_APPLIANCE_SKILLET)
+		LAZYADD(appliance_names, "a skillet")
+	if(appliance & COOKING_APPLIANCE_SAUCEPAN)
+		LAZYADD(appliance_names, "a saucepan")
+	if(appliance & COOKING_APPLIANCE_POT)
+		LAZYADD(appliance_names, "a pot")
+	return english_list(appliance_names, and_text = " or ")
 
-// food-related
-/datum/recipe/proc/make_food(var/obj/container as obj)
-	if(!result)
-		log_error("<span class='danger'>Recipe [type] is defined without a result, please bug this.</span>")
+///Creates the result and transfers over all reagents (except those in consumed_reagents) and reagents from ingredients EXCEPT nutriment.
+///Nutriment is handled by nutriment_amt at level of the created item; not transferred here.
+/singleton/cooking_recipe/proc/CreateResult(obj/container as obj, ...)
+	if(!result_path)
 		return
-	var/obj/result_obj = new result(container)
-	container.reagents.clear_reagents()
-	//Checked here in case LAZYCLEARLIST nulls and no more physical ingredients are added
-	var/list/container_contents = container.InsertedContents()
-	if(!container_contents)
-		return result_obj
-	for (var/obj/O in (container_contents-result_obj))
-		if (O.reagents)
-			O.reagents.del_reagent(/datum/reagent/nutriment)
-			O.reagents.update_total()
-			O.reagents.trans_to_obj(result_obj, O.reagents.total_volume)
-		if(istype(O,/obj/item/holder/))
-			var/obj/item/holder/H = O
-			H.destroy_all()
-		qdel(O)
-	return result_obj
 
-/proc/select_recipe(var/list/datum/recipe/avaiable_recipes, var/obj/obj as obj, var/exact)
-	var/list/datum/recipe/possible_recipes = new
-	var/target = exact ? 0 : 1
-	for (var/datum/recipe/recipe in avaiable_recipes)
-		if((recipe.check_reagents(obj.reagents) < target) || (recipe.check_items(obj) < target) || (recipe.check_fruit(obj) < target))
+//We will subtract all the ingredients from the container, and transfer their reagents into a holder
+//We will not touch things which are not required for this recipe. They will be left behind for the caller
+//to decide what to do. They may be used again to make another recipe or discarded, or merged into the results,
+//thats no longer the concern of this proc
+	var/datum/reagents/buffer = new /datum/reagents(1e12, GLOB.temp_reagents_holder)
+
+	if (LAZYLEN(required_items))
+		for (var/item in required_items)
+			var/obj/item/obj_item = locate(item) in container
+			if (obj_item && obj_item.reagents)
+				obj_item.reagents.trans_to_holder(buffer, obj_item.reagents.total_volume)
+				qdel(obj_item)
+
+	if (LAZYLEN(required_produce))
+		var/list/checklist = list()
+		checklist = required_produce.Copy()
+
+		for(var/obj/item/reagent_containers/food/snacks/grown/grown in container)
+			if(!grown.seed || !grown.seed.kitchen_tag || isnull(checklist[grown.seed.kitchen_tag]))
+				continue
+
+			if (checklist[grown.seed.kitchen_tag] > 0)
+				checklist[grown.seed.kitchen_tag]--
+				if (grown && grown.reagents)
+					grown.reagents.trans_to_holder(buffer, grown.reagents.total_volume)
+				qdel(grown)
+
+	if (LAZYLEN(consumed_reagents))
+		for (var/reagent in consumed_reagents)
+			container.reagents.remove_reagent(reagent, consumed_reagents[reagent])
+	if (LAZYLEN(required_reagents))
+		for (var/reagent in required_reagents)
+			container.reagents.trans_type_to_holder(buffer, reagent, required_reagents[reagent])
+
+	/*
+	Now we've removed all the ingredients that were used and we have the buffer containing the total of
+	all their reagents.
+	If we have multiple results, holder will be used as a buffer to hold reagents for the result objects.
+	If, as in the most common case, there is only a single result, then it will just be a reference to
+	the single-result's reagents
+	*/
+	var/datum/reagents/holder = new/datum/reagents(10000000000, GLOB.temp_reagents_holder)
+	var/list/results = list()
+	for (var/_ in 1 to result_quantity)
+		var/obj/result_obj = new result_path(container)
+		results.Add(result_obj)
+
+		if (!result_obj.reagents)
+			result_obj.create_reagents(buffer.total_volume*1.5)
+
+		if (result_quantity == 1)
+			qdel(holder)
+			holder = result_obj.reagents
+		else
+			result_obj.reagents.trans_to_holder(holder, result_obj.reagents.total_volume)
+
+	switch(reagent_mix)
+		if (RECIPE_REAGENT_SUM)
+			buffer.trans_to_holder(holder, buffer.total_volume)
+		if (RECIPE_REAGENT_MAX)
+			for (var/datum/reagent/reagent in buffer.reagent_list)
+				var/rvol = holder.get_reagent_amount(reagent.type)
+				if (rvol < reagent.volume)
+					buffer.trans_type_to_holder(holder, reagent, reagent.volume-rvol)
+
+		if (RECIPE_REAGENT_MIN)
+			for (var/datum/reagent/reagent in buffer.reagent_list)
+				var/rvol = holder.get_reagent_amount(reagent.type)
+				var/bvol = reagent.volume
+				if (rvol == 0)
+					buffer.trans_type_to_holder(holder, reagent, bvol)
+				else if (rvol > bvol)
+					holder.remove_reagent(reagent, rvol-bvol)
+
+	var/total = holder.total_volume
+	for (var/i in results)
+		var/obj/result_obj = i
+		holder.trans_to_obj(result_obj, total / length(results))
+		if (cooked_scent)
+			set_extension(result_obj, cooked_scent)
+
+	return results
+
+/singleton/cooking_recipe/proc/CheckReagents(datum/reagents/reagents)
+	var/required_count = length(required_reagents) + length(consumed_reagents)
+	if (!required_count)
+		return reagents.total_volume ? COOKING_CHECK_EXTRA : COOKING_CHECK_EXACT
+	if (required_count > length(reagents.reagent_list))
+		return COOKING_CHECK_FAIL
+	. = COOKING_CHECK_EXACT
+	var/list/datum/reagent/reagents_to_check = list()
+	for (var/datum/reagent/reagent as anything in consumed_reagents)
+		reagents_to_check[reagent] = consumed_reagents[reagent]
+	for (var/datum/reagent/reagent as anything in required_reagents)
+		if(reagents_to_check[reagent])
+			reagents_to_check[reagent] += required_reagents[reagent]
+		else
+			reagents_to_check[reagent] = required_reagents[reagent]
+	for (var/datum/reagent/reagent as anything in reagents_to_check)
+		var/available_amount = reagents.get_reagent_amount(reagent)
+		if (available_amount - reagents_to_check[reagent] >= 0)
+			if (available_amount > reagents_to_check[reagent])
+				. = COOKING_CHECK_EXTRA
+		else
+			return COOKING_CHECK_FAIL
+	return .
+
+
+/singleton/cooking_recipe/proc/CheckProduce(list/ingredients)
+	if (!produce_amount)
+		var/obj/item/reagent_containers/food/snacks/grown/grown = locate() in ingredients
+		return grown ? COOKING_CHECK_EXTRA : COOKING_CHECK_EXACT
+	if (produce_amount > length(ingredients))
+		return COOKING_CHECK_FAIL
+	var/list/remaining_produce = required_produce.Copy()
+	. = COOKING_CHECK_EXACT
+	for (var/obj/item/reagent_containers/food/snacks/grown/grown in ingredients)
+		var/tag = grown.seed?.kitchen_tag
+		if (!tag)
+			return COOKING_CHECK_FAIL
+		if (--remaining_produce[tag] < 0)
+			. = COOKING_CHECK_EXTRA
+	for (var/tag in remaining_produce)
+		if (remaining_produce[tag])
+			return COOKING_CHECK_FAIL
+	return .
+
+
+/singleton/cooking_recipe/proc/CheckItems(obj/container as obj)
+	var/required_count = length(required_items)
+	if (!required_count)
+		return length(container?.contents) ? COOKING_CHECK_EXTRA : COOKING_CHECK_EXACT
+	if (required_count > length(container.contents))
+		return COOKING_CHECK_FAIL
+	. = COOKING_CHECK_EXACT
+	var/list/remaining = required_items.Copy()
+	for (var/obj/item/item as anything in container)
+		if (istype(item, /obj/item/reagent_containers/food/snacks/grown))
 			continue
-		possible_recipes |= recipe
-	if (possible_recipes.len==0)
+		var/remaining_count = length(remaining)
+		if (!remaining_count)
+			return COOKING_CHECK_FAIL
+		var/found = FALSE
+		for (var/i = 1 to length(remaining))
+			if (istype(item, remaining[i]))
+				remaining.Cut(i, i + 1)
+				found = TRUE
+				break
+
+		if (!found)
+			. = COOKING_CHECK_EXTRA
+		if (!length(remaining) && . != COOKING_CHECK_EXTRA)
+			return COOKING_CHECK_EXTRA
+	if (length(remaining))
+		return COOKING_CHECK_FAIL
+	return .
+
+//When exact is false, extraneous ingredients are ignored
+//When exact is true, extraneous ingredients will fail the recipe
+//In both cases, the full complement of required inredients is still needed
+/proc/select_recipe(obj/obj as obj, exact = COOKING_CHECK_EXTRA, appliance = null)
+	if(!appliance)
+		CRASH("Null appliance flag passed to select_recipe!")
+	var/list/possible_recipes = list()
+	for (var/singleton/cooking_recipe/candidate as anything in GLOB.microwave_recipes)
+		if(!(appliance & candidate.appliance))
+			continue
+		if((candidate.CheckReagents(obj.reagents) < exact) || (candidate.CheckItems(obj) < exact) || (candidate.CheckProduce(obj.contents) < exact))
+			continue
+		possible_recipes |= candidate
+	if (!length(possible_recipes))
 		return null
-	else if (possible_recipes.len==1)
-		return possible_recipes[1]
-	else //okay, let's select the most complicated recipe
-		var/highest_count = 0
-		. = possible_recipes[1]
-		for (var/datum/recipe/recipe in possible_recipes)
-			var/count = ((recipe.items)?(recipe.items.len):0) + ((recipe.reagents)?(recipe.reagents.len):0) + ((recipe.fruit)?(recipe.fruit.len):0)
-			if (count >= highest_count)
-				highest_count = count
-				. = recipe
-		return .
+	sortTim(possible_recipes, GLOBAL_PROC_REF(cmp_recipe_complexity_dsc)) // Select the most complex recipe
+	return possible_recipes[1]

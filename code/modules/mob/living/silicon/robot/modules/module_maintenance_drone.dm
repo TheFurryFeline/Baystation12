@@ -23,7 +23,7 @@
 		/obj/item/extinguisher/mini,
 		/obj/item/device/paint_sprayer,
 		/obj/item/inducer/borg,
-		/obj/item/device/plunger/robot,
+		/obj/item/clothing/mask/plunger,
 		/obj/item/inflatable_dispenser/robot,
 		/obj/item/reagent_containers/spray/cleaner/drone,
 		/obj/item/borg/sight/hud/jani,
@@ -46,22 +46,19 @@
 		/datum/matter_synth/plastic = 1000,
 		/datum/matter_synth/wire =    30
 	)
-	emag = /obj/item/gun/energy/plasmacutter
+	emag_gear = list(/obj/item/gun/energy/plasmacutter)
 	skills = list(
-		SKILL_ATMOS        = SKILL_EXPERT,
-		SKILL_ENGINES      = SKILL_EXPERT,
-		SKILL_CONSTRUCTION = SKILL_EXPERT,
-		SKILL_ELECTRICAL   = SKILL_EXPERT
+		SKILL_ATMOS        = SKILL_EXPERIENCED,
+		SKILL_ENGINES      = SKILL_EXPERIENCED,
+		SKILL_CONSTRUCTION = SKILL_EXPERIENCED,
+		SKILL_ELECTRICAL   = SKILL_EXPERIENCED
 	)
 
-/obj/item/robot_module/drone/finalize_equipment(var/mob/living/silicon/robot/R)
+/obj/item/robot_module/drone/finalize_equipment(mob/living/silicon/robot/R)
 	. = ..()
 	if(istype(R))
 		R.internals = locate(/obj/item/tank/jetpack/carbondioxide) in equipment
 
-/obj/item/robot_module/drone/finalize_emag()
-	. = ..()
-	emag.SetName("Plasma Cutter")
 
 /obj/item/robot_module/drone/finalize_synths()
 	. = ..()
@@ -106,10 +103,6 @@
 	var/obj/item/stack/material/cyborg/plastic/P = locate() in equipment
 	P.synths = list(plastic)
 
-/obj/item/robot_module/drone/respawn_consumable(var/mob/living/silicon/robot/R, var/amount)
-	..()
-	var/obj/item/reagent_containers/spray/cleaner/drone/SC = locate() in equipment
-	SC.reagents.add_reagent(/datum/reagent/space_cleaner, 8 * amount)
 
 /obj/item/robot_module/drone/construction
 	name = "construction drone module"
@@ -119,7 +112,8 @@
 	equipment += /obj/item/rcd/borg
 	. = ..()
 
-/obj/item/robot_module/drone/respawn_consumable(var/mob/living/silicon/robot/R, var/amount)
-	var/obj/item/device/lightreplacer/LR = locate() in equipment
-	LR.Charge(R, amount)
+/obj/item/robot_module/drone/respawn_consumable(mob/living/silicon/robot/R, amount)
 	..()
+	var/obj/item/device/lightreplacer/LR = locate() in equipment
+	if (LR)
+		LR.Charge(R, amount)

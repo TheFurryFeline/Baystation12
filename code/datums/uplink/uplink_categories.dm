@@ -7,10 +7,16 @@
 	items = list()
 
 /datum/uplink_category/proc/can_view(obj/item/device/uplink/U)
-	for(var/datum/uplink_item/item in items)
-		if(item.can_view(U))
-			return 1
-	return 0
+	if (istype(src, /datum/uplink_category/all_items))
+		return TRUE
+	for (var/datum/uplink_item/item in items)
+		if (item.can_view(U))
+			return TRUE
+	return FALSE
+
+// Don't add items to this category, it'll pick up items from all other categories.
+/datum/uplink_category/all_items
+	name = "All Items"
 
 /datum/uplink_category/ammunition
 	name = "Ammunition"
@@ -47,6 +53,9 @@
 
 /datum/uplink_category/badassery
 	name = "Badassery"
+
+/datum/uplink_category/structures_and_vehicles
+	name = "Structures & Vehicles"
 
 /datum/uplink_category/telecrystals
 	name = "Telecrystal Materialization"

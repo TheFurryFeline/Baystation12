@@ -12,7 +12,10 @@
 	var/accessibility_weight = 0
 	var/template_flags = TEMPLATE_FLAG_ALLOW_DUPLICATES
 
-/datum/map_template/New(var/list/paths = null, var/rename = null)
+	/// Null, or a string reason for this type to be skipped in unit testing.
+	var/skip_main_unit_tests
+
+/datum/map_template/New(list/paths = null, rename = null)
 	if(paths && !islist(paths))
 		crash_with("Non-list paths passed into map template constructor.")
 	if(paths)
@@ -28,7 +31,7 @@
 	var/list/bounds = list(1.#INF, 1.#INF, 1.#INF, -1.#INF, -1.#INF, -1.#INF)
 	var/z_offset = 1 // needed to calculate z-bounds correctly
 	for (var/mappath in mappaths)
-		var/datum/map_load_metadata/M = maploader.load_map(file(mappath), 1, 1, z_offset, cropMap=FALSE, measureOnly=TRUE, no_changeturf=TRUE, clear_contents= template_flags & TEMPLATE_FLAG_CLEAR_CONTENTS)
+		var/datum/map_load_metadata/M = GLOB.maploader.load_map(file(mappath), 1, 1, z_offset, cropMap=FALSE, measureOnly=TRUE, no_changeturf=TRUE, clear_contents= template_flags & TEMPLATE_FLAG_CLEAR_CONTENTS)
 		if(M)
 			bounds = extend_bounds_if_needed(bounds, M.bounds)
 			z_offset++
@@ -39,7 +42,7 @@
 	tallness = bounds[MAP_MAXZ] - bounds[MAP_MINZ] + 1
 	return TRUE
 
-/datum/map_template/proc/init_atoms(var/list/atoms)
+/datum/map_template/proc/init_atoms(list/atoms)
 	if (SSatoms.atom_init_stage == INITIALIZATION_INSSATOMS)
 		return // let proper initialisation handle it later
 
@@ -49,7 +52,7 @@
 	var/list/obj/structure/cable/cables = list()
 
 	for(var/atom/A in atoms)
-		if(istype(A, /turf))
+		if(isturf(A))
 			turfs += A
 		if(istype(A, /obj/structure/cable))
 			cables += A
@@ -57,7 +60,7 @@
 			atmos_machines += A
 		if(istype(A, /obj/machinery))
 			machines += A
-		if(istype(A,/obj/effect/landmark/map_load_mark))
+		if(istype(A,/obj/landmark/map_load_mark))
 			LAZYADD(subtemplates_to_spawn, A)
 
 	var/notsuspended
@@ -91,7 +94,7 @@
 	. = SSshuttle.block_queue
 	SSshuttle.block_queue = TRUE
 
-/datum/map_template/proc/init_shuttles(var/pre_init_state)
+/datum/map_template/proc/init_shuttles(pre_init_state)
 	for (var/shuttle_type in shuttles_to_initialise)
 		LAZYADD(SSshuttle.shuttles_to_initialize, shuttle_type) // queue up for init.
 	SSshuttle.block_queue = pre_init_state
@@ -102,6 +105,9 @@
 	var/x = round((world.maxx - width)/2)
 	var/y = round((world.maxy - height)/2)
 	var/initial_z = world.maxz + 1
+	var/next_z = initial_z //for multi-z maps, next zlevel to put the next level of the map on
+	for (var/i = 1, i <= tallness, i++)
+		INCREMENT_WORLD_Z_SIZE
 
 	if (x < 1) x = 1
 	if (y < 1) y = 1
@@ -112,11 +118,13 @@
 
 	var/initialized_areas_by_type = list()
 	for (var/mappath in mappaths)
-		var/datum/map_load_metadata/M = maploader.load_map(file(mappath), x, y, no_changeturf = no_changeturf, initialized_areas_by_type = initialized_areas_by_type)
+		var/datum/map_load_metadata/M = GLOB.maploader.load_map(file(mappath), x, y, next_z, no_changeturf = no_changeturf, initialized_areas_by_type = initialized_areas_by_type)
+		next_z += 1
 		if (M)
 			bounds = extend_bounds_if_needed(bounds, M.bounds)
 			atoms_to_initialise += M.atoms_to_initialise
 		else
+			log_debug("Failed to load map file [mappath] for [src].")
 			return FALSE
 
 	for (var/z_index = bounds[MAP_MINZ]; z_index <= bounds[MAP_MAXZ]; z_index++)
@@ -141,10 +149,13 @@
 	if(centered)
 		T = locate(T.x - round(width/2) , T.y - round(height/2) , T.z)
 	if(!T)
+		log_debug("[src] map template failed to load, could not locate a center turf.")
 		return
 	if(T.x+width > world.maxx)
+		log_debug("[src] map template failed to load, map would extend past world X bound.")
 		return
 	if(T.y+height > world.maxy)
+		log_debug("[src] map template failed to load, map would extend past world Y bound.")
 		return
 
 	var/list/atoms_to_initialise = list()
@@ -152,10 +163,11 @@
 
 	var/initialized_areas_by_type = list()
 	for (var/mappath in mappaths)
-		var/datum/map_load_metadata/M = maploader.load_map(file(mappath), T.x, T.y, T.z, cropMap=TRUE, clear_contents=(template_flags & TEMPLATE_FLAG_CLEAR_CONTENTS), initialized_areas_by_type = initialized_areas_by_type)
+		var/datum/map_load_metadata/M = GLOB.maploader.load_map(file(mappath), T.x, T.y, T.z, cropMap=TRUE, clear_contents=(template_flags & TEMPLATE_FLAG_CLEAR_CONTENTS), initialized_areas_by_type = initialized_areas_by_type)
 		if (M)
 			atoms_to_initialise += M.atoms_to_initialise
 		else
+			log_debug("Failed to load map file [mappath] for [src].")
 			return FALSE
 
 	//initialize things that are normally initialized after map load
@@ -169,7 +181,7 @@
 	return TRUE
 
 /datum/map_template/proc/after_load(z)
-	for(var/obj/effect/landmark/map_load_mark/mark in subtemplates_to_spawn)
+	for(var/obj/landmark/map_load_mark/mark in subtemplates_to_spawn)
 		subtemplates_to_spawn -= mark
 		if(LAZYLEN(mark.templates))
 			var/template = pick(mark.templates)
@@ -178,7 +190,7 @@
 			qdel(mark)
 	LAZYCLEARLIST(subtemplates_to_spawn)
 
-/datum/map_template/proc/extend_bounds_if_needed(var/list/existing_bounds, var/list/new_bounds)
+/datum/map_template/proc/extend_bounds_if_needed(list/existing_bounds, list/new_bounds)
 	var/list/bounds_to_combine = existing_bounds.Copy()
 	for (var/min_bound in list(MAP_MINX, MAP_MINY, MAP_MINZ))
 		bounds_to_combine[min_bound] = min(existing_bounds[min_bound], new_bounds[min_bound])
@@ -197,6 +209,6 @@
 
 //for your ever biggening badminnery kevinz000
 //? - Cyberboss
-/proc/load_new_z_level(var/file, var/name)
+/proc/load_new_z_level(file, name)
 	var/datum/map_template/template = new(file, name)
 	template.load_new_z()

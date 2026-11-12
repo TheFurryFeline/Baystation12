@@ -1,21 +1,22 @@
 /obj/item/reagent_containers/food/snacks/meat
 	name = "meat"
 	desc = "A slab of meat."
-	icon = 'icons/obj/food_ingredients.dmi'
 	icon_state = "meat"
 	slice_path = /obj/item/reagent_containers/food/snacks/rawcutlet
 	slices_num = 3
 	filling_color = "#ff1c1c"
 	center_of_mass = "x=16;y=14"
-	New()
-		..()
-		reagents.add_reagent(/datum/reagent/nutriment/protein, 9)
-		src.bitesize = 3
+	bitesize = 3
+
+
+/obj/item/reagent_containers/food/snacks/meat/New()
+	..()
+	reagents.add_reagent(/datum/reagent/nutriment/protein, 9)
+
 
 /obj/item/reagent_containers/food/snacks/meat/syntiflesh
 	name = "synthetic meat"
 	desc = "A slab of flesh synthetized from reconstituted biomass or artificially grown from chemicals."
-	icon = 'icons/obj/food.dmi'
 
 // Separate definitions because some food likes to know if it's human.
 // TODO: rewrite kitchen code to check a var on the meat item so we can remove
@@ -29,17 +30,26 @@
 	desc = "Tastes like... well, you know."
 
 /obj/item/reagent_containers/food/snacks/meat/beef
-	name = "beef slab"
+	name = "beef steak"
 	desc = "The classic red meat."
 
 /obj/item/reagent_containers/food/snacks/meat/goat
-	name = "chevon slab"
+	name = "chevon steak"
 	desc = "Goat meat, to the uncultured."
 
 /obj/item/reagent_containers/food/snacks/meat/chicken
 	name = "chicken piece"
 	desc = "It tastes like you'd expect."
+	icon_state = "birdmeat"
+
+/obj/item/reagent_containers/food/snacks/meat/chicken/printed
+	name = "synthetic chicken piece"
 
 /obj/item/reagent_containers/food/snacks/meat/chicken/game
 	name = "game bird piece"
 	desc = "Fresh game meat, harvested from some wild bird."
+
+/obj/item/reagent_containers/food/snacks/meat/thoom
+	name = "reptile steak"
+	desc = "The most expensive steak you've ever laid eyes on."
+	icon_state = "xenomeat"

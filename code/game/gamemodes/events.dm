@@ -1,9 +1,9 @@
 //this file left in for legacy support
-var/eventchance = 10 // Percent chance per 5 minutes.
-var/hadevent    = 0
+var/global/eventchance = 10 // Percent chance per 5 minutes.
+var/global/hadevent    = 0
 
 /proc/appendicitis()
-	for(var/mob/living/carbon/human/H in shuffle(GLOB.living_mob_list_))
+	for(var/mob/living/carbon/human/H in shuffle(GLOB.alive_mobs))
 		if(H.client && H.stat != DEAD)
 			var/obj/item/organ/internal/appendix/A = H.internal_organs_by_name[BP_APPENDIX]
 			if(!istype(A) || (A && A.inflamed))
@@ -21,16 +21,16 @@ var/hadevent    = 0
 
 	sleep(100)
 */
-	for(var/mob/living/carbon/human/H in GLOB.living_mob_list_)
+	for(var/mob/living/carbon/human/H in GLOB.alive_mobs)
 		var/turf/T = get_turf(H)
 		if(!T)
 			continue
 		if(isNotStationLevel(T.z))
 			continue
 		if(istype(H,/mob/living/carbon/human))
-			H.apply_damage((rand(15,75)),IRRADIATE, damage_flags = DAM_DISPERSED)
+			H.apply_damage((rand(15,75)), DAMAGE_RADIATION, damage_flags = DAMAGE_FLAG_DISPERSED)
 			if (prob(5))
-				H.apply_damage((rand(90,150)),IRRADIATE, damage_flags = DAM_DISPERSED)
+				H.apply_damage((rand(90,150)), DAMAGE_RADIATION, damage_flags = DAMAGE_FLAG_DISPERSED)
 			if (prob(25))
 				if (prob(75))
 					randmutb(H)
@@ -42,7 +42,7 @@ var/hadevent    = 0
 	GLOB.using_map.radiation_detected_announcement()
 
 /proc/carp_migration() // -- Darem
-	for(var/obj/effect/landmark/C in landmarks_list)
+	for(var/obj/landmark/C in landmarks_list)
 		if(C.name == "carpspawn")
 			new /mob/living/simple_animal/hostile/carp(C.loc)
 	//sleep(100)
@@ -58,23 +58,23 @@ var/hadevent    = 0
 
 		for(var/i=1,i<=lightsoutAmount,i++)
 			var/list/possibleEpicentres = list()
-			for(var/obj/effect/landmark/newEpicentre in landmarks_list)
+			for(var/obj/landmark/newEpicentre in landmarks_list)
 				if(newEpicentre.name == "lightsout" && !(newEpicentre in epicentreList))
 					possibleEpicentres += newEpicentre
-			if(possibleEpicentres.len)
+			if(length(possibleEpicentres))
 				epicentreList += pick(possibleEpicentres)
 			else
 				break
 
-		if(!epicentreList.len)
+		if(!length(epicentreList))
 			return
 
-		for(var/obj/effect/landmark/epicentre in epicentreList)
+		for(var/obj/landmark/epicentre in epicentreList)
 			for(var/obj/machinery/power/apc/apc in range(epicentre,lightsoutRange))
 				apc.overload_lighting()
 
 	else
-		for(var/obj/machinery/power/apc/apc in SSmachines.machinery)
+		for (var/obj/machinery/power/apc/apc as anything in MACHINES_OF(/obj/machinery/power/apc))
 			apc.overload_lighting()
 
 	return
@@ -87,7 +87,7 @@ Would like to add a law like "Law x is _______" where x = a number, and _____ is
 */
 
 	//AI laws
-	for(var/mob/living/silicon/ai/M in GLOB.living_mob_list_)
+	for(var/mob/living/silicon/ai/M in GLOB.alive_mobs)
 		if(M.stat != 2 && M.see_in_dark != 0)
 			var/who2 = pick("ALIENS", "BEARS", "CLOWNS", "XENOS", "PETES", "BOMBS", "FETISHES", "WIZARDS", "SYNDICATE AGENTS", "CENTCOM OFFICERS", "SPACE PIRATES", "TRAITORS", "MONKEYS",  "BEES", "CARP", "CRABS", "EELS", "BANDITS", "LIGHTS")
 			var/what2 = pick("BOLTERS", "STAVES", "DICE", "SINGULARITIES", "TOOLBOXES", "NETTLES", "AIRLOCKS", "CLOTHES", "WEAPONS", "MEDKITS", "BOMBS", "CANISTERS", "CHAIRS", "BBQ GRILLS", "ID CARDS", "CAPTAINS")
@@ -108,7 +108,7 @@ Would like to add a law like "Law x is _______" where x = a number, and _____ is
 			var/list/pos_crew = list()
 			for(var/mob/living/carbon/human/pos in GLOB.player_list)
 				pos_crew += pos.real_name
-			if(pos_crew.len)
+			if(length(pos_crew))
 				crew = pick(pos_crew)
 			else
 				crew = "Any Human"
@@ -143,6 +143,6 @@ Would like to add a law like "Law x is _______" where x = a number, and _____ is
 					M.add_ion_law("THE [uppertext(station_name())] IS [who2pref] [who2]")
 
 	if(botEmagChance)
-		for(var/mob/living/bot/bot in SSmachines.machinery)
+		for(var/mob/living/bot/bot in SSmobs.mob_list)
 			if(prob(botEmagChance))
 				bot.emag_act(1)

@@ -24,7 +24,7 @@
 	return TRUE
 
 /obj/machinery/computer/operating/interact(mob/user)
-	if ( (get_dist(src, user) > 1 ) || (stat & (BROKEN|NOPOWER)) )
+	if ( (get_dist(src, user) > 1 ) || (inoperable()) )
 		if (!istype(user, /mob/living/silicon))
 			user.unset_machine()
 			close_browser(user, "window=op")
@@ -32,7 +32,7 @@
 
 	user.set_machine(src)
 	var/dat = "<HEAD><TITLE>Operating Computer</TITLE><META HTTP-EQUIV='Refresh' CONTENT='10'></HEAD><BODY>\n"
-	dat += "<A HREF='?src=\ref[user];mach_close=op'>Close</A><br><br>" //| <A HREF='?src=\ref[user];update=1'>Update</A>"
+	dat += "<A HREF='byond://?src=\ref[user];mach_close=op'>Close</A><br><br>" //| <A HREF='byond://?src=\ref[user];update=1'>Update</A>"
 	if(src.table && (src.table.check_victim()))
 		src.victim = src.table.victim
 		dat += {"
@@ -51,5 +51,5 @@
 	onclose(user, "op")
 
 /obj/machinery/computer/operating/Process()
-	if(!inoperable())
+	if(operable())
 		updateDialog()

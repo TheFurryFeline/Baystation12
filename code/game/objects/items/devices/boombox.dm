@@ -11,7 +11,7 @@
 	w_class = ITEM_SIZE_HUGE //forbid putting something that emits loud sounds forever into a backpack
 	origin_tech = list(TECH_MAGNET = 2, TECH_COMBAT = 1)
 
-	var/jukebox/jukebox
+	var/datum/jukebox/jukebox
 	var/boombox_flags
 
 
@@ -39,6 +39,8 @@
 /obj/item/boombox/MouseDrop(mob/user)
 	jukebox.ui_interact(user)
 
+/obj/item/boombox/use_in_world(mob/user)
+	jukebox.ui_interact(user)
 
 /obj/item/boombox/emp_act(severity)
 	if (GET_FLAGS(boombox_flags, BOOMBOX_BROKEN))
@@ -47,6 +49,7 @@
 	playsound(src, 'sound/effects/snap.ogg', 100, 1)
 	SET_FLAGS(boombox_flags, BOOMBOX_BROKEN)
 	jukebox.Stop()
+	..()
 
 
 /obj/item/boombox/examine(mob/user, distance)
@@ -63,7 +66,7 @@
 	to_chat(user, SPAN_ITALIC(message))
 
 
-/obj/item/boombox/attackby(obj/item/item, mob/user)
+/obj/item/boombox/use_tool(obj/item/item, mob/living/user, list/click_params)
 	set waitfor = FALSE
 	if(isScrewdriver(item))
 		var/item_loc = item.loc

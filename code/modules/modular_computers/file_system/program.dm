@@ -41,6 +41,8 @@
 	var/requires_ntnet = FALSE
 	/// Optional, if above is set to TRUE, checks for specific function of NTNet (One of NTNET_*).
 	var/requires_ntnet_feature = 0
+	/// Optional, required additional parts for this program to even function on the host machine.
+	var/list/required_parts = list()
 	/// Optional string that describes what NTNet server/system this program connects to. Used in default logging.
 	var/network_destination = null
 
@@ -50,6 +52,9 @@
 	var/available_on_syndinet = FALSE
 	/// Holder for skill value of current/recent operator for programs that tick.
 	var/operator_skill = SKILL_MIN
+
+	/// How much processing size the program should take up.
+	var/processing_size = 1
 
 /datum/computer_file/program/Destroy()
 	if(computer && computer.active_program == src)
@@ -68,16 +73,17 @@
 	temp.program_icon_state = program_icon_state
 	temp.requires_ntnet = requires_ntnet
 	temp.requires_ntnet_feature = requires_ntnet_feature
+	temp.required_parts = required_parts
 	temp.usage_flags = usage_flags
 	return temp
 
 /// Relays icon update to the computer.
-/datum/computer_file/program/proc/update_computer_icon()
+/datum/computer_file/program/proc/update_computer_icon(player_instigated = FALSE)
 	if(istype(computer))
-		computer.update_host_icon()
+		computer.update_host_icon(src, player_instigated)
 		return
 
-/datum/computer_file/program/proc/is_supported_by_hardware(var/hardware_flag)
+/datum/computer_file/program/proc/is_supported_by_hardware(hardware_flag)
 	if(!(hardware_flag & usage_flags))
 		return FALSE
 	return TRUE
@@ -112,18 +118,18 @@
 	var/obj/item/card/id/I = user.GetIdCard()
 	if(!I)
 		if(loud)
-			to_chat(user, "<span class='notice'>\The [computer] flashes an \"RFID Error - Unable to scan ID\" warning.</span>")
+			to_chat(user, SPAN_NOTICE("\The [computer] flashes an \"RFID Error - Unable to scan ID\" warning."))
 		return FALSE
 
 	if(access_to_check in I.access)
 		return TRUE
 	else if(loud)
-		to_chat(user, "<span class='notice'>\The [computer] flashes an \"Access Denied\" warning.</span>")
+		to_chat(user, SPAN_NOTICE("\The [computer] flashes an \"Access Denied\" warning."))
 
 /// This attempts to retrieve header data for NanoUIs. If implementing completely new device of different type than existing ones, always include the device here in this proc. This proc basically relays the request to whatever is running the program.
 /datum/computer_file/program/proc/get_header_data()
 	if(computer)
-		return computer.get_header_data()
+		return computer.get_header_data(src)
 	return list()
 
 /// When implementing new program based device, use this to run the program. May be overriden to add extra logic. Remember to include ..() call.
@@ -149,11 +155,11 @@
 	return TRUE
 
 /// This is called every tick when the program is enabled. Ensure you do parent call if you override it. If parent returns TRUE continue with UI initialisation. It returns FALSE if it can't run or if NanoModule was used instead. I suggest using NanoModules where applicable.
-/datum/computer_file/program/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1)
+/datum/computer_file/program/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1)
 	if(program_state != PROGRAM_STATE_ACTIVE) // Our program was closed. Close the ui if it exists.
 		if(ui)
 			ui.close()
-		return computer.ui_interact(user)
+		return computer.ui_interact(user, ui_key, null, force_open)
 	if(istype(NM))
 		NM.ui_interact(user, ui_key, null, force_open)
 		return FALSE
@@ -170,11 +176,13 @@
 /datum/computer_file/program/Topic(href, href_list)
 	if(..())
 		return TOPIC_HANDLED
+	if (href_list["close"] && computer)
+		computer.window_closed(src, usr)
 	if(computer)
 		return computer.Topic(href, href_list)
 
 /// Relays the call to nano module, if we have one
-/datum/computer_file/program/proc/check_eye(var/mob/user)
+/datum/computer_file/program/proc/check_eye(mob/user)
 	if(NM)
 		return NM.check_eye(user)
 	else

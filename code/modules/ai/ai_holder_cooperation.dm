@@ -15,13 +15,9 @@
 	/// List of all mobs inside the faction with ai_holders that have cooperate on, to call for help without using range(). Note that this is only used for sending calls out. Receiving calls doesn't care about this list, only if the mob is in the faction.
 	var/list/faction_friends = list()
 
-/datum/ai_holder/New(new_holder)
-	..()
-	if (cooperative)
-		build_faction_friends()
 
 /datum/ai_holder/Destroy()
-	if (faction_friends.len) //This list is shared amongst the faction
+	if (length(faction_friends)) //This list is shared amongst the faction
 		faction_friends -= src
 	return ..()
 
@@ -29,22 +25,25 @@
 *  Call on initialization or if something weird happened like the mob switched factions.
 */
 /datum/ai_holder/proc/build_faction_friends()
-	if (faction_friends.len) // Already have a list.
+	ai_log("build_faction_friends() : Entering.", AI_LOG_DEBUG)
+	if (length(faction_friends)) // Already have a list.
 		// Assume we're moving to a new faction.
 		faction_friends -= src   // Get us out of the current list shared by everyone else.
 		faction_friends = list() // Then make our list empty and unshared in case we become a loner.
 
 	// Find another AI-controlled mob in the same faction if possible.
 	var/mob/living/first_friend
-	for (var/mob/living/L in GLOB.living_mob_list_)
+	for (var/mob/living/L in GLOB.alive_mobs)
 		if (L.faction == holder.faction && L.ai_holder)
 			first_friend = L
 			break
 
 	if (first_friend) // Joining an already established faction.
+		ai_log("build_faction_friends() : Joining existing faction of [length(first_friend.ai_holder.faction_friends)].", AI_LOG_DEBUG)
 		faction_friends = first_friend.ai_holder.faction_friends
 		faction_friends |= holder
 	else // We're the 'founder' (first and/or only member) of this faction.
+		ai_log("build_faction_friends() : Founding new faction.", AI_LOG_DEBUG)
 		faction_friends |= holder
 
 /// Requests help in combat from other mobs possessing ai_holders.
@@ -53,11 +52,10 @@
 	if (!cooperative || world.time < next_sent_help_request  || world.time < next_received_help_request)
 		return
 
-
-
 	ai_log("request_help() : Asking for help.", AI_LOG_INFO)
 	next_sent_help_request  = world.time + 10 SECONDS
-
+	if (!length(faction_friends))
+		build_faction_friends()
 	for (var/mob/living/L in faction_friends)
 		if (L == holder) // Lets not call ourselves.
 			continue

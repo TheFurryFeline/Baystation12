@@ -18,7 +18,7 @@
 /obj/screen/borer/Click(location, control, params)
 	if(!istype(usr, /mob/living/simple_animal/borer))
 		return FALSE
-	if(usr.stat == DEAD)
+	if(usr.is_dead())
 		return FALSE
 	var/mob/living/simple_animal/borer/worm = usr
 	if(!worm.host)
@@ -28,7 +28,7 @@
 /obj/screen/borer/toggle_host_control
 	name = "Seize Control"
 	icon_state = "seize_control"
-	screen_loc = "WEST-3,NORTH-1"
+	screen_loc = "WEST, NORTH"
 
 /obj/screen/borer/toggle_host_control/Click(location, control, params)
 	. = ..()
@@ -44,7 +44,10 @@
 		return
 
 	to_chat(worm, SPAN_NOTICE("You begin delicately adjusting your connection to the host brain..."))
-	if(!do_after(worm, 100+(worm.host.getBrainLoss()*5) || !worm.host || !worm.can_use_borer_ability()))
+
+	var/delay = (worm.deep_link ? 0 : 100) + worm.host.getBrainLoss() * 5
+
+	if(!do_after(worm, delay, do_flags = DO_DEFAULT | DO_USER_UNIQUE_ACT) || !worm.host || !worm.can_use_borer_ability())
 		return
 
 	to_chat(worm, SPAN_DANGER("You plunge your probosci deep into the cortex of the host brain, interfacing directly with their nervous system."))
@@ -52,40 +55,43 @@
 	worm.host.add_language(LANGUAGE_BORER_GLOBAL)
 
 	// host -> brain
-	var/h2b_id = worm.host.computer_id
-	var/h2b_ip=  worm.host.lastKnownIP
-	worm.host.computer_id = null
-	worm.host.lastKnownIP = null
+	var/h2b_id = worm.host.last_cid
+	var/h2b_ip=  worm.host.last_address
+	worm.host.last_cid = null
+	worm.host.last_address = null
 	qdel(worm.host_brain)
 	worm.host_brain = new(worm)
 	worm.host_brain.ckey = worm.host.ckey
 	worm.host_brain.SetName(worm.host.name)
-	if(!worm.host_brain.computer_id)
-		worm.host_brain.computer_id = h2b_id
-	if(!worm.host_brain.lastKnownIP)
-		worm.host_brain.lastKnownIP = h2b_ip
+	if(!worm.host_brain.last_cid)
+		worm.host_brain.last_cid = h2b_id
+	if(!worm.host_brain.last_address)
+		worm.host_brain.last_address = h2b_ip
 
 	// self -> host
-	var/s2h_id = worm.computer_id
-	var/s2h_ip= worm.lastKnownIP
-	worm.computer_id = null
-	worm.lastKnownIP = null
+	var/s2h_id = worm.last_cid
+	var/s2h_ip= worm.last_address
+	worm.last_cid = null
+	worm.last_address = null
 	worm.host.ckey = worm.ckey
-	if(!worm.host.computer_id)
-		worm.host.computer_id = s2h_id
-	if(!worm.host.lastKnownIP)
-		worm.host.lastKnownIP = s2h_ip
+	if(!worm.host.last_cid)
+		worm.host.last_cid = s2h_id
+	if(!worm.host.last_address)
+		worm.host.last_address = s2h_ip
 	worm.controlling = TRUE
 	worm.host.verbs += /mob/living/carbon/proc/release_control
 	worm.host.verbs += /mob/living/carbon/proc/punish_host
 	worm.host.verbs += /mob/living/carbon/proc/spawn_larvae
 
+	if(!worm.docile)
+		worm.host.verbs += /mob/living/carbon/proc/borer_stun
+
 	return TRUE
-	
+
 /obj/screen/borer/inject_chemicals
 	name = "Inject Chemicals"
 	icon_state = "inject_chemicals"
-	screen_loc = "WEST-2,NORTH-1"
+	screen_loc = "WEST+1, NORTH"
 
 /obj/screen/borer/inject_chemicals/Click(location, control, params)
 	. = ..()
@@ -112,7 +118,7 @@
 /obj/screen/borer/leave_host
 	name = "Leave Host"
 	icon_state = "leave_host"
-	screen_loc = "WEST-1,NORTH-1"
+	screen_loc = "WEST+2, NORTH"
 
 /obj/screen/borer/leave_host/Click(location, control, params)
 	. = ..()
@@ -127,7 +133,11 @@
 	if(worm.host.stat == CONSCIOUS)
 		to_chat(worm.host, SPAN_WARNING("An odd, uncomfortable pressure begins to build inside your skull, behind your ear..."))
 
-	if(!do_after(worm, 10 SECONDS) || !worm.can_use_borer_ability())
+	if(worm.deep_link)
+		to_chat(worm, SPAN_WARNING("Weaken your connection to the host first."))
+		return
+
+	if(!do_after(worm, 10 SECONDS, do_flags = DO_DEFAULT | DO_USER_UNIQUE_ACT) || !worm.can_use_borer_ability())
 		return
 
 	if(worm.host)

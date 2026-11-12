@@ -4,6 +4,7 @@
 	var/account_number = 0
 	var/remote_access_pin = 0
 	var/money = 0
+	var/opening_balance = 0
 	var/list/transaction_log = list()
 	var/suspended = 0
 	var/security_level = 0	//0 - auto-identify from worn ID, require only account number
@@ -11,16 +12,19 @@
 							//2 - require card and manual login
 	var/account_type = ACCOUNT_TYPE_PERSONAL
 
-/datum/money_account/New(var/account_type)
+/datum/money_account/New(account_type)
 	account_type = account_type ? account_type : ACCOUNT_TYPE_PERSONAL
 
 // is_source inverts the amount.
-/datum/money_account/proc/add_transaction(var/datum/transaction/T, is_source = FALSE)
+/datum/money_account/proc/add_transaction(datum/transaction/T, is_source = FALSE)
 	money = max(is_source ? money - T.amount : money + T.amount, 0)
 	transaction_log += T
 
 /datum/money_account/proc/get_balance()
 	return money
+
+/datum/money_account/proc/get_profit()
+	return money - opening_balance
 
 /datum/money_account/proc/log_msg(msg, machine_id)
 	var/datum/transaction/log/T = new(src, msg, machine_id)
@@ -39,7 +43,8 @@
 	return T.perform()
 
 
-/proc/create_account(var/account_name = "Default account name", var/owner_name, var/starting_funds = 0, var/account_type = ACCOUNT_TYPE_PERSONAL, var/obj/machinery/computer/account_database/source_db)
+/proc/create_account(account_name = "Default account name", owner_name, starting_funds = 0, account_type = ACCOUNT_TYPE_PERSONAL, obj/machinery/computer/account_database/source_db)
+	RETURN_TYPE(/datum/money_account)
 
 	//create a new account
 	var/datum/money_account/M = new()
@@ -53,7 +58,7 @@
 	var/datum/transaction/singular/T = new(M, (source_db ? source_db.machine_id : "NTGalaxyNet Terminal #[rand(111,1111)]"), starting_funds, "Account creation")
 	if(!source_db)
 		//set a random date, time and location some time over the past few decades
-		T.date = "[num2text(rand(1, 31))] [pick("January","February","March","April","May","June","July","August","September","October","November","December")], [GLOB.using_map.game_year-rand(8, 18)]"
+		T.date = "[num2text(rand(1, 31))] [pick(GLOB.month_names)], [GLOB.using_map.game_year-rand(8, 18)]"
 		T.time = "[rand(0,24)]:[rand(11,59)]"
 
 		M.account_number = random_id("station_account_number", 111111, 999999)
@@ -82,22 +87,25 @@
 		if(!R.stamped)
 			R.stamped = new
 		R.stamped += /obj/item/stamp
-		R.overlays += stampoverlay
+		R.AddOverlays(stampoverlay)
 		R.stamps += "<HR><i>This paper has been stamped by the Accounts Database.</i>"
 
 	//add the account
 	T.perform()
+	M.opening_balance = M.money
 	all_money_accounts.Add(M)
 
 	return M
 
 //this returns the first account datum that matches the supplied accnum/pin combination, it returns null if the combination did not match any account
-/proc/attempt_account_access(var/attempt_account_number, var/attempt_pin_number, var/security_level_passed = 0)
+/proc/attempt_account_access(attempt_account_number, attempt_pin_number, security_level_passed = 0)
+	RETURN_TYPE(/datum/money_account)
 	var/datum/money_account/D = get_account(attempt_account_number)
 	if(D && D.security_level <= security_level_passed && (!D.security_level || D.remote_access_pin == attempt_pin_number) )
 		return D
 
-/proc/get_account(var/account_number)
+/proc/get_account(account_number)
+	RETURN_TYPE(/datum/money_account)
 	for(var/datum/money_account/D in all_money_accounts)
 		if(D.account_number == account_number)
 			return D

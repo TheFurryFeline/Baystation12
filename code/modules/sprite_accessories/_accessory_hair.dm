@@ -422,9 +422,24 @@
 	icon_state = "hair_shavedbun"
 	flags = HAIR_TIEABLE
 
+/datum/sprite_accessory/hair/shavedbunalt
+	name = "Shaved Bun Alt"
+	icon_state = "hair_shavedbun_alt"
+	flags = HAIR_TIEABLE
+
 /datum/sprite_accessory/hair/halfshaved
 	name = "Half-Shaved"
 	icon_state = "hair_halfshaved"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/halfshavedalt
+	name = "Half-Shaved Alt"
+	icon_state = "hair_halfshaved_alt"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/softmohawk
+	name = "Soft Mohawk"
+	icon_state = "hair_softmohawk"
 	flags = HAIR_TIEABLE
 
 /datum/sprite_accessory/hair/halfshavedemo
@@ -668,6 +683,10 @@
 	name = "Shoulder Bob"
 	icon_state = "hair_bob_shoulder"
 
+/datum/sprite_accessory/hair/bobshoulder2
+	name = "Shoulder Bob 2"
+	icon_state = "hair_bob_shoulder2"
+
 /datum/sprite_accessory/hair/bobcurl2
 	name = "Bobcurl 2"
 	icon_state = "hair_bobcurl2"
@@ -679,6 +698,10 @@
 /datum/sprite_accessory/hair/shortbun
 	name = "Short Bun"
 	icon_state = "hair_bun_short"
+
+/datum/sprite_accessory/hair/bigbun
+	name = "Big Bun"
+	icon_state = "hair_bunbig"
 
 /datum/sprite_accessory/hair/emofringe
 	name = "Emo Fringe"
@@ -745,6 +768,26 @@
 /datum/sprite_accessory/hair/ponytail7
 	name = "Ponytail 7"
 	icon_state = "hair_ponytail7"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/ponytailtied
+	name = "Ponytail Tied"
+	icon_state = "hair_ponytail_tied"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/ponytaildinky1
+	name = "Ponytail Dinky"
+	icon_state = "hair_ponytail_dinky1"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/ponytaildinky2
+	name = "Ponytail Dinky 2"
+	icon_state = "hair_ponytail_dinky2"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/ponytaildinky3
+	name = "Ponytail Dinky 3"
+	icon_state = "hair_ponytail_dinky3"
 	flags = HAIR_TIEABLE
 
 /datum/sprite_accessory/hair/tressshoulder
@@ -834,3 +877,13 @@
 /datum/sprite_accessory/hair/mullethawk
 	name = "Mullet-Hawk"
 	icon_state = "hair_mullethawk"
+
+/datum/sprite_accessory/hair/maneshort
+	name = "Mane Short"
+	icon_state = "hair_mane_short"
+	flags = HAIR_TIEABLE
+
+/datum/sprite_accessory/hair/manelong
+	name = "Mane Long"
+	icon_state = "hair_mane_long"
+	flags = HAIR_TIEABLE

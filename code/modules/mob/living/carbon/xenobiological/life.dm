@@ -14,6 +14,7 @@
 			handle_regular_AI()
 
 /mob/living/carbon/slime/handle_environment(datum/gas_mixture/environment)
+	..()
 	if(!environment)
 		adjustToxLoss(rand(10,20))
 		return
@@ -145,7 +146,7 @@
 	if(nutrition <= 0)
 		adjustToxLoss(2)
 		if (client && prob(5))
-			to_chat(src, "<span class='danger'>You are starving!</span>")
+			to_chat(src, SPAN_DANGER("You are starving!"))
 
 	else if (nutrition >= get_grow_nutrition() && amount_grown < SLIME_EVOLUTION_THRESHOLD)
 		adjust_nutrition(-20)

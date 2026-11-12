@@ -1,10 +1,9 @@
 //quality code theft
 #include "blueriver_areas.dm"
-/obj/effect/overmap/visitable/sector/arcticplanet
-	name = "arctic planetoid"
-	desc = "Sensor array detects an arctic planet with a small vessle on the planet's surface. Scans further indicate strange energy levels below the planet's surface."
-	in_space = 0
-	known = 1
+/obj/overmap/visitable/sector/arcticplanet
+	name = "arctic dwarf planet"
+	desc = "Sensor array detects an arctic planet with a small vessel on the planet's surface. Scans further indicate strange energy emissions from below the planet's surface."
+	sector_flags = FLAGS_OFF
 	icon_state = "globe"
 	initial_generic_waypoints = list(
 		"nav_blueriv_1",
@@ -13,7 +12,7 @@
 		"nav_blueriv_antag"
 	)
 
-/obj/effect/overmap/visitable/sector/arcticplanet/New(nloc, max_x, max_y)
+/obj/overmap/visitable/sector/arcticplanet/New(nloc, max_x, max_y)
 	name = "[generate_planet_name()], \a [name]"
 	..()
 
@@ -21,7 +20,7 @@
 	name = "Bluespace River"
 	id = "awaysite_blue"
 	spawn_cost = 2
-	description = "Two z-level map with an arctic planet and an alien underground surface"
+	description = "An arctic planet and an alien underground surface"
 	suffixes = list("blueriver/blueriver-1.dmm", "blueriver/blueriver-2.dmm")
 	generate_mining_by_z = 2
 	area_usage_test_exempted_root_areas = list(/area/bluespaceriver)
@@ -47,7 +46,7 @@
 
 	harm_intent_damage = 8
 	natural_weapon = /obj/item/natural_weapon/defender_blades
-	ai_holder_type = /datum/ai_holder/simple_animal/melee/defender
+	ai_holder = /datum/ai_holder/simple_animal/melee/defender
 	var/attack_mode = FALSE
 
 	var/transformation_delay_min = 4
@@ -113,22 +112,22 @@
 	health = 80
 	can_escape = FALSE
 
-/obj/effect/shuttle_landmark/nav_blueriv/nav1
+/obj/shuttle_landmark/nav_blueriv/nav1
 	name = "Arctic Planet Landing Point #1"
 	landmark_tag = "nav_blueriv_1"
 	base_area = /area/bluespaceriver/ground
 
-/obj/effect/shuttle_landmark/nav_blueriv/nav2
+/obj/shuttle_landmark/nav_blueriv/nav2
 	name = "Arctic Planet Landing Point #2"
 	landmark_tag = "nav_blueriv_2"
 	base_area = /area/bluespaceriver/ground
 
-/obj/effect/shuttle_landmark/nav_blueriv/nav3
+/obj/shuttle_landmark/nav_blueriv/nav3
 	name = "Arctic Planet Landing Point #3"
 	landmark_tag = "nav_blueriv_3"
 	base_area = /area/bluespaceriver/ground
 
-/obj/effect/shuttle_landmark/nav_blueriv/nav4
+/obj/shuttle_landmark/nav_blueriv/nav4
 	name = "Arctic Planet Navpoint #4"
 	landmark_tag = "nav_blueriv_antag"
 	base_area = /area/bluespaceriver/ground
@@ -143,7 +142,7 @@
 /turf/simulated/floor/away/blueriver/alienfloor/Initialize()
 	.=..()
 
-	set_light(0.7, 1, 5, l_color = "#0066ff")
+	set_light(5, 0.7, l_color = "#0066ff")
 
 /turf/unsimulated/wall/away/blueriver/livingwall
 	name = "alien wall"
@@ -174,7 +173,7 @@
 	.=..()
 
 	icon_state = "bluespacecrystal[rand(1,3)]"
-	set_light(0.7, 1, 5, l_color = "#0066ff")
+	set_light(5, 1, l_color = "#0066ff")
 
 /turf/unsimulated/wall/supermatter/no_spread/Process()
 	return PROCESS_KILL
@@ -186,21 +185,10 @@
 	density = TRUE
 	anchored = TRUE
 
-/obj/structure/deity/attackby(obj/item/W as obj, mob/user as mob)
-	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(src)
-	playsound(get_turf(src), 'sound/effects/Glasshit.ogg', 50, 1)
-	user.visible_message(
-		"<span class='danger'>[user] hits \the [src] with \the [W]!</span>",
-		"<span class='danger'>You hit \the [src] with \the [W]!</span>",
-		"<span class='danger'>You hear something breaking!</span>"
-		)
-	damage_health(W.force, W.damtype)
 
-/obj/structure/deity/handle_death_change(new_death_state)
-	if (new_death_state)
-		visible_message(SPAN_DANGER("\The [src] crumbles!"))
-		qdel(src)
+/obj/structure/deity/on_death()
+	visible_message(SPAN_DANGER("\The [src] crumbles!"))
+	qdel(src)
 
-/obj/structure/deity/bullet_act(var/obj/item/projectile/P)
+/obj/structure/deity/bullet_act(obj/item/projectile/P)
 	damage_health(P.get_structure_damage(), P.damage_type)

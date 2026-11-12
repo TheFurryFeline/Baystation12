@@ -1,5 +1,5 @@
 /obj/item/clothing/glasses/hud
-	name = "HUD"
+	name = "\improper HUD"
 	desc = "A heads-up display that provides important info in (almost) real time."
 	origin_tech = list(TECH_MAGNET = 3, TECH_BIO = 2)
 	var/list/icon/current = list() //the current hud icons
@@ -7,8 +7,6 @@
 	gender = NEUTER
 	toggleable = TRUE
 	action_button_name = "Toggle HUD"
-	activation_sound = sound('sound/machines/boop1.ogg', volume = 10)
-	deactivation_sound = sound('sound/effects/compbeep1.ogg', volume = 30)
 
 	species_restricted = null
 
@@ -17,11 +15,11 @@
 	toggle_on_message = "\The [src] boots up to life, flashing with information."
 	toggle_off_message = "\The [src] powers down with a beep."
 
-/obj/item/clothing/glasses/proc/process_hud(var/mob/M)
+/obj/item/clothing/glasses/proc/process_hud(mob/M)
 	if(hud)
 		hud.process_hud(M)
 
-/obj/item/clothing/glasses/hud/process_hud(var/mob/M)
+/obj/item/clothing/glasses/hud/process_hud(mob/M)
 	return
 
 /obj/item/clothing/glasses/hud/health
@@ -33,7 +31,7 @@
 	body_parts_covered = 0
 	req_access = list(access_medical)
 
-/obj/item/clothing/glasses/hud/health/process_hud(var/mob/M)
+/obj/item/clothing/glasses/hud/health/process_hud(mob/M)
 	process_med_hud(M, 1)
 
 /obj/item/clothing/glasses/hud/health/prescription
@@ -44,12 +42,23 @@
 	off_state = "healthhudpresc_off"
 	item_state = "healthhudpresc"
 
+/obj/item/clothing/glasses/hud/health/aviators
+	name = "HUD aviators"
+	desc = "A medical HUD integrated into a pair of aviator sunglasses. It does little to protect against the sun, but it sure looks cool."
+	icon_state = "health_avi_on"
+	off_state = "avi_off"
+	item_state = "health_avi_on"
+
+/obj/item/clothing/glasses/hud/health/aviators/prescription
+	prescription = 5
+	desc = "A medical HUD integrated into a pair of aviator sunglasses. These ones have eyesight-correcting lenses."
+
 /obj/item/clothing/glasses/hud/health/goggle
 	name = "medical HUD visor"
 	desc = "A medical HUD integrated with a wide visor."
-	icon_state = "material"
+	icon_state = "medgoggles"
 	off_state = "degoggles"
-	item_state = "material"
+	item_state = "medgoggles"
 	body_parts_covered = EYES
 
 /obj/item/clothing/glasses/hud/health/goggle/prescription
@@ -63,8 +72,8 @@
 	off_state = "securityhud_off"
 	hud_type = HUD_SECURITY
 	body_parts_covered = 0
-	var/global/list/jobs[0]
-	req_access = list(access_security)
+	var/static/list/jobs = list()
+	req_access = list(access_brig)
 
 /obj/item/clothing/glasses/hud/security/prescription
 	name = "prescription security HUD"
@@ -85,8 +94,42 @@
 	see_invisible = SEE_INVISIBLE_NOLIGHTING
 
 
-/obj/item/clothing/glasses/hud/security/process_hud(var/mob/M)
+/obj/item/clothing/glasses/hud/security/process_hud(mob/M)
 	process_sec_hud(M, 1)
+
+/obj/item/clothing/glasses/hud/security/prot
+	name = "\improper HUD goggles"
+	desc = "A pair of goggles with a SECHUD and polarization toggle."
+	icon_state = "secgoggles"
+	off_state = "degoggles"
+	flash_protection = FLASH_PROTECTION_MODERATE
+	body_parts_covered = EYES
+
+/obj/item/clothing/glasses/hud/security/prot/prescription
+	prescription = 5
+	desc = "A pair of goggles with a SECHUD and polarization toggle. These ones have eyesight-correcting lenses."
+
+/obj/item/clothing/glasses/hud/security/prot/sunglasses
+	name = "\improper HUD sunglasses"
+	desc = "Glasses with a SECHUD and polarization toggle."
+	icon_state = "sunhud"
+	off_state = "sunhud_off"
+	body_parts_covered = null
+
+/obj/item/clothing/glasses/hud/security/prot/sunglasses/prescription
+	prescription = 5
+	desc = "Glasses with a SECHUD and polarization toggle. These ones have eyesight-correcting lenses."
+
+/obj/item/clothing/glasses/hud/security/prot/aviators
+	name = "\improper HUD aviators"
+	desc = "Aviators with a SECHUD and polarization toggle."
+	icon_state = "sec_avi_on"
+	off_state = "sec_avi_off"
+	body_parts_covered = null
+
+/obj/item/clothing/glasses/hud/security/prot/aviators/prescription
+	prescription = 5
+	desc = "Aviators with a SECHUD and polarization toggle. These ones have eyesight-correcting lenses."
 
 /obj/item/clothing/glasses/hud/janitor
 	name = "janiHUD"
@@ -104,7 +147,18 @@
 	desc = "A janitor HUD integrated with a set of prescription glasses."
 	prescription = 5
 
-/obj/item/clothing/glasses/hud/janitor/process_hud(var/mob/M)
+/obj/item/clothing/glasses/hud/janitor/aviators
+	name = "HUD aviators"
+	desc = "A janitorial HUD integrated into a pair of aviator sunglasses. It does little to protect against the sun, but it sure looks cool."
+	icon_state = "jani_avi_on"
+	off_state = "avi_off"
+	item_state = "jani_avi_on"
+
+/obj/item/clothing/glasses/hud/janitor/aviators/prescription
+	prescription = 5
+	desc = "A janitorial HUD integrated into a pair of aviator sunglasses. These ones have eyesight-correcting lenses."
+
+/obj/item/clothing/glasses/hud/janitor/process_hud(mob/M)
 	process_jani_hud(M)
 
 /obj/item/clothing/glasses/hud/science
@@ -122,3 +176,14 @@
 	item_state = "scihudpresc"
 	desc = "A science HUD integrated with a set of prescription glasses."
 	prescription = 5
+
+/obj/item/clothing/glasses/hud/science/aviators
+	name = "HUD aviators"
+	desc = "A scientific HUD integrated into a pair of aviator sunglasses. It does little to protect against the sun, but it sure looks cool."
+	icon_state = "sci_avi_on"
+	off_state = "avi_off"
+	item_state = "sci_avi_on"
+
+/obj/item/clothing/glasses/hud/science/aviators/prescription
+	prescription = 5
+	desc = "A scientific HUD integrated into a pair of aviator sunglasses. These ones have eyesight-correcting lenses."

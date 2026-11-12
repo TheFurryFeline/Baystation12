@@ -22,6 +22,7 @@
 /area/map_template/hydrobase/solars
 	name = "\improper X207 Solar Array"
 	icon_state = "solar"
+	turfs_airless = TRUE
 
 /area/map_template/hydrobase/station/processing
 	name = "\improper X207 Processing Area"
@@ -77,11 +78,10 @@
 	name = "hydroponics supplies locker"
 	req_access = list()
 
-/obj/item/projectile/beam/drone/weak
-	damage = 7
+
+/obj/item/natural_weapon/hooves/strong/force = 15
 
 
-// Mobs //
 /mob/living/simple_animal/hostile/retaliate/goat/hydro
 	name = "goat"
 	desc = "An impressive goat, in size and coat. His horns look pretty serious!"
@@ -90,8 +90,9 @@
 	natural_weapon = /obj/item/natural_weapon/hooves/strong
 	faction = "farmbots"
 
-/obj/item/natural_weapon/hooves/strong
-	force = 15
+
+/obj/item/projectile/beam/drone/weak/damage = 7
+
 
 /mob/living/simple_animal/hostile/retaliate/malf_drone/hydro
 	name = "Farmbot"
@@ -103,26 +104,41 @@
 	faction = "farmbots"
 	health = 225
 	maxHealth = 225
-	malfunctioning = 0
-
-	ai_holder_type = /datum/ai_holder/simple_animal/passive
-
+	malfunctioning = FALSE
 	say_list_type = /datum/say_list/malf_drone/hydro
+	trail = null
+
 
 /mob/living/simple_animal/hostile/retaliate/malf_drone/hydro/Initialize()
 	. = ..()
-	if(prob(15))
+	if (prob(50))
 		projectiletype = /obj/item/projectile/beam/drone/weak
 
-/mob/living/simple_animal/hostile/retaliate/malf_drone/hydro/emp_act(severity)
-	health -= rand(5,10) * (severity + 1)
-	disabled = rand(15, 30)
-	malfunctioning = 1
-	hostile_drone = 1
-	destroy_surroundings = 1
-	projectiletype = initial(projectiletype)
-	walk(src,0)
 
-/datum/say_list/malf_drone/hydro
-	speak = list("Initiating harvesting subrout-ine-ine.", "Connection timed out.", "Connection with master AI syst-tem-tem lost.", "Core systems override enab-...")
-	emote_see = list("beeps repeatedly", "whirrs violently", "flashes its indicator lights", "emits a ping sound")
+/mob/living/simple_animal/hostile/retaliate/malf_drone/hydro/emp_act(severity)
+	SHOULD_CALL_PARENT(FALSE)
+	if (status_flags & GODMODE)
+		return
+	health -= rand(5, 10) * (severity + 1)
+	disabled = rand(15, 30)
+	malfunctioning = TRUE
+	hostile_drone = TRUE
+	destroy_surroundings = TRUE
+	projectiletype = initial(projectiletype)
+	walk(src, 0)
+	GLOB.empd_event.raise_event(src, severity)
+
+
+/datum/say_list/malf_drone/hydro/speak = list(
+	"Initiating harvesting subrout-ine-ine.",
+	"Connection timed out.",
+	"Connection with master AI syst-tem-tem lost.",
+	"Core systems override enab-..."
+)
+
+/datum/say_list/malf_drone/hydro/emote_see = list(
+	"beeps repeatedly",
+	"whirrs violently",
+	"flashes its indicator lights",
+	"emits a ping sound"
+)

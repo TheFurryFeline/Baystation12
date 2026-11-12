@@ -15,18 +15,22 @@
 		/obj/item/tank/jetpack/carbondioxide
 	)
 	var/id
+	access = list(
+		access_syndicate
+	)
+	use_map_synth_access = FALSE
 
 /obj/item/robot_module/syndicate/Initialize()
-	for(var/decl/hierarchy/skill/skill in GLOB.skills)
-		skills[skill.type] = SKILL_EXPERT
+	for(var/singleton/hierarchy/skill/skill in GLOB.skills)
+		skills[skill.type] = SKILL_EXPERIENCED
 	. = ..()
 
-/obj/item/robot_module/syndicate/build_equipment(var/mob/living/silicon/robot/R)
+/obj/item/robot_module/syndicate/build_equipment(mob/living/silicon/robot/R)
 	. = ..()
 	id = R.idcard
 	equipment += id
 
-/obj/item/robot_module/syndicate/finalize_equipment(var/mob/living/silicon/robot/R)
+/obj/item/robot_module/syndicate/finalize_equipment(mob/living/silicon/robot/R)
 	var/obj/item/tank/jetpack/carbondioxide/jetpack = locate() in equipment
 	R.internals = jetpack
 	. = ..()

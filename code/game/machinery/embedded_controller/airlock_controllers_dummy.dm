@@ -1,8 +1,8 @@
 // Provides remote access to a controller (since they must be unique).
 /obj/machinery/dummy_airlock_controller
 	name = "airlock control terminal"
-	icon = 'icons/obj/airlock_machines.dmi'
-	icon_state = "airlock_control_standby"
+	icon = 'icons/obj/doors/airlock_machines.dmi'
+	icon_state = "airlock_control_off"
 	layer = ABOVE_OBJ_LAYER
 
 	var/datum/topic_state/remote/remote_state
@@ -16,7 +16,7 @@
 /obj/machinery/dummy_airlock_controller/Initialize()
 	. = ..()
 	if(id_tag)
-		for(var/obj/machinery/embedded_controller/radio/airlock/_master in SSmachines.machinery)
+		for(var/obj/machinery/embedded_controller/radio/airlock/_master as anything in MACHINES_OF(/obj/machinery/embedded_controller/radio/airlock))
 			if(_master.id_tag == id_tag)
 				master_controller = _master
 				master_controller.dummy_terminals += src
@@ -34,16 +34,16 @@
 		remote_state = null
 	return ..()
 
-/obj/machinery/dummy_airlock_controller/interface_interact(var/mob/user)
+/obj/machinery/dummy_airlock_controller/interface_interact(mob/user)
 	open_remote_ui(user)
 	return TRUE
 
-/obj/machinery/dummy_airlock_controller/proc/open_remote_ui(var/mob/user)
+/obj/machinery/dummy_airlock_controller/proc/open_remote_ui(mob/user)
 	if(master_controller)
 		appearance = master_controller
 		return master_controller.ui_interact(user, state = remote_state)
 
-/obj/machinery/dummy_airlock_controller/powered(var/chan = -1, var/area/check_area = null)
+/obj/machinery/dummy_airlock_controller/powered(chan = -1, area/check_area = null)
 	if(master_controller)
 		var/area/A = get_area(master_controller)
 		return master_controller.powered(chan, A)

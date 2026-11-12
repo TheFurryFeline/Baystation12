@@ -3,6 +3,7 @@
 	desc = "A majestic spaceborne cetacean. A true sight to behold."
 	icon = 'icons/mob/simple_animal/space_whale.dmi'
 	icon_state = "alive"
+	icon_living = "alive"
 	icon_dead = "dead"
 
 	health = 250
@@ -37,7 +38,7 @@
 	var/species_colors = list(COLOR_COMMAND_BLUE, COLOR_PURPLE, COLOR_DARK_BLUE_GRAY, COLOR_PALE_PINK)
 	var/mob/living/simple_animal/passive/juvenile_space_whale/baby
 
-	ai_holder_type = /datum/ai_holder/simple_animal/retaliate
+	ai_holder = /datum/ai_holder/simple_animal/retaliate
 	say_list_type = /datum/say_list/space_whale
 
 /obj/item/natural_weapon/whalebone
@@ -73,7 +74,7 @@
 // 	if(istype(M, /mob/living/simple_animal/passive/juvenile_space_whale))
 // 		return FALSE
 
-/mob/living/simple_animal/hostile/retaliate/space_whale/Allow_Spacemove()
+/mob/living/simple_animal/hostile/retaliate/space_whale/Process_Spacemove(allow_movement)
 	return TRUE
 
 /datum/say_list/space_whale

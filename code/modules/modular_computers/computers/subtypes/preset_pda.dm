@@ -13,6 +13,7 @@
 	var/datum/extension/interactive/ntos/os = get_extension(src, /datum/extension/interactive/ntos)
 	if(os)
 		os.create_file(new/datum/computer_file/program/email_client())
+		os.create_file(new/datum/computer_file/program/chatclient())
 		os.create_file(new/datum/computer_file/program/crew_manifest())
 		os.create_file(new/datum/computer_file/program/wordprocessor())
 		os.create_file(new/datum/computer_file/program/records())
@@ -92,3 +93,14 @@
 /obj/item/modular_computer/pda/roboticist/install_default_hardware()
 	..()
 	scanner = new /obj/item/stock_parts/computer/scanner/robotic(src)
+
+/obj/item/modular_computer/pda/ert/install_default_hardware()
+	..()
+	scanner = new /obj/item/stock_parts/computer/scanner/medical(src)
+
+/obj/item/modular_computer/pda/ert/install_default_programs()
+	..()
+	var/datum/extension/interactive/ntos/os = get_extension(src, /datum/extension/interactive/ntos)
+	if(!os)
+		return
+	os.create_file(new/datum/computer_file/program/camera_monitor/ert())

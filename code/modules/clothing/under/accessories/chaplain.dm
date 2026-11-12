@@ -1,14 +1,10 @@
 /obj/item/clothing/accessory/chaplain
+	abstract_type = /obj/item/clothing/accessory/chaplain
 	name = "base chaplain insignia"
+	icon_state = null
 	item_state = "chaplaininsignia"
-	on_rolled = list("down" = "none")
+	on_rolled_down = ACCESSORY_ROLLED_NONE
 	slot = ACCESSORY_SLOT_INSIGNIA
-
-
-/obj/item/clothing/accessory/chaplain/Initialize()
-	. = ..()
-	INIT_SKIP_QDELETED
-	INIT_DISALLOW_TYPE(/obj/item/clothing/accessory/chaplain)
 
 
 /obj/item/clothing/accessory/chaplain/christianity
@@ -16,7 +12,6 @@
 	desc = "An insignia worn by chaplains. The cross represents Christianity."
 	icon_state = "christianinsignia"
 	item_state = "chaplaininsignia"
-	on_rolled = list("down" = "none")
 	slot = ACCESSORY_SLOT_INSIGNIA
 
 
@@ -65,3 +60,10 @@
 	name = "chaplain insignia (taoism)"
 	desc = "An insignia worn by chaplains. The yin yang represents Taoism."
 	icon_state = "taoinsignia"
+
+
+/obj/item/clothing/accessory/stole
+	name = "stole"
+	desc = "A long, colourful liturgical vestment used by Christian clergy."
+	icon_state = "stole"
+	w_class = ITEM_SIZE_SMALL

@@ -19,6 +19,10 @@
 	if(!id_tag)
 		id_tag = machine.id_tag
 
+/obj/item/stock_parts/radio/proc/set_id_tag(new_tag)
+	id_tag = new_tag
+	set_frequency(frequency, filter)
+
 /obj/item/stock_parts/radio/proc/set_frequency(new_frequency, new_filter)
 	radio_controller.remove_object(src, frequency)
 	frequency = new_frequency
@@ -34,5 +38,5 @@
 		if(!is_valid_event(machine, events[thing]))
 			LAZYREMOVE(events, thing)
 
-/obj/item/stock_parts/radio/proc/is_valid_event(obj/machinery/machine, decl/public_access/variable)
+/obj/item/stock_parts/radio/proc/is_valid_event(obj/machinery/machine, singleton/public_access/variable)
 	return istype(variable) && LAZYACCESS(machine.public_variables, variable.type)

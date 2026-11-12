@@ -13,7 +13,7 @@
 	var/intialOxy = 0
 	var/timer = 240 //eventually the person will be freed
 
-/obj/structure/closet/statue/New(loc, var/mob/living/L)
+/obj/structure/closet/statue/New(loc, mob/living/L)
 	if(L && (ishuman(L) || L.is_species(SPECIES_MONKEY) || iscorgi(L)))
 		if(L.buckled)
 			L.buckled = 0
@@ -40,7 +40,7 @@
 			icon_state = "corgi"
 			desc = "If it takes forever, I will wait for you..."
 
-	if(health_max == 0) //meaning if the statue didn't find a valid target
+	if(!get_max_health()) //meaning if the statue didn't find a valid target
 		qdel(src)
 		return
 
@@ -80,29 +80,9 @@
 /obj/structure/closet/statue/toggle()
 	return
 
-/obj/structure/closet/statue/handle_death_change(new_death_state)
-	if (new_death_state)
-		for (var/mob/M in src)
-			shatter(M)
-
-/obj/structure/closet/statue/bullet_act(var/obj/item/projectile/Proj)
-	damage_health(Proj.get_structure_damage(), Proj.damage_type)
-
-	return
-
-/obj/structure/closet/statue/attack_generic(var/mob/user, damage, attacktext, environment_smash)
-	if(damage && environment_smash)
-		kill_health()
-
-/obj/structure/closet/statue/ex_act(severity)
-	for(var/mob/M in src)
-		M.ex_act(severity)
-		damage_health(60 / severity, BRUTE)
-
-/obj/structure/closet/statue/attackby(obj/item/I as obj, mob/user as mob)
-	damage_health(I.force, I.damtype)
-	user.do_attack_animation(src)
-	visible_message("<span class='danger'>[user] strikes [src] with [I].</span>")
+/obj/structure/closet/statue/on_death()
+	for (var/mob/M in src)
+		shatter(M)
 
 /obj/structure/closet/statue/MouseDrop_T()
 	return
@@ -123,5 +103,5 @@
 	if (user)
 		user.dust()
 	dump_contents()
-	visible_message("<span class='warning'>[src] shatters!.</span>")
+	visible_message(SPAN_WARNING("[src] shatters!."))
 	qdel(src)

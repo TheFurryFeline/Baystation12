@@ -27,7 +27,7 @@
 
 /obj/item/integrated_circuit/input/button/OnICTopic(href_list, user)
 	if(href_list["press"])
-		to_chat(user, "<span class='notice'>You press the button labeled '[src.displayed_name]'.</span>")
+		to_chat(user, SPAN_NOTICE("You press the button labeled '[src.displayed_name]'."))
 		activate_pin(1)
 		return IC_TOPIC_REFRESH
 
@@ -41,8 +41,10 @@
 	activators = list("on toggle" = IC_PINTYPE_PULSE_OUT)
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 
-/obj/item/integrated_circuit/input/toggle_button/emp_act()
-	return // This is a mainly physical thing, not affected by electricity
+// This is a mainly physical thing, not affected by electricity
+/obj/item/integrated_circuit/input/toggle_button/emp_act(severity)
+	SHOULD_CALL_PARENT(FALSE)
+	return
 
 /obj/item/integrated_circuit/input/toggle_button/get_topic_data(mob/user)
 	return list("Toggle [get_pin_data(IC_OUTPUT, 1) ? "Off" : "On"]" = "toggle=1")
@@ -52,7 +54,7 @@
 		set_pin_data(IC_OUTPUT, 1, !get_pin_data(IC_OUTPUT, 1))
 		push_data()
 		activate_pin(1)
-		to_chat(user, "<span class='notice'>You toggle the button labeled '[src.name]' [get_pin_data(IC_OUTPUT, 1) ? "on" : "off"].</span>")
+		to_chat(user, SPAN_NOTICE("You toggle the button labeled '[src.name]' [get_pin_data(IC_OUTPUT, 1) ? "on" : "off"]."))
 		return IC_TOPIC_REFRESH
 
 /obj/item/integrated_circuit/input/numberpad
@@ -145,7 +147,7 @@
 		return
 	if(H.Adjacent(get_turf(src))) // Like normal analysers, it can't be used at range.
 		var/obj/item/organ/internal/brain/brain = H.internal_organs_by_name[BP_BRAIN]
-		set_pin_data(IC_OUTPUT, 1, (brain && H.stat != DEAD))
+		set_pin_data(IC_OUTPUT, 1, (brain && !H.is_dead()))
 		set_pin_data(IC_OUTPUT, 2, H.get_pulse_as_number())
 		set_pin_data(IC_OUTPUT, 3, (H.stat == 0))
 
@@ -177,7 +179,7 @@
 	spawn_flags = IC_SPAWN_RESEARCH
 	power_draw_per_use = 80
 
-/obj/item/integrated_circuit/input/adv_med_scanner/proc/damage_to_severity(var/value)
+/obj/item/integrated_circuit/input/adv_med_scanner/proc/damage_to_severity(value)
 	if(value < 1)
 		return 0
 	if(value < 25)
@@ -199,7 +201,7 @@
 
 
 		var/obj/item/organ/internal/brain/brain = H.internal_organs_by_name[BP_BRAIN]
-		set_pin_data(IC_OUTPUT, 1, (brain && H.stat != DEAD))
+		set_pin_data(IC_OUTPUT, 1, (brain && !H.is_dead()))
 		set_pin_data(IC_OUTPUT, 2, (H.stat == 0))
 		set_pin_data(IC_OUTPUT, 3, damage_to_severity(100 * H.getBruteLoss() / H.maxHealth))
 		set_pin_data(IC_OUTPUT, 4, damage_to_severity(100 * H.getFireLoss() / H.maxHealth))
@@ -295,7 +297,7 @@
 	var/obj/machinery/portable_atmospherics/hydroponics/H = get_pin_data_as_type(IC_INPUT, 1, /obj/machinery/portable_atmospherics/hydroponics)
 	if(!istype(H)) //Invalid input
 		return
-	for(var/i=1, i<=outputs.len, i++)
+	for(var/i=1, i<=length(outputs), i++)
 		set_pin_data(IC_OUTPUT, i, null)
 	if(H in view(get_turf(src))) // Like medbot's analyzer it can be used in range..
 		if(H.seed)
@@ -338,7 +340,7 @@
 	var/obj/machinery/portable_atmospherics/hydroponics/H = get_pin_data_as_type(IC_INPUT, 1, /obj/machinery/portable_atmospherics/hydroponics)
 	if(!istype(H)) //Invalid input
 		return
-	for(var/i=1, i<=outputs.len, i++)
+	for(var/i=1, i<=length(outputs), i++)
 		set_pin_data(IC_OUTPUT, i, null)
 	if(H in view(get_turf(src))) // Like medbot's analyzer it can be used in range..
 		if(H.seed)
@@ -423,8 +425,8 @@
 		activate_pin(3)
 		return
 	var/turf/T = get_turf(assembly)
-	var/target_x = Clamp(get_pin_data(IC_INPUT, 1), 0, world.maxx)
-	var/target_y = Clamp(get_pin_data(IC_INPUT, 2), 0, world.maxy)
+	var/target_x = clamp(get_pin_data(IC_INPUT, 1), 0, world.maxx)
+	var/target_y = clamp(get_pin_data(IC_INPUT, 2), 0, world.maxy)
 	var/turf/A = locate(target_x, target_y, T.z)
 	set_pin_data(IC_OUTPUT, 1, null)
 	if(!A || !(A in view(T)))
@@ -474,9 +476,9 @@
 		set_pin_data(IC_OUTPUT, 1, turf_contents)
 		set_pin_data(IC_OUTPUT, 3, area_name)
 		var/list/St = new()
-		for(var/obj/effect/decal/cleanable/crayon/I in scanned_turf)
+		for(var/obj/decal/cleanable/crayon/I in scanned_turf)
 			St.Add(I.icon_state)
-		if(St.len)
+		if(length(St))
 			set_pin_data(IC_OUTPUT, 2, jointext(St, ",", 1, 0))
 		push_data()
 		activate_pin(2)
@@ -513,8 +515,10 @@
 	that is standing up to a meter away from the machine."
 	extended_desc = "The first pin requires a ref to the kind of object that you want the locator to acquire. This means that it will \
 	give refs to nearby objects that are similar. If more than one valid object is found nearby, it will choose one of them at \
-	random."
-	inputs = list("desired type ref" = IC_PINTYPE_REF)
+	random. If this pin is null, the locator will not filter by object type. The second pin controls whether the locator should \
+	filter only movable objects (useful for grabbers, for example) or remain completely unfiltered, other than the type filter \
+	if enabled."
+	inputs = list("desired type ref" = IC_PINTYPE_REF,"filter" = IC_PINTYPE_BOOLEAN)
 	outputs = list("located ref" = IC_PINTYPE_REF)
 	activators = list("locate" = IC_PINTYPE_PULSE_IN,"found" = IC_PINTYPE_PULSE_OUT,
 		"not found" = IC_PINTYPE_PULSE_OUT)
@@ -522,29 +526,41 @@
 	power_draw_per_use = 30
 
 /obj/item/integrated_circuit/input/adjacent_locator/do_work()
-	var/datum/integrated_io/I = inputs[1]
-	var/datum/integrated_io/O = outputs[1]
-	O.data = null
-
-	if(!isweakref(I.data))
-		return
-	var/atom/A = I.data.resolve()
-	if(!A)
-		return
-	var/desired_type = A.type
+	var/datum/integrated_io/input = inputs[1]
+	var/datum/integrated_io/mode = inputs[2]
+	var/datum/integrated_io/output = outputs[1]
+	output.data = null
 
 	var/list/nearby_things = range(1, get_turf(src))
+	var/list/filtered_things = list()
 	var/list/valid_things = list()
-	for(var/atom/thing in nearby_things)
-		if(thing.type != desired_type)
-			continue
-		valid_things.Add(thing)
-	if(valid_things.len)
-		O.data = weakref(pick(valid_things))
+
+	if(mode.data)
+		for(var/obj/thing in nearby_things)
+			if(!thing.anchored)
+				filtered_things.Add(thing)
+	else
+		for(var/atom/thing in nearby_things)
+			filtered_things.Add(thing)
+
+	// strict filter check
+	if(isweakref(input.data))
+		var/atom/A = input.data.resolve()
+		if(istype(A))
+			var/desired_type = A.type
+			for(var/atom/thing in filtered_things)
+				if(thing.type == desired_type)
+					valid_things.Add(thing)
+	else
+		for(var/atom/thing in filtered_things)
+			valid_things.Add(thing)
+
+	if(length(valid_things))
+		output.data = weakref(pick(valid_things))
 		activate_pin(2)
 	else
 		activate_pin(3)
-	O.push_data()
+	output.push_data()
 
 /obj/item/integrated_circuit/input/advanced_locator_list
 	complexity = 6
@@ -566,7 +582,7 @@
 	var/rad = get_pin_data(IC_INPUT, 2)
 
 	if(isnum(rad))
-		rad = Clamp(rad, 0, 8)
+		rad = clamp(rad, 0, 8)
 		radius = rad
 
 /obj/item/integrated_circuit/input/advanced_locator_list/do_work()
@@ -598,7 +614,7 @@
 						if(ismob(thing) && !isliving(thing))
 							continue
 						valid_things.Add(weakref(thing))
-		if(valid_things.len)
+		if(length(valid_things))
 			O.data = valid_things
 			O.push_data()
 			activate_pin(2)
@@ -628,7 +644,7 @@
 /obj/item/integrated_circuit/input/advanced_locator/on_data_written()
 	var/rad = get_pin_data(IC_INPUT, 2)
 	if(isnum(rad))
-		rad = Clamp(rad, 0, 8)
+		rad = clamp(rad, 0, 8)
 		radius = rad
 
 /obj/item/integrated_circuit/input/advanced_locator/do_work()
@@ -640,8 +656,8 @@
 	var/list/valid_things = list()
 	if(isweakref(I.data))
 		var/atom/A = I.data.resolve()
-		var/desired_type = A.type
-		if(desired_type)
+		if (A)
+			var/desired_type = A.type
 			for(var/i in nearby_things)
 				var/atom/thing = i
 				if(ismob(thing) && !isliving(thing))
@@ -656,7 +672,7 @@
 				continue
 			if(findtext(addtext(thing.name," ",thing.desc), DT, 1, 0) )
 				valid_things.Add(thing)
-	if(valid_things.len)
+	if(length(valid_things))
 		O.data = weakref(pick(valid_things))
 		O.push_data()
 		activate_pin(2)
@@ -706,14 +722,14 @@
 	code = new_code
 
 
-/obj/item/integrated_circuit/input/signaler/do_work(var/ord) // Sends a signal.
+/obj/item/integrated_circuit/input/signaler/do_work(ord) // Sends a signal.
 	if(!radio_connection || ord != 1)
 		return
 
 	radio_connection.post_signal(src, create_signal())
 	activate_pin(2)
 
-/obj/item/integrated_circuit/input/signaler/proc/signal_good(var/datum/signal/signal)
+/obj/item/integrated_circuit/input/signaler/proc/signal_good(datum/signal/signal)
 	if(!signal || signal.source == src)
 		return FALSE
 	if(code)
@@ -750,7 +766,7 @@
 	return 1
 
 //This only procs when a signal is valid.
-/obj/item/integrated_circuit/input/signaler/proc/treat_signal(var/datum/signal/signal)
+/obj/item/integrated_circuit/input/signaler/proc/treat_signal(datum/signal/signal)
 	activate_pin(3)
 
 /obj/item/integrated_circuit/input/signaler/advanced
@@ -770,7 +786,7 @@
 	..()
 	command = get_pin_data(IC_INPUT,3)
 
-/obj/item/integrated_circuit/input/signaler/advanced/signal_good(var/datum/signal/signal)
+/obj/item/integrated_circuit/input/signaler/advanced/signal_good(datum/signal/signal)
 	if(!..() || signal.data["tag"] != code)
 		return FALSE
 	return TRUE
@@ -783,7 +799,7 @@
 	signal.encryption = 0
 	return signal
 
-/obj/item/integrated_circuit/input/signaler/advanced/treat_signal(var/datum/signal/signal)
+/obj/item/integrated_circuit/input/signaler/advanced/treat_signal(datum/signal/signal)
 	set_pin_data(IC_OUTPUT,1,signal.data["command"])
 	push_data()
 	..()
@@ -806,7 +822,7 @@
 	. = list()
 	. += "Current selection: [(current_console && current_console.id) || "None"]"
 	. += "Please select a teleporter to lock in on:"
-	for (var/obj/machinery/computer/teleporter/computer in SSmachines.machinery)
+	for (var/obj/machinery/computer/teleporter/computer as anything in MACHINES_OF(/obj/machinery/computer/teleporter))
 		if (computer.target && computer.operable() && AreConnectedZLevels(get_z(src), get_z(computer)))
 			.["[computer.id] ([computer.active ? "Active" : "Inactive"])"] = "tport=[any2ref(computer)]"
 	.["None (Dangerous)"] = "tport=random"
@@ -851,9 +867,9 @@
 /obj/item/integrated_circuit/input/microphone
 	name = "microphone"
 	desc = "Useful for spying on people, or for voice-activated machines."
-	extended_desc = "This will automatically translate most languages it hears to Zurich Accord Common. \
+	extended_desc = "This will automatically translate most human languages to Zurich Accord Common. \
 	The first activation pin is always pulsed when the circuit hears someone talk, while the second one \
-	is only triggered if it hears someone speaking a language other than Zurich Accord Common."
+	is only triggered if it successfully translated another language."
 	icon_state = "recorder"
 	complexity = 8
 	inputs = list()
@@ -866,6 +882,10 @@
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 5
 
+	var/language_preferred = LANGUAGE_HUMAN_EURO
+	var/languages_understood = list(LANGUAGE_HUMAN_EURO, LANGUAGE_HUMAN_CHINESE, LANGUAGE_HUMAN_ARABIC, LANGUAGE_HUMAN_INDIAN, LANGUAGE_HUMAN_IBERIAN, LANGUAGE_HUMAN_RUSSIAN, LANGUAGE_HUMAN_SELENIAN, LANGUAGE_SPACER)
+	var/invalid_flags = NONVERBAL | SIGNLANG | HIVEMIND | ALT_TRANSMIT
+
 /obj/item/integrated_circuit/input/microphone/Initialize()
 	. = ..()
 	GLOB.listening_objects += src
@@ -874,19 +894,50 @@
 	GLOB.listening_objects -= src
 	. = ..()
 
-/obj/item/integrated_circuit/input/microphone/hear_talk(var/mob/living/M as mob, text, verb, datum/language/speaking)
-	var/translated = TRUE
-	if(M && text)
-		if(speaking && !speaking.machine_understands)
-			text = speaking.scramble(text)
-			translated = FALSE
-		set_pin_data(IC_OUTPUT, 1, M.GetVoice())
-		set_pin_data(IC_OUTPUT, 2, text)
+/obj/item/integrated_circuit/input/microphone/hear_talk(mob/living/M as mob, text, verb, datum/language/speaking)
+	var/translated = FALSE
+	if(M && text && speaking)
+		if(!(speaking.flags & invalid_flags))
+			if(speaking.name in languages_understood)
+				translated = TRUE
+			else
+				text = speaking.scramble(text)
 
-	push_data()
-	activate_pin(1)
-	if(speaking && translated && !(speaking.name == LANGUAGE_HUMAN_EURO))
-		activate_pin(2)
+			set_pin_data(IC_OUTPUT, 1, M.GetVoice())
+			set_pin_data(IC_OUTPUT, 2, text)
+
+			push_data()
+			activate_pin(1)
+			if(translated && !(speaking.name == language_preferred))
+				activate_pin(2)
+
+
+/obj/item/integrated_circuit/input/microphone/modem
+	name = "machine modulating microphone"
+	languages_understood = list(LANGUAGE_HUMAN_EURO, LANGUAGE_EAL)
+	spawn_flags = IC_SPAWN_RESEARCH
+	extended_desc = "A microphone combined with repurposed fax machine circuitry, this will translate Encoded Audio Language used by some synthetics into ZAC."
+
+/obj/item/integrated_circuit/input/microphone/exo
+	name = "interspecies exchange microphone"
+	languages_understood = list(LANGUAGE_HUMAN_EURO, LANGUAGE_HUMAN_SELENIAN, LANGUAGE_UNATHI_SINTA, LANGUAGE_SKRELLIAN)
+	spawn_flags = IC_SPAWN_RESEARCH
+	extended_desc = "A microphone with a xenolinguistic database to facilitate EXO missions with mixed species. It translates the most common Skrellian and Unathi dialects to ZAC."
+	//Selenian is an in-character undocumented feature demanded by a corp exec
+
+/obj/item/integrated_circuit/input/microphone/cuttingedge
+	name = "anthropological research microphone"
+	languages_understood = list(LANGUAGE_HUMAN_EURO, LANGUAGE_SPACER, LANGUAGE_UNATHI_YEOSA)
+	spawn_flags = IC_SPAWN_RESEARCH
+	extended_desc = "A microphone with a xenolinguistic database tailored to fill the gaps in older models. It translates the most common Yeosa and Spacer dialects to ZAC."
+
+/obj/item/integrated_circuit/input/microphone/fringe
+	name = "gray market microphone"
+	languages_understood = list(LANGUAGE_SPACER, LANGUAGE_GUTTER, LANGUAGE_HUMAN_CHINESE, LANGUAGE_HUMAN_ARABIC, LANGUAGE_HUMAN_INDIAN, LANGUAGE_HUMAN_IBERIAN, LANGUAGE_HUMAN_RUSSIAN)
+	language_preferred = LANGUAGE_HUMAN_RUSSIAN
+	spawn_flags = 0
+	extended_desc = "This microphone did not come with any documentation."
+
 
 /obj/item/integrated_circuit/input/sensor
 	name = "sensor"
@@ -906,11 +957,11 @@
 	if(!check_then_do_work())
 		return FALSE
 	var/ignore_bags = get_pin_data(IC_INPUT, 1)
-	if(ignore_bags && istype(A, /obj/item/storage/))
+	if(ignore_bags && istype(A, /obj/item/storage))
 		return FALSE
 	set_pin_data(IC_OUTPUT, 1, weakref(A))
 	push_data()
-	to_chat(user, "<span class='notice'>You scan [A] with [assembly].</span>")
+	to_chat(user, SPAN_NOTICE("You scan [A] with [assembly]."))
 	activate_pin(1)
 	return TRUE
 
@@ -942,7 +993,7 @@
 		return FALSE
 	set_pin_data(IC_OUTPUT, 1, weakref(A))
 	push_data()
-	to_chat(user, "<span class='notice'>You scan [A] with [assembly].</span>")
+	to_chat(user, SPAN_NOTICE("You scan [A] with [assembly]."))
 	activate_pin(1)
 	return TRUE
 
@@ -959,7 +1010,7 @@
 	spawn_flags = IC_SPAWN_DEFAULT|IC_SPAWN_RESEARCH
 	power_draw_per_use = 20
 
-/obj/item/integrated_circuit/input/obj_scanner/attackby_react(var/atom/A,var/mob/user,intent)
+/obj/item/integrated_circuit/input/obj_scanner/attackby_react(atom/A,mob/user,intent)
 	if(intent!=I_HELP)
 		return FALSE
 	if(!check_then_do_work())
@@ -969,7 +1020,7 @@
 		return FALSE
 	set_pin_data(IC_OUTPUT, 1, weakref(A))
 	push_data()
-	to_chat(user, "<span class='notice'>You let [assembly] scan [A].</span>")
+	to_chat(user, SPAN_NOTICE("You let [assembly] scan [A]."))
 	activate_pin(1)
 	return TRUE
 
@@ -1080,7 +1131,7 @@
 		return
 	var/turf/T = get_turf(src)
 	if(O in view(T)) // This is a camera. It can't examine thngs,that it can't see.
-		for(var/I in 1 to mtypes.len)
+		for(var/I in 1 to length(mtypes))
 			var/amount = O.matter[mtypes[I]]
 			if(amount)
 				set_pin_data(IC_OUTPUT, I, amount)

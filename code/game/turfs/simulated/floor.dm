@@ -18,8 +18,15 @@
 	// Flooring data.
 	var/flooring_override
 	var/initial_flooring
-	var/decl/flooring/flooring
+	var/singleton/flooring/flooring
 	var/mineral = DEFAULT_WALL_MATERIAL
+
+	// Initialization modifiers for mapping
+	/// Boolean (Default `FALSE`) - If set, the tile will not have atmosphere on init.
+	var/map_airless = FALSE
+
+	/// Whether this tile should spawn in a broken state
+	var/spawn_broken = FALSE
 
 	thermal_conductivity = 0.040
 	heat_capacity = 10000
@@ -30,30 +37,48 @@
 /turf/simulated/floor/is_plating()
 	return !flooring
 
-/turf/simulated/floor/protects_atom(var/atom/A)
-	return (A.level <= 1 && !is_plating()) || ..()
+/turf/simulated/floor/protects_atom(atom/A)
+	return (A.level == ATOM_LEVEL_UNDER_TILE && !is_plating()) || ..()
 
-/turf/simulated/floor/New(var/newloc, var/floortype)
+/turf/simulated/floor/New(newloc, floortype)
+	var/area/area = get_area(src)
+	if (map_airless || area?.turfs_airless)
+		initial_gas = null
+		temperature = TCMB
 	..(newloc)
 	if(!floortype && initial_flooring)
 		floortype = initial_flooring
 	if(floortype)
-		set_flooring(decls_repository.get_decl(floortype))
+		set_flooring(GET_SINGLETON(floortype))
+	if(spawn_broken)
+		break_tile()
 
-/turf/simulated/floor/proc/set_flooring(var/decl/flooring/newflooring)
+/turf/simulated/floor/proc/set_flooring(singleton/flooring/newflooring)
 	make_plating(defer_icon_update = 1)
 	flooring = newflooring
+
+	var/check_z_flags
+	if(flooring)
+		check_z_flags = flooring.z_flags
+
+	if(check_z_flags & ZM_MIMIC_BELOW)
+		enable_zmimic(check_z_flags)
+
+
 	update_icon(1)
 	levelupdate()
 
 //This proc will set floor_type to null and the update_icon() proc will then change the icon_state of the turf
 //This proc auto corrects the grass tiles' siding.
-/turf/simulated/floor/proc/make_plating(var/place_product, var/defer_icon_update)
+/turf/simulated/floor/proc/make_plating(place_product, defer_icon_update)
 
-	overlays.Cut()
+	ClearOverlays()
 
-	for(var/obj/effect/decal/writing/W in src)
+	for(var/obj/decal/writing/W in src)
 		qdel(W)
+
+	disable_zmimic()
+	z_flags = initial(z_flags)
 
 	SetName(base_name)
 	desc = base_desc
@@ -102,3 +127,9 @@
 
 /turf/simulated/floor/is_floor()
 	return TRUE
+
+/turf/simulated/IgniteTurf(power, fire_colour)
+	if(turf_fire)
+		turf_fire.AddPower(power)
+		return
+	new /obj/turf_fire(src, power, fire_colour)

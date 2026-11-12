@@ -1,6 +1,7 @@
 //Holders/managers for nano_ui for the skill panel.
 
 /datum/nano_module/skill_ui
+	available_to_ai = FALSE
 	var/datum/skillset/skillset
 	var/template = "skill_ui.tmpl"
 	var/hide_unskilled = FALSE
@@ -20,11 +21,11 @@
 	skillset = null
 	. = ..()
 
-/datum/nano_module/skill_ui/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.self_state)
+/datum/nano_module/skill_ui/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.self_state)
 	if(!skillset)
 		return
 	var/list/data = skillset.get_nano_data(hide_unskilled)
-	data += get_data()
+	data += get_data(data)
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if (!ui)
@@ -42,34 +43,36 @@
 		hide_unskilled = !hide_unskilled
 		return 1
 
-/datum/nano_module/skill_ui/proc/get_data()
+/// Gets extra data to be appended to the NanoUI `data` list, allowing `data` to optionally be modified in-place.
+/datum/nano_module/skill_ui/proc/get_data(data)
 	return list()
 
-/datum/skillset/proc/get_nano_data(var/hide_unskilled)
+/datum/skillset/proc/get_nano_data(hide_unskilled)
 	. = list()
 	.["name"] = owner.real_name
-	.["job"] = owner.mind && owner.mind.assigned_role
+	.["job"] = owner.mind?.assigned_role
+	.["special_role"] = owner.mind?.special_role
 	.["hide_unskilled"] = hide_unskilled
 
 	var/list/skill_data = list()
-	var/decl/hierarchy/skill/skill = decls_repository.get_decl(/decl/hierarchy/skill)
-	for(var/decl/hierarchy/skill/V in skill.children)
+	var/singleton/hierarchy/skill/skill = GET_SINGLETON(/singleton/hierarchy/skill)
+	for(var/singleton/hierarchy/skill/V in skill.children)
 		var/list/skill_cat = list()
 		skill_cat["name"] = V.name
 		var/list/skills_in_cat = list()
-		for(var/decl/hierarchy/skill/S in V.children)
+		for(var/singleton/hierarchy/skill/S in V.children)
 			var/offset = S.prerequisites ? S.prerequisites[S.parent.type] - 1 : 0
 			if(hide_unskilled && (get_value(S.type) + offset == SKILL_MIN))
 				continue
 			skills_in_cat += list(get_nano_row(S))
-			for(var/decl/hierarchy/skill/perk in S.children)
+			for(var/singleton/hierarchy/skill/perk in S.children)
 				skills_in_cat += list(get_nano_row(perk))
 		if(length(skills_in_cat))
 			skill_cat["skills"] = skills_in_cat
 			skill_data += list(skill_cat)
 	.["skills_by_cat"] = skill_data
 
-/datum/skillset/proc/get_nano_row(var/decl/hierarchy/skill/S)
+/datum/skillset/proc/get_nano_row(singleton/hierarchy/skill/S)
 	var/list/skill_item = list()
 	skill_item["name"] = S.name
 	var/value = get_value(S.type)
@@ -85,7 +88,7 @@
 		level["blank"] = 0
 		level["val"] = i
 		level["name"] = S.levels[i]
-		level["selected"] = (i == value)
+		level["selected"] = (i <= value) // levels that proceed the real "level selection" act like they're selected, like in the character setup menu
 		levels += list(level)
 	for(var/i in (length(levels) + 1) to SKILL_MAX)
 		levels += list(list("blank" = 1))
@@ -93,7 +96,7 @@
 	return skill_item
 
 /datum/skillset/proc/check_prerequisites(skill_type)
-	var/decl/hierarchy/skill/S = decls_repository.get_decl(skill_type)
+	var/singleton/hierarchy/skill/S = GET_SINGLETON(skill_type)
 	if(!S.prerequisites)
 		return TRUE
 	for(var/prereq_type in S.prerequisites)
@@ -105,16 +108,30 @@
 The generic antag version.
 */
 /datum/nano_module/skill_ui/antag
+	/// A list of max available buffs per skill level. Example: `list(0, 0, 4, 2, 1)` -> 4 extra Trained, 2 extra Experienced, 1 extra Master.
 	var/list/max_choices = list(0, 0, 4, 2, 1)
 	var/list/currently_selected
 	var/buff_type = /datum/skill_buff/antag
 	template = "skill_ui_antag.tmpl"
 
-/datum/nano_module/skill_ui/antag/get_data()
+/datum/nano_module/skill_ui/antag/get_data(data)
 	. = ..()
-	.["can_choose"] = can_choose()
+	// data piece for rows appearing "marked" if you wish to use your choice for that level
+	// or if a limit is exceeded for a certain level
+	for(var/category in data["skills_by_cat"])
+		for(var/skill in category["skills"])
+			for(var/i in 1 to length(skill["levels"]))
+				var/level = skill["levels"][i]
+				var/selected = LAZYACCESS(currently_selected, i)
+				var/remaining = LAZYACCESS(max_choices, i)
+				if(length(selected) >= remaining)
+					level["limit_exceeded"] = 1
+				for(var/selected_skill in selected)
+					if (selected_skill == locate(skill["ref"]))
+						level["marked_for_selection"] = 1
+	// data piece for number of remaining level bonuses you can select
 	var/list/selection_data = list()
-	var/decl/hierarchy/skill/skill = decls_repository.get_decl(/decl/hierarchy/skill)
+	var/singleton/hierarchy/skill/skill = GET_SINGLETON(/singleton/hierarchy/skill)
 	for(var/i in 1 to length(max_choices))
 		var/choices = max_choices[i]
 		if(!choices)
@@ -123,13 +140,10 @@ The generic antag version.
 		level_data["name"] = skill.levels[i]
 		level_data["level"] = i
 		var/selected = LAZYACCESS(currently_selected, i)
-		level_data["selected"] = list()
-		for(var/skill_type in selected)
-			var/decl/hierarchy/skill/S = skill_type // False type.
-			level_data["selected"] += list(list("name" = initial(S.name), "ref" = "\ref[skill_type]"))
 		level_data["remaining"] = choices - length(selected)
 		selection_data += list(level_data)
 	.["selection_data"] = selection_data
+	.["can_choose"] = can_choose()
 
 /datum/nano_module/skill_ui/antag/Topic(href, href_list)
 	if(..())
@@ -138,26 +152,16 @@ The generic antag version.
 		return 1 // This probably means that we are being deleted but fielding badly timed user input or similar.
 
 	if(href_list["add_skill"])
-		if(!can_choose())
-			return 1
+		var/singleton/hierarchy/skill/skill = locate(href_list["skill"])
 		var/level = text2num(href_list["add_skill"])
-		var/list/choices = list()
-		for(var/decl/hierarchy/skill/S in GLOB.skills)
-			if(can_select(S.type, level))
-				choices[S.name] = S.type
-		var/choice = input(usr, "Which skill would you like to add?", "Add Skill") as null|anything in choices
-		if(!can_choose() || !choices[choice])
-			return 1
-		if(!can_select(choices[choice], level))
-			return 1
-		select(choices[choice], level)
+		if(!skill || !level || !can_choose() || !can_select(skill.type, level))
+			return
+		select(skill, level)
 		skillset.refresh_uis()
 		return 1
 	if(href_list["remove_skill"])
-		if(!can_choose())
-			return 1
-		var/skill_path = locate(href_list["remove_skill"])
-		deselect(skill_path)
+		var/singleton/hierarchy/skill/skill = locate(href_list["skill"])
+		deselect(skill)
 		skillset.refresh_uis()
 		return 1
 	if(href_list["submit"])
@@ -173,6 +177,7 @@ The generic antag version.
 		if(usr.client)
 			usr.client.adminhelp("I am requesting an antag skill selection reset.")
 		return 1
+	return 1
 
 /datum/nano_module/skill_ui/antag/proc/can_choose()
 	return !skillset.owner.too_many_buffs(buff_type)
@@ -187,7 +192,7 @@ The generic antag version.
 		return
 	if(skillset.get_value(skill_type) >= level)
 		return
-	var/decl/hierarchy/skill/S = decls_repository.get_decl(skill_type)
+	var/singleton/hierarchy/skill/S = GET_SINGLETON(skill_type)
 	if(length(S.levels) < level)
 		return
 	if(S.prerequisites)
@@ -199,8 +204,8 @@ The generic antag version.
 		return
 	deselect(skill_type)
 	LAZYINITLIST(currently_selected)
-	if(currently_selected.len < level)
-		currently_selected.len = level
+	if(length(currently_selected) < level)
+		LIST_RESIZE(currently_selected, level)
 	var/selection = currently_selected[level]
 	LAZYADD(selection, skill_type)
 	currently_selected[level] = selection
@@ -228,19 +233,25 @@ The generic antag version.
 Similar, but for station antags that have jobs.
 */
 /datum/nano_module/skill_ui/antag/station
-	max_choices = list(0, 0, 3, 1, 0)
+	max_choices = list(0, 0, 2, 1, 1)
+
+/datum/nano_module/skill_ui/antag/rene
+	max_choices = list(0, 1, 1, 0, 0)
 /*
 Similar, but for off-station jobs (Bearcat, Verne, survivor etc.).
 */
 /datum/nano_module/skill_ui/antag/station/offstation
 	max_choices = list(0, 2, 2, 1, 1)
+
+/datum/nano_module/skill_ui/antag/ert
+	max_choices = list(0, 0, 0, 1, 1) // More default skills but less picks. Focused for class specialization for faster deployment
 /*
 Admin version, with debugging options.
 */
 /datum/nano_module/skill_ui/admin
 	template = "skill_ui_admin.tmpl"
 
-/datum/nano_module/skill_ui/admin/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.admin_state)
+/datum/nano_module/skill_ui/admin/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.admin_state)
 	..() //Uses different default state.
 
 /datum/nano_module/skill_ui/admin/get_data()

@@ -27,7 +27,7 @@
 	return os
 
 /datum/nano_module/program/email_administration/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
 
 	data += "skill_fail"
 	if(!user.skill_check(SKILL_COMPUTER, SKILL_BASIC))
@@ -42,19 +42,21 @@
 		data["msg_body"] = digitalPencode2html(current_message.stored_data)
 		data["msg_timestamp"] = current_message.timestamp
 		data["msg_source"] = current_message.source
+		data["msg_recipient"] = current_message.recipient
 	else if(istype(current_account))
 		data["current_account"] = current_account.login
 		data["cur_suspended"] = current_account.suspended
 		var/list/all_messages = list()
-		for(var/datum/computer_file/data/email_message/message in (current_account.inbox | current_account.spam | current_account.deleted))
+		for(var/datum/computer_file/data/email_message/message in (current_account.inbox | current_account.outbox | current_account.spam | current_account.deleted))
 			all_messages.Add(list(list(
 				"title" = message.title,
 				"source" = message.source,
+				"recipient" = message.recipient,
 				"timestamp" = message.timestamp,
 				"uid" = message.uid
 			)))
 		data["messages"] = all_messages
-		data["messagecount"] = all_messages.len
+		data["messagecount"] = length(all_messages)
 	else
 		var/list/all_accounts = list()
 		for(var/datum/computer_file/data/email_account/account in ntnet_global.email_accounts)
@@ -65,7 +67,7 @@
 				"uid" = account.uid
 			)))
 		data["accounts"] = all_accounts
-		data["accountcount"] = all_accounts.len
+		data["accountcount"] = length(all_accounts)
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if (!ui)
@@ -130,7 +132,7 @@
 		if(!current_account)
 			return TOPIC_HANDLED
 
-		for(var/datum/computer_file/data/email_message/received_message in (current_account.inbox | current_account.spam | current_account.deleted))
+		for(var/datum/computer_file/data/email_message/received_message in (current_account.inbox | current_account.outbox| current_account.spam | current_account.deleted))
 			if(received_message.uid == text2num(href_list["viewmail"]))
 				current_message = received_message
 				break

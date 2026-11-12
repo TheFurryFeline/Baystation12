@@ -1,14 +1,20 @@
 /datum/preferences
-	var/clientfps = 0
-	var/ooccolor = "#010000" //Whatever this is set to acts as 'reset' color and is thus unusable as an actual custom color
-
+	var/clientfps = CLIENT_DEFAULT_FPS
+	var/ooccolor = "#010000"
 	var/UI_style = "Midnight"
 	var/UI_style_color = "#ffffff"
 	var/UI_style_alpha = 255
+	var/outline_reachable = "#00ff00"
+	var/outline_unreachable = "#ff0000"
+	var/outline_alpha = 255
+	var/tooltip_style = "Midnight" //Style for popup tooltips
+	var/maptext_font = ""
+
 
 /datum/category_item/player_setup_item/player_global/ui
 	name = "UI"
 	sort_order = 1
+
 
 /datum/category_item/player_setup_item/player_global/ui/load_preferences(datum/pref_record_reader/R)
 	pref.UI_style = R.read("UI_style")
@@ -16,6 +22,11 @@
 	pref.UI_style_alpha = R.read("UI_style_alpha")
 	pref.ooccolor = R.read("ooccolor")
 	pref.clientfps = R.read("clientfps")
+	pref.outline_reachable = R.read("outline_reachable")
+	pref.outline_unreachable = R.read("outline_unreachable")
+	pref.outline_alpha = R.read("outline_alpha")
+	pref.maptext_font = R.read("maptext_font")
+
 
 /datum/category_item/player_setup_item/player_global/ui/save_preferences(datum/pref_record_writer/W)
 	W.write("UI_style", pref.UI_style)
@@ -23,29 +34,55 @@
 	W.write("UI_style_alpha", pref.UI_style_alpha)
 	W.write("ooccolor", pref.ooccolor)
 	W.write("clientfps", pref.clientfps)
+	W.write("outline_reachable", pref.outline_reachable)
+	W.write("outline_unreachable", pref.outline_unreachable)
+	W.write("outline_alpha", pref.outline_alpha)
+	W.write("maptext_font", pref.maptext_font)
+
 
 /datum/category_item/player_setup_item/player_global/ui/sanitize_preferences()
 	pref.UI_style		= sanitize_inlist(pref.UI_style, all_ui_styles, initial(pref.UI_style))
 	pref.UI_style_color	= sanitize_hexcolor(pref.UI_style_color, initial(pref.UI_style_color))
-	pref.UI_style_alpha	= sanitize_integer(pref.UI_style_alpha, 0, 255, initial(pref.UI_style_alpha))
+	pref.UI_style_alpha	= sanitize_integer(pref.UI_style_alpha, 50, 255, initial(pref.UI_style_alpha))
 	pref.ooccolor		= sanitize_hexcolor(pref.ooccolor, initial(pref.ooccolor))
-	pref.clientfps	    = sanitize_integer(pref.clientfps, CLIENT_MIN_FPS, CLIENT_MAX_FPS, initial(pref.clientfps))
+	pref.outline_reachable = sanitize_hexcolor(pref.outline_reachable, initial(pref.outline_reachable))
+	pref.outline_unreachable = sanitize_hexcolor(pref.outline_unreachable, initial(pref.outline_unreachable))
+	pref.outline_alpha = sanitize_integer(pref.outline_alpha, 50, 255, initial(pref.outline_alpha))
+	pref.maptext_font = sanitize_text(pref.maptext_font, initial(pref.maptext_font))
+	sanitize_client_fps()
 
-/datum/category_item/player_setup_item/player_global/ui/content(var/mob/user)
+
+/datum/category_item/player_setup_item/player_global/ui/sanitize_character()
+	if (pref.maptext_font)
+		winset(pref.client, ":map", "font-family='[pref.maptext_font]','Small Fonts',Fixedsys,sans-serif")
+	else
+		winset(pref.client, ":map", "font-family='Small Fonts',Fixedsys,sans-serif")
+
+
+/datum/category_item/player_setup_item/player_global/ui/content(mob/user)
 	. += "<b>UI Settings</b><br>"
-	. += "<b>UI Style:</b> <a href='?src=\ref[src];select_style=1'><b>[pref.UI_style]</b></a><br>"
+	. += "<b>UI Style:</b> <a href='byond://?src=\ref[src];select_style=1'><b>[pref.UI_style]</b></a><br>"
 	. += "<b>Custom UI</b> (recommended for White UI):<br>"
-	. += "-Color: <a href='?src=\ref[src];select_color=1'><b>[pref.UI_style_color]</b></a> <table style='display:inline;' bgcolor='[pref.UI_style_color]'><tr><td>__</td></tr></table> <a href='?src=\ref[src];reset=ui'>reset</a><br>"
-	. += "-Alpha(transparency): <a href='?src=\ref[src];select_alpha=1'><b>[pref.UI_style_alpha]</b></a> <a href='?src=\ref[src];reset=alpha'>reset</a><br>"
+	. += "-Color: <a href='byond://?src=\ref[src];select_color=1'><b>[pref.UI_style_color]</b></a> <table style='display:inline;' bgcolor='[pref.UI_style_color]'><tr><td>__</td></tr></table> <a href='byond://?src=\ref[src];reset=ui'>reset</a><br>"
+	. += "-Alpha(transparency): <a href='byond://?src=\ref[src];select_alpha=1'><b>[pref.UI_style_alpha]</b></a> <a href='byond://?src=\ref[src];reset=alpha'>reset</a><br>"
+	. += "<b>Tooltip Style:</b> <a href='byond://?src=\ref[src];select_tooltip_style=1'><b>[pref.tooltip_style]</b></a><br>"
+	. += {"<b>Maptext Font:</b> <a href='byond://?src=\ref[src];select_maptext_font=1'><span style="font-weight: bold; font-family:[pref.maptext_font ? " '[pref.maptext_font]'," : ""] 'Small Fonts', Fixedsys, sans-serif; text-rendering: geometricPrecision;">[pref.maptext_font || "Default"]</span></a><br>"}
+	. += "<b>Atom Hover Outlines</b><br>"
+	var/outlines_enabled = user.get_preference_value(/datum/client_preference/atom_outlines) == GLOB.PREF_YES
+	. += "- Enabled: <a href='byond://?src=\ref[src];outline_toggle=1'>[outlines_enabled ? "Yes" : "No"]</a><br>"
+	. += "- Reachable: <a href='byond://?src=\ref[src];outline_reachable=1' style='background:[pref.outline_reachable];color:transparent'>--</a><br>"
+	. += "- Unreachable: <a href='byond://?src=\ref[src];outline_unreachable=1' style='background:[pref.outline_unreachable];color:transparent'>--</a><br>"
+	. += "- Alpha: <a href='byond://?src=\ref[src];outline_alpha=1'>[pref.outline_alpha]</a><br>"
 	if(can_select_ooc_color(user))
 		. += "<b>OOC Color:</b> "
 		if(pref.ooccolor == initial(pref.ooccolor))
-			. += "<a href='?src=\ref[src];select_ooc_color=1'><b>Using Default</b></a><br>"
+			. += "<a href='byond://?src=\ref[src];select_ooc_color=1'><b>Using Default</b></a><br>"
 		else
-			. += "<a href='?src=\ref[src];select_ooc_color=1'><b>[pref.ooccolor]</b></a> <table style='display:inline;' bgcolor='[pref.ooccolor]'><tr><td>__</td></tr></table> <a href='?src=\ref[src];reset=ooc'>reset</a><br>"
-	. += "<b>Client FPS:</b> <a href='?src=\ref[src];select_fps=1'><b>[pref.clientfps]</b></a><br>"
+			. += "<a href='byond://?src=\ref[src];select_ooc_color=1'><b>[pref.ooccolor]</b></a> <table style='display:inline;' bgcolor='[pref.ooccolor]'><tr><td>__</td></tr></table> <a href='byond://?src=\ref[src];reset=ooc'>reset</a><br>"
+	. += "<b>Client FPS:</b> <a href='byond://?src=\ref[src];select_fps=1'><b>[pref.clientfps]</b></a><br>"
 
-/datum/category_item/player_setup_item/player_global/ui/OnTopic(var/href,var/list/href_list, var/mob/user)
+
+/datum/category_item/player_setup_item/player_global/ui/OnTopic(href,list/href_list, mob/user)
 	if(href_list["select_style"])
 		var/UI_style_new = input(user, "Choose UI style.", CHARACTER_PREFERENCE_INPUT_TITLE, pref.UI_style) as null|anything in all_ui_styles
 		if(!UI_style_new || !CanUseTopic(user)) return TOPIC_NOACTION
@@ -64,6 +101,39 @@
 		pref.UI_style_alpha = UI_style_alpha_new
 		return TOPIC_REFRESH
 
+	else if (href_list["outline_toggle"])
+		user.cycle_preference(/datum/client_preference/atom_outlines)
+		return TOPIC_REFRESH
+
+	else if (href_list["outline_reachable"])
+		var/response = input(user, "Reachable atom outline color:", "Global Preference", pref.outline_reachable) as null | color
+		if (!response)
+			return TOPIC_NOACTION
+		if (!CanUseTopic(user))
+			return TOPIC_NOACTION
+		pref.outline_reachable = response
+		return TOPIC_REFRESH
+
+	else if (href_list["outline_unreachable"])
+		var/response = input(user, "Unreachable atom outline color:", "Global Preference", pref.outline_unreachable) as null | color
+		if (!response)
+			return TOPIC_NOACTION
+		if (!CanUseTopic(user))
+			return TOPIC_NOACTION
+		pref.outline_unreachable = response
+		return TOPIC_REFRESH
+
+	else if (href_list["outline_alpha"])
+		var/response = input(user, "Atom outline transparency, between 50 - 255:", "Global Preference", pref.outline_alpha) as null | num
+		if (!response)
+			return TOPIC_NOACTION
+		if (response < 50 || response > 255)
+			return TOPIC_NOACTION
+		if (!CanUseTopic(user))
+			return TOPIC_NOACTION
+		pref.outline_alpha = response
+		return TOPIC_REFRESH
+
 	else if(href_list["select_ooc_color"])
 		var/new_ooccolor = input(user, "Choose OOC color:", "Global Preference") as color|null
 		if(new_ooccolor && can_select_ooc_color(user) && CanUseTopic(user))
@@ -71,19 +141,36 @@
 			return TOPIC_REFRESH
 
 	else if(href_list["select_fps"])
-		var/version_message
-		if (user.client && user.client.byond_version < 511)
-			version_message = "\nYou need to be using byond version 511 or later to take advantage of this feature, your version of [user.client.byond_version] is too low"
-		if (world.byond_version < 511)
-			version_message += "\nThis server does not currently support client side fps. You can set now for when it does."
-		var/new_fps = input(user, "Choose your desired fps.[version_message]\n(0 = synced with server tick rate (currently:[world.fps]))", "Global Preference") as num|null
-		if (isnum(new_fps) && CanUseTopic(user))
-			pref.clientfps = Clamp(new_fps, CLIENT_MIN_FPS, CLIENT_MAX_FPS)
-
+		var/response = input(user, "[CLIENT_MIN_FPS] - [CLIENT_MAX_FPS] (default [CLIENT_DEFAULT_FPS])", "Select Target FPS") as null | num
+		if (isnum(response) && CanUseTopic(user))
+			pref.clientfps = response
+			sanitize_client_fps()
 			var/mob/target_mob = preference_mob()
-			if(target_mob && target_mob.client)
-				target_mob.client.apply_fps(pref.clientfps)
+			if (target_mob?.client)
+				target_mob.client.fps = pref.clientfps
 			return TOPIC_REFRESH
+
+	else if(href_list["select_tooltip_style"])
+		var/tooltip_style_new = input(user, "Choose tooltip style.", "Global Preference", pref.tooltip_style) as null|anything in all_tooltip_styles
+		if(!tooltip_style_new || !CanUseTopic(user))
+			return TOPIC_NOACTION
+		pref.tooltip_style = tooltip_style_new
+		return TOPIC_REFRESH
+
+	else if (href_list["select_maptext_font"])
+		var/response = input(user, "Maptext font name, or empty to reset:", "Global Preference", pref.maptext_font) as null | text
+		if (isnull(response))
+			return
+		if (response)
+			response = copytext_char(response, 1, 48)
+			response = replacetext_char(response, "\\", "")
+			response = replacetext_char(response, "'", "\\'")
+		pref.maptext_font = response
+		if (pref.maptext_font)
+			winset(pref.client, ":map", "font-family='[pref.maptext_font]','Small Fonts',Fixedsys,sans-serif")
+		else
+			winset(pref.client, ":map", "font-family='Small Fonts',Fixedsys,sans-serif")
+		return TOPIC_REFRESH
 
 	else if(href_list["reset"])
 		switch(href_list["reset"])
@@ -97,5 +184,10 @@
 
 	return ..()
 
-/proc/can_select_ooc_color(var/mob/user)
+
+/datum/category_item/player_setup_item/player_global/ui/proc/sanitize_client_fps()
+	pref.clientfps = clamp(floor(pref.clientfps), CLIENT_MIN_FPS, CLIENT_MAX_FPS)
+
+
+/proc/can_select_ooc_color(mob/user)
 	return config.allow_admin_ooccolor && check_rights(R_ADMIN, 0, user)

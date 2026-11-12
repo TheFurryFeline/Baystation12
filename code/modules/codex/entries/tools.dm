@@ -42,11 +42,6 @@
 	associated_paths = list(/obj/item/storage/toolbox/crystal)
 	lore_text = "The most basic of Vigil units may sometimes use toolboxes like these, which are surprisingly similar in design to ones of human origin. On occasion, some units have been known to harbor a slight preference for these archaic designs over something more streamlined, for whatever reason."
 
-/datum/codex_entry/cable_painter
-	associated_paths = list(/obj/item/device/cable_painter)
-	mechanics_text = "Use this device to select a preferred cable color. Apply it to a bundle of cables on your person, or use it on installed cabling on the floor to paint it in your chosen color."
-	lore_text = "A device often used by spacefaring engineers to color-code their electrical systems. An experienced technician can identify traditional installations by color alone."
-
 /datum/codex_entry/paint_sprayer
 	associated_paths = list(/obj/item/device/paint_sprayer)
 	mechanics_text = "<p>Used to paint floors, walls, windows, pipes, mech parts and airlocks.</p>\
@@ -59,11 +54,12 @@
 /datum/codex_entry/geiger_counter
 	associated_paths = list(/obj/item/device/geiger)
 	mechanics_text = "By using this item, you may toggle its scanning mode on and off. Examine it while it's on to check for ambient radiation."
-	lore_text = "For centuries geiger counters have been saving the lives of unsuspecting laborers and technicians. You can never be too careful around radiation."
+	lore_text = "For centuries, geiger counters have been saving the lives of unsuspecting laborers and technicians. You can never be too careful around radiation."
 
 /datum/codex_entry/light_replacer
 	associated_paths = list(/obj/item/device/lightreplacer)
-	mechanics_text = "Examine or use this item to see how many lights are remaining. You can feed it lightbulbs or sheets of glass to refill it."
+	mechanics_text = "<p>Examine or use this item to see how many lights are remaining and what color it's configured to print. You can feed it lightbulbs or sheets of glass to refill it.</p>\
+		<p>Use this item in hand to change it's light color.</p>"
 	lore_text = "Can you believe they used to have to screw lightbulbs in by hand?"
 	antag_text = "Using a cryptographic sequencer on this device will cause it to overload each light it replaces; when turned on, the new lights will explode!"
 
@@ -90,10 +86,19 @@
 	lore_text = "No one remembers which company designed this particular toolbox. It's been mass-produced, retired, brought out of retirement, and counterfeited for decades."
 	antag_text = "Carrying one of these and being bald tends to instill a certain primal fear in most people."
 
-/datum/codex_entry/tray
-	associated_paths = list(/obj/item/tray)
-	mechanics_text = "A storage item for food; foodstuffs on the tray take up half as much space as they normally would, letting you carry ingredients or food easily.\
-	<br><br>Switch to Grab intent to scoop up items by hitting them, or add them to the tray directly. Hit a table with Grab intent active to unload the tray's contents onto it. \
-	You can also activate the tray in-hand to dump its contents onto whatever's beneath you.\
-	<br><br>Non-Grab intents can be used to put the tray down onto surfaces without dumping it out, or Harm intent can be used to hit people with the tray itself. \
+/datum/codex_entry/cooking_container
+	associated_paths = list(/obj/item/reagent_containers/cooking_container)
+	mechanics_text = "A storage item for food; ;ets you carry ingredients or food easily.\
+	<br><br>Switch to Grab intent to scoop up items by hitting them, or add them to the container directly. Hit a table with Grab intent active to unload the container's contents onto it. \
+	You can also alt-click the container in-hand to dump its contents onto whatever's beneath you.\
+	<br><br>Non-Grab intents can be used to put the container down onto surfaces without dumping it out, or Harm intent can be used to hit people with the container itself. \
 	If you're a cyborg, robot, or other non-human, Help intent replaces Grab intent for interactions that use it."
+
+/datum/codex_entry/drone_designator
+	associated_paths = list(/obj/item/device/drone_designator)
+	mechanics_text = "This device is used to retrieve items such as crates from away sites. You can use it on a drone pad to synchronize with its network. Use it while in an exterior area to mark an object for pickup."
+	lore_text = "Common throughout human space, short range transport drones are used for courier roles and to retrieve material shipments from remote areas. This designator can send telemetry data beyond orbit through the use of a compact subspace beacon."
+
+/datum/codex_entry/sample_kit
+	associated_paths = list(/obj/item/forensics/sample_kit, /obj/item/forensics/sample_kit/powder, /obj/item/swabber)
+	mechanics_text = "Used to collect fibers or fingerprints from any surface. Must be on a non-help intent to collect evidence."

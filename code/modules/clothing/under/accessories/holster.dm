@@ -12,18 +12,15 @@
 
 /obj/item/clothing/accessory/storage/holster/Initialize()
 	. = ..()
-	INIT_SKIP_QDELETED
 	container.virtual = TRUE
 	set_extension(src, /datum/extension/holster, container, sound_in, sound_out, can_holster)
 
 
-/obj/item/clothing/accessory/storage/holster/attackby(obj/item/W as obj, mob/user as mob)
+/obj/item/clothing/accessory/storage/holster/use_tool(obj/item/W, mob/living/user, list/click_params)
 	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
 	if (H.holster(W, user))
-		return
-	else
-		. = ..(W, user)
-
+		return TRUE
+	return ..()
 
 /obj/item/clothing/accessory/storage/holster/attack_hand(mob/user as mob)
 	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
@@ -36,27 +33,6 @@
 	. = ..(user)
 	var/datum/extension/holster/H = get_extension(src, /datum/extension/holster)
 	H.examine_holster(user)
-
-
-/obj/item/clothing/accessory/storage/holster/on_attached(obj/item/clothing/under/S, mob/user as mob)
-	..()
-	parent.verbs += /atom/proc/holster_verb
-
-
-/obj/item/clothing/accessory/storage/holster/on_removed(mob/user as mob)
-	if (parent)
-		var/remove_verb = TRUE
-		if (has_extension(parent, /datum/extension/holster))
-			remove_verb = FALSE
-		for (var/obj/accessory in parent.accessories)
-			if (accessory == src)
-				continue
-			if (has_extension(accessory, /datum/extension/holster))
-				remove_verb = FALSE
-		if (remove_verb)
-			parent.verbs -= /atom/proc/holster_verb
-	..()
-
 
 /obj/item/clothing/accessory/storage/holster/armpit
 	name = "armpit holster"
@@ -114,3 +90,20 @@
 	desc = "A rigid polymer sheath which you can strap on your leg."
 	icon_state = "sheath_polymer"
 	body_location = LEGS
+
+/obj/item/clothing/accessory/storage/holster/kirpan
+	name = "kirpan gatra"
+	desc = "A simple yet elegant gatra for a kirpan, worn by practicing Sikhs."
+	can_holster = list(/obj/item/material/knife/kirpan)
+	sound_in = 'sound/effects/holster/sheathin.ogg'
+	sound_out = 'sound/effects/holster/sheathout.ogg'
+	body_location = LOWER_TORSO
+	icon_state = "gatra"
+
+/obj/item/clothing/accessory/storage/holster/kirpan/on_update_icon()
+	var/datum/extension/holster/holster = get_extension(src, /datum/extension/holster)
+	if (holster.holstered)
+		icon_state = "gatra_full"
+	else
+		icon_state = "gatra"
+	update_clothing_icon()

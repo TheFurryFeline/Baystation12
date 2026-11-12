@@ -3,7 +3,7 @@
 	effect_type = EFFECT_BLUESPACE
 	var/list/teleporting = list() //mobs waiting to be teleported
 
-/datum/artifact_effect/teleport/DoEffectTouch(var/mob/user)
+/datum/artifact_effect/teleport/DoEffectTouch(mob/user)
 	if (istype(user))
 		try_teleport(user, get_turf(holder))
 
@@ -31,12 +31,12 @@
 			if (M.buckled)
 				M.buckled.unbuckle_mob()
 
-			var/datum/effect/effect/system/spark_spread/sparks = new /datum/effect/effect/system/spark_spread()
+			var/datum/effect/spark_spread/sparks = new /datum/effect/spark_spread()
 			sparks.set_up(3, 0, get_turf(M))
 			sparks.start()
 
 			M.Move(pick(trange(50, center)))
-			sparks = new /datum/effect/effect/system/spark_spread()
+			sparks = new /datum/effect/spark_spread()
 			sparks.set_up(3, 0, M.loc)
 			sparks.start()
 

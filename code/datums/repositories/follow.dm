@@ -1,4 +1,4 @@
-/var/repository/follow/follow_repository = new()
+var/global/repository/follow/follow_repository = new()
 
 /repository/follow
 	var/datum/cache_entry/valid_until/cache
@@ -22,7 +22,7 @@
 		var/datum/follow_holder/fh = fht
 		followed_subtypes[initial(fh.followed_type)] = fht
 
-/repository/follow/proc/add_subject(var/atom/movable/AM)
+/repository/follow/proc/add_subject(atom/movable/AM)
 	cache = null
 
 	var/follow_holder_type = get_follow_type(AM)
@@ -31,9 +31,9 @@
 	followed_objects_assoc[AM] = follow_holder
 	followed_objects.Add(follow_holder)
 
-	GLOB.destroyed_event.register(AM, src, /repository/follow/proc/remove_subject)
+	GLOB.destroyed_event.register(AM, src, PROC_REF(remove_subject))
 
-/repository/follow/proc/remove_subject(var/atom/movable/AM)
+/repository/follow/proc/remove_subject(atom/movable/AM)
 	cache = null
 
 	var/follow_holder = followed_objects_assoc[AM]
@@ -41,16 +41,17 @@
 	followed_objects_assoc -= AM
 	followed_objects.Remove(follow_holder)
 
-	GLOB.destroyed_event.unregister(AM, src, /repository/follow/proc/remove_subject)
+	GLOB.destroyed_event.unregister(AM, src, PROC_REF(remove_subject))
 
 	qdel(follow_holder)
 
-/repository/follow/proc/get_follow_type(var/atom/movable/AM)
+/repository/follow/proc/get_follow_type(atom/movable/AM)
 	for(var/follow_type in followed_subtypes)
 		if(istype(AM, follow_type))
 			return followed_subtypes[follow_type]
 
 /repository/follow/proc/get_follow_targets()
+	RETURN_TYPE(/list)
 	if(cache && cache.is_valid())
 		return cache.data
 	// The previous cache entry should have no further references and will thus be GCd eventually without qdel
@@ -67,14 +68,14 @@
 
 	for(var/followed_name in followed_by_name)
 		var/list/followed_things = followed_by_name[followed_name]
-		if(followed_things.len == 1)
-			ADD_SORTED(L, followed_things[1], /proc/cmp_follow_holder)
+		if(length(followed_things) == 1)
+			ADD_SORTED(L, followed_things[1], GLOBAL_PROC_REF(cmp_follow_holder))
 		else
-			for(var/i = 1 to followed_things.len)
+			for(var/i = 1 to length(followed_things))
 				var/datum/follow_holder/followed_thing = followed_things[i]
 				followed_thing.instance = i
 				followed_thing.get_name(TRUE)
-				ADD_SORTED(L, followed_thing, /proc/cmp_follow_holder)
+				ADD_SORTED(L, followed_thing, GLOBAL_PROC_REF(cmp_follow_holder))
 
 	cache.data = L
 	return L
@@ -96,7 +97,7 @@
 	var/sort_order
 	var/atom/movable/followed_instance
 
-/datum/follow_holder/New(var/atom/movable/followed_instance)
+/datum/follow_holder/New(atom/movable/followed_instance)
 	..()
 	src.followed_instance = followed_instance
 	suffix = suffix ? "\[[suffix]\]" : suffix
@@ -105,7 +106,7 @@
 	followed_instance = null
 	. = ..()
 
-/datum/follow_holder/proc/get_name(var/recalc = FALSE)
+/datum/follow_holder/proc/get_name(recalc = FALSE)
 	if(!name || recalc)
 		var/suffix = get_suffix(followed_instance)
 		name = "[followed_instance.follow_name()][instance ? " ([instance])" : ""][suffix ? " [suffix]" : ""]"
@@ -161,7 +162,7 @@
 	var/mob/living/silicon/robot/R = followed_instance
 	return ..() && R.braintype
 
-/datum/follow_holder/robot/get_suffix(var/mob/living/silicon/robot/R)
+/datum/follow_holder/robot/get_suffix(mob/living/silicon/robot/R)
 	suffix = "\[[R.braintype]\][R.module ? " \[[R.module.name]\]" : ""]"
 	return ..()
 
@@ -169,7 +170,7 @@
 	sort_order = 2
 	followed_type = /mob/living/carbon/human
 
-/datum/follow_holder/human/get_suffix(var/mob/living/carbon/human/H)
+/datum/follow_holder/human/get_suffix(mob/living/carbon/human/H)
 	suffix = "\[[H.species.name]\]"
 	return ..()
 
@@ -200,10 +201,10 @@
 
 /datum/follow_holder/spiderling
 	sort_order = 6
-	followed_type = /obj/effect/spider/spiderling
+	followed_type = /obj/spider/spiderling
 
 /datum/follow_holder/spiderling/show_entry()
-	var/obj/effect/spider/spiderling/S = followed_instance
+	var/obj/spider/spiderling/S = followed_instance
 	return ..() && S.amount_grown > 0
 
 /datum/follow_holder/bot
@@ -218,7 +219,7 @@
 
 /datum/follow_holder/blob
 	sort_order = 9
-	followed_type = /obj/effect/blob/core
+	followed_type = /obj/blob/core
 	suffix = "Blob"
 
 /datum/follow_holder/supermatter

@@ -1,18 +1,19 @@
 /datum/extension/on_click/alt/ghost_admin_killer
 	expected_type = /mob/living
 	var/mob/living/living_holder
-	var/death_proc
+	var/death_proc = TYPE_PROC_REF(/mob, death)
 
-/datum/extension/on_click/alt/ghost_admin_killer/New(var/host, var/death_proc)
+/datum/extension/on_click/alt/ghost_admin_killer/New(host, death_proc)
 	..()
 	living_holder = host
-	src.death_proc = death_proc || /mob/proc/death
+	if (death_proc)
+		src.death_proc = death_proc
 
 /datum/extension/on_click/alt/ghost_admin_killer/Destroy()
 	living_holder = null
 	. = ..()
 
-/datum/extension/on_click/alt/ghost_admin_killer/on_click(var/mob/user)
+/datum/extension/on_click/alt/ghost_admin_killer/on_click(mob/user)
 	if(!valid_preconditions(user))
 		return FALSE
 
@@ -24,11 +25,11 @@
 		return FALSE
 
 	call(living_holder, death_proc)()
-	log_and_message_admins("killed [key_name]")
+	log_and_message_admins("killed [key_name]", user)
 
 	return TRUE
 
-/datum/extension/on_click/alt/ghost_admin_killer/proc/valid_preconditions(var/mob/observer/ghost/user)
+/datum/extension/on_click/alt/ghost_admin_killer/proc/valid_preconditions(mob/observer/ghost/user)
 	if(QDELETED(living_holder))               // Sanity check
 		return FALSE
 	if(!istype(user))                         // Only ghosts may attempt to alt-kill mobs
@@ -38,7 +39,7 @@
 	if(!living_holder.client)                 // And only if the target mob is currently possessed
 		to_chat(user, SPAN_NOTICE("\The [living_holder] is not currently possessed."))
 		return FALSE
-	if(living_holder.stat == DEAD)            // No point in killing the already dead
+	if(living_holder.is_real_dead())            // No point in killing the already dead
 		to_chat(user, SPAN_NOTICE("\The [living_holder] is already dead."))
 		return FALSE
 	return TRUE

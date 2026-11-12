@@ -1,8 +1,6 @@
-// Chili plants/variants.
-/datum/seed/chili
-	name = "chili"
+PRODUCE_SEED(chili, "chili")
 	seed_name = "chili"
-	display_name = "chili plants"
+	display_name = "chili plant"
 	chems = list(/datum/reagent/capsaicin = list(3,5), /datum/reagent/nutriment = list(1,25))
 	mutants = list("icechili")
 	kitchen_tag = "chili"
@@ -21,10 +19,10 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 7)
 	fruit_size = ITEM_SIZE_TINY
 
-/datum/seed/chili/ice
-	name = "icechili"
+
+PRODUCE_SEED(chili/ice, "icechili")
 	seed_name = "chilly pepper"
-	display_name = "chilly pepper plants"
+	display_name = "chilly pepper plant"
 	mutants = null
 	chems = list(/datum/reagent/frostoil = list(3,5), /datum/reagent/nutriment = list(1,50))
 	kitchen_tag = "icechili"
@@ -35,9 +33,8 @@
 	set_trait(TRAIT_PRODUCTION,4)
 	set_trait(TRAIT_PRODUCT_COLOUR,"#00edc6")
 
-// Berry plants/variants.
-/datum/seed/berry
-	name = "berries"
+
+PRODUCE_SEED(berry, "berries")
 	seed_name = "berry"
 	display_name = "berry bush"
 	mutants = list("glowberries","poisonberries","blueberries")
@@ -58,8 +55,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/berry/blue
-	name = "blueberries"
+
+PRODUCE_SEED(berry/blue, "blueberries")
 	seed_name = "blueberry"
 	display_name = "blueberry bush"
 	mutants = list("berries","poisonberries","glowberries")
@@ -76,8 +73,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 5)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.2)
 
-/datum/seed/berry/glow
-	name = "glowberries"
+
+PRODUCE_SEED(berry/glow, "glowberries")
 	seed_name = "glowberry"
 	display_name = "glowberry bush"
 	mutants = null
@@ -96,8 +93,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 3)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.25)
 
-/datum/seed/berry/poison
-	name = "poisonberries"
+
+PRODUCE_SEED(berry/poison, "poisonberries")
 	seed_name = "poison berry"
 	display_name = "poison berry bush"
 	mutants = list("deathberries")
@@ -109,8 +106,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 3)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.25)
 
-/datum/seed/berry/poison/death
-	name = "deathberries"
+
+PRODUCE_SEED(berry/poison/death, "deathberries")
 	seed_name = "death berry"
 	display_name = "death berry bush"
 	mutants = null
@@ -123,11 +120,10 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#7a5454")
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.35)
 
-// Nettles/variants.
-/datum/seed/nettle
-	name = "nettle"
+
+PRODUCE_SEED(nettle, "nettle")
 	seed_name = "nettle"
-	display_name = "nettles"
+	display_name = "nettle"
 	mutants = list("deathnettle")
 	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/acid = list(0,1))
 	kitchen_tag = "nettle"
@@ -145,10 +141,10 @@
 	set_trait(TRAIT_PRODUCT_ICON,"nettles")
 	set_trait(TRAIT_PRODUCT_COLOUR,"#728a54")
 
-/datum/seed/nettle/death
-	name = "deathnettle"
+
+PRODUCE_SEED(nettle/death, "deathnettle")
 	seed_name = "death nettle"
-	display_name = "death nettles"
+	display_name = "death nettle"
 	mutants = null
 	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/acid/polyacid = list(0,1))
 	kitchen_tag = "deathnettle"
@@ -160,9 +156,8 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#8c5030")
 	set_trait(TRAIT_PLANT_COLOUR,"#634941")
 
-//Tomatoes/variants.
-/datum/seed/tomato
-	name = "tomato"
+
+PRODUCE_SEED(tomato, "tomato")
 	seed_name = "tomato"
 	display_name = "tomato plant"
 	mutants = list("bluetomato","bloodtomato")
@@ -184,34 +179,35 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.25)
 
-/datum/seed/tomato/blood
-	name = "bloodtomato"
+
+PRODUCE_SEED(tomato/blood, "bloodtomato")
 	seed_name = "blood tomato"
 	display_name = "blood tomato plant"
-	mutants = list("killer")
+	mutants = list("killertomato")
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/blood = list(1,5))
-	splat_type = /obj/effect/decal/cleanable/blood/splatter
+	splat_type = /obj/decal/cleanable/blood/splatter
 
 /datum/seed/tomato/blood/New()
 	..()
 	set_trait(TRAIT_YIELD,3)
 	set_trait(TRAIT_PRODUCT_COLOUR,"#ff0000")
 
-/datum/seed/tomato/killer
-	name = "killertomato"
+
+PRODUCE_SEED(tomato/killer, "killertomato")
 	seed_name = "killer tomato"
 	display_name = "killer tomato plant"
 	mutants = null
 	can_self_harvest = TRUE
-	has_mob_product = /mob/living/simple_animal/passive/tomato
+	possessable = TRUE
+	product_type = /mob/living/simple_animal/passive/tomato
 
 /datum/seed/tomato/killer/New()
 	..()
 	set_trait(TRAIT_YIELD,2)
 	set_trait(TRAIT_PRODUCT_COLOUR,"#a86747")
 
-/datum/seed/tomato/blue
-	name = "bluetomato"
+
+PRODUCE_SEED(tomato/blue, "bluetomato")
 	seed_name = "blue tomato"
 	display_name = "blue tomato plant"
 	mutants = list("bluespacetomato")
@@ -222,8 +218,8 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#4d86e8")
 	set_trait(TRAIT_PLANT_COLOUR,"#070aad")
 
-/datum/seed/tomato/blue/teleport
-	name = "bluespacetomato"
+
+PRODUCE_SEED(tomato/blue/teleport, "bluespacetomato")
 	seed_name = "bluespace tomato"
 	display_name = "bluespace tomato plant"
 	mutants = null
@@ -236,11 +232,10 @@
 	set_trait(TRAIT_BIOLUM,1)
 	set_trait(TRAIT_BIOLUM_COLOUR,"#4da4a8")
 
-//Eggplants/varieties.
-/datum/seed/eggplant
-	name = "eggplant"
+
+PRODUCE_SEED(eggplant, "eggplant")
 	seed_name = "eggplant"
-	display_name = "eggplants"
+	display_name = "eggplant"
 	mutants = list("realeggplant")
 	chems = list(/datum/reagent/nutriment = list(1,10))
 	kitchen_tag = "eggplant"
@@ -258,9 +253,8 @@
 	set_trait(TRAIT_IDEAL_HEAT, 298)
 	set_trait(TRAIT_IDEAL_LIGHT, 7)
 
-//Apples/varieties.
-/datum/seed/apple
-	name = "apple"
+
+PRODUCE_SEED(apple, "apple")
 	seed_name = "apple"
 	display_name = "apple tree"
 	mutants = list("poisonapple","goldapple")
@@ -281,13 +275,13 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 4)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/apple/poison
-	name = "poisonapple"
+
+PRODUCE_SEED(apple/poison, "poisonapple")
 	mutants = null
 	chems = list(/datum/reagent/toxin/cyanide = list(1,5))
 
-/datum/seed/apple/gold
-	name = "goldapple"
+
+PRODUCE_SEED(apple/gold, "goldapple")
 	seed_name = "golden apple"
 	display_name = "gold apple tree"
 	mutants = null
@@ -302,13 +296,12 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#ffdd00")
 	set_trait(TRAIT_PLANT_COLOUR,"#d6b44d")
 
-//Ambrosia/varieties.
-/datum/seed/ambrosia
-	name = "ambrosia"
+
+PRODUCE_SEED(ambrosia, "ambrosia")
 	seed_name = "ambrosia vulgaris"
 	display_name = "ambrosia vulgaris"
 	mutants = list("ambrosiadeus")
-	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/space_drugs = list(1,8), /datum/reagent/kelotane = list(1,8,1), /datum/reagent/bicaridine = list(1,10,1), /datum/reagent/toxin = list(1,10))
+	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/drugs/hextro = list(1,8), /datum/reagent/kelotane = list(1,8,1), /datum/reagent/bicaridine = list(1,10,1), /datum/reagent/toxin = list(1,10))
 	kitchen_tag = "ambrosia"
 
 /datum/seed/ambrosia/New()
@@ -323,12 +316,12 @@
 	set_trait(TRAIT_PLANT_ICON,"ambrosia")
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 
-/datum/seed/ambrosia/deus
-	name = "ambrosiadeus"
+
+PRODUCE_SEED(ambrosia/deus, "ambrosiadeus")
 	seed_name = "ambrosia deus"
 	display_name = "ambrosia deus"
 	mutants = null
-	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/bicaridine = list(1,8), /datum/reagent/synaptizine = list(1,8,1), /datum/reagent/hyperzine = list(1,10,1), /datum/reagent/space_drugs = list(1,10))
+	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/bicaridine = list(1,8), /datum/reagent/synaptizine = list(1,8,1), /datum/reagent/hyperzine = list(1,10,1), /datum/reagent/drugs/hextro = list(1,10))
 	kitchen_tag = "ambrosiadeus"
 
 /datum/seed/ambrosia/deus/New()
@@ -336,15 +329,14 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#a3f0ad")
 	set_trait(TRAIT_PLANT_COLOUR,"#2a9c61")
 
-//Mushrooms/varieties.
-/datum/seed/mushroom
-	name = "mushrooms"
+
+PRODUCE_SEED(mushroom, "mushrooms")
 	seed_name = "chanterelle"
 	seed_noun = SEED_NOUN_SPORES
-	display_name = "chanterelle mushrooms"
+	display_name = "chanterelle cluster"
 	mutants = list("reishi","amanita","plumphelmet")
 	chems = list(/datum/reagent/nutriment = list(1,25))
-	splat_type = /obj/effect/vine
+	splat_type = /obj/vine
 	kitchen_tag = "mushroom"
 
 /datum/seed/mushroom/New()
@@ -360,6 +352,7 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_IDEAL_HEAT, 288)
 	set_trait(TRAIT_LIGHT_TOLERANCE, 6)
+
 
 /datum/seed/mushroom/mold
 	name = "mold"
@@ -377,10 +370,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#7a5f20")
 	set_trait(TRAIT_PLANT_ICON,"mushroom9")
 
-/datum/seed/mushroom/plump
-	name = "plumphelmet"
+
+PRODUCE_SEED(mushroom/plump, "plumphelmet")
 	seed_name = "plump helmet"
-	display_name = "plump helmet mushrooms"
+	display_name = "plump helmet cluster"
 	mutants = list("walkingmushroom","towercap")
 	chems = list(/datum/reagent/nutriment = list(2,10))
 	kitchen_tag = "plumphelmet"
@@ -397,13 +390,15 @@
 	set_trait(TRAIT_PLANT_ICON,"mushroom2")
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.35)
 
+
 /datum/seed/mushroom/plump/walking
 	name = "walkingmushroom"
 	seed_name = "walking mushroom"
-	display_name = "walking mushrooms"
+	display_name = "walking mushroom cluster"
 	mutants = null
 	can_self_harvest = TRUE
-	has_mob_product = /mob/living/simple_animal/passive/mushroom
+	possessable = TRUE
+	product_type = /mob/living/simple_animal/passive/mushroom
 
 /datum/seed/mushroom/plump/walking/New()
 	..()
@@ -412,12 +407,12 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#fac0f2")
 	set_trait(TRAIT_PLANT_COLOUR,"#c4b1c2")
 
-/datum/seed/mushroom/hallucinogenic
-	name = "reishi"
+
+PRODUCE_SEED(mushroom/hallucinogenic, "reishi")
 	seed_name = "reishi"
-	display_name = "reishi"
+	display_name = "reishi cluster"
 	mutants = list("libertycap","glowshroom")
-	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/psilocybin = list(3,5))
+	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/drugs/psilocybin = list(3,5))
 
 /datum/seed/mushroom/hallucinogenic/New()
 	..()
@@ -430,12 +425,12 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#f58a18")
 	set_trait(TRAIT_PLANT_ICON,"mushroom6")
 
-/datum/seed/mushroom/hallucinogenic/strong
-	name = "libertycap"
+
+PRODUCE_SEED(mushroom/hallucinogenic/strong, "libertycap")
 	seed_name = "liberty cap"
-	display_name = "liberty cap mushrooms"
+	display_name = "liberty cap cluster"
 	mutants = null
-	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/soporific = list(3,3), /datum/reagent/space_drugs = list(1,25))
+	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/soporific = list(3,3), /datum/reagent/drugs/hextro = list(1,25))
 
 /datum/seed/mushroom/hallucinogenic/strong/New()
 	..()
@@ -446,12 +441,12 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#d1ca82")
 	set_trait(TRAIT_PLANT_ICON,"mushroom3")
 
-/datum/seed/mushroom/poison
-	name = "amanita"
+
+PRODUCE_SEED(mushroom/poison, "amanita")
 	seed_name = "fly amanita"
-	display_name = "fly amanita mushrooms"
+	display_name = "fly amanita cluster"
 	mutants = list("destroyingangel","plastic")
-	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/toxin/amatoxin = list(3,3), /datum/reagent/psilocybin = list(1,25))
+	chems = list(/datum/reagent/nutriment = list(1), /datum/reagent/toxin/amatoxin = list(3,3), /datum/reagent/drugs/psilocybin = list(1,25))
 
 /datum/seed/mushroom/poison/New()
 	..()
@@ -464,12 +459,12 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#e0ddba")
 	set_trait(TRAIT_PLANT_ICON,"mushroom4")
 
-/datum/seed/mushroom/poison/death
-	name = "destroyingangel"
+
+PRODUCE_SEED(mushroom/poison/death, "destroyingangel")
 	seed_name = "destroying angel"
-	display_name = "destroying angel mushrooms"
+	display_name = "destroying angel cluster"
 	mutants = null
-	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/toxin/amatoxin = list(13,3), /datum/reagent/psilocybin = list(1,25))
+	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/toxin/amatoxin = list(13,3), /datum/reagent/drugs/psilocybin = list(1,25))
 
 /datum/seed/mushroom/poison/death/New()
 	..()
@@ -481,10 +476,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#e6d8dd")
 	set_trait(TRAIT_PLANT_ICON,"mushroom5")
 
-/datum/seed/mushroom/towercap
-	name = "towercap"
+
+PRODUCE_SEED(mushroom/towercap, "towercap")
 	seed_name = "tower cap"
-	display_name = "tower caps"
+	display_name = "tower cap cluster"
 	chems = list(/datum/reagent/woodpulp = list(10,1))
 	mutants = null
 	fruit_size = ITEM_SIZE_NORMAL
@@ -497,10 +492,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#857f41")
 	set_trait(TRAIT_PLANT_ICON,"mushroom8")
 
-/datum/seed/mushroom/glowshroom
-	name = "glowshroom"
+
+PRODUCE_SEED(mushroom/glowshroom, "glowshroom")
 	seed_name = "glowshroom"
-	display_name = "glowshrooms"
+	display_name = "glowshroom cluster"
 	mutants = null
 	chems = list(/datum/reagent/radium = list(1,20))
 
@@ -517,10 +512,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#efff8a")
 	set_trait(TRAIT_PLANT_ICON,"mushroom7")
 
-/datum/seed/mushroom/plastic
-	name = "plastic"
+
+PRODUCE_SEED(mushroom/plastic, "plastic")
 	seed_name = "plastellium"
-	display_name = "plastellium"
+	display_name = "plastellium cluster"
 	mutants = null
 	chems = list(/datum/reagent/toxin/plasticide = list(1,10))
 
@@ -535,14 +530,13 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#e6e6e6")
 	set_trait(TRAIT_PLANT_ICON,"mushroom10")
 
-//Flowers/varieties
-/datum/seed/flower
-	name = "harebells"
+
+PRODUCE_SEED(flower/harebell, "harebells")
 	seed_name = "harebell"
-	display_name = "harebells"
+	display_name = "harebell patch"
 	chems = list(/datum/reagent/nutriment = list(1,20))
 
-/datum/seed/flower/New()
+/datum/seed/flower/harebell/New()
 	..()
 	set_trait(TRAIT_MATURATION,7)
 	set_trait(TRAIT_PRODUCTION,1)
@@ -553,11 +547,11 @@
 	set_trait(TRAIT_PLANT_ICON,"flower")
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/flower/poppy
-	name = "poppies"
+
+PRODUCE_SEED(flower/poppy, "poppies")
 	seed_name = "poppy"
-	display_name = "poppies"
-	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/tramadol = list(1,10))
+	display_name = "poppy patch"
+	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/opiate = list(1,10))
 	kitchen_tag = "poppy"
 
 /datum/seed/flower/poppy/New()
@@ -573,10 +567,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/flower/sunflower
-	name = "sunflowers"
+
+PRODUCE_SEED(flower/sunflower, "sunflowers")
 	seed_name = "sunflower"
-	display_name = "sunflowers"
+	display_name = "sunflower patch"
 
 /datum/seed/flower/sunflower/New()
 	..()
@@ -588,10 +582,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/flower/lavender
-	name = "lavender"
+
+PRODUCE_SEED(flower/lavender, "lavender")
 	seed_name = "lavender"
-	display_name = "lavender"
+	display_name = "lavender patch"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/bicaridine = list(1,10))
 	fruit_size = ITEM_SIZE_TINY
 
@@ -608,13 +602,13 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.05)
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 
-//Grapes/varieties
-/datum/seed/grapes
-	name = "grapes"
+
+PRODUCE_SEED(grapes, "grapes")
 	seed_name = "grape"
-	display_name = "grapevines"
-	mutants = list("greengrapes")
+	display_name = "grape vine"
+	mutants = list("greengrapes","whitegrapes")
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/sugar = list(1,5), /datum/reagent/drink/juice/grape = list(10,10))
+	kitchen_tag = "grapes"
 
 /datum/seed/grapes/New()
 	..()
@@ -630,23 +624,23 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/grapes/green
-	name = "greengrapes"
+
+PRODUCE_SEED(grapes/green, "greengrapes")
 	seed_name = "green grape"
-	display_name = "green grapevines"
+	display_name = "green grape vine"
 	mutants = list("grapes","whitegrapes")
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/sugar = list(1,5), /datum/reagent/drink/juice/grape/green = list(10,10))
 
 /datum/seed/grapes/green/New()
 	..()
-	set_trait(TRAIT_PRODUCT_COLOUR,"42ed2f")
+	set_trait(TRAIT_PRODUCT_COLOUR,"#42ed2f")
 
-//Everything else
-/datum/seed/peanuts
-	name = "peanut"
+
+PRODUCE_SEED(peanuts, "peanut")
 	seed_name = "peanut"
-	display_name = "peanut vines"
-	chems = list(/datum/reagent/nutriment = list(1,10))
+	display_name = "peanut plant"
+	chems = list(/datum/reagent/nutriment/peanut/groundpeanuts = list(3,5))
+	kitchen_tag = "peanut"
 
 /datum/seed/peanuts/New()
 	..()
@@ -660,10 +654,10 @@
 	set_trait(TRAIT_PLANT_ICON,"bush2")
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 
-/datum/seed/peppercorn
-	name = "peppercorn"
+
+PRODUCE_SEED(peppercorn, "peppercorn")
 	seed_name = "peppercorn"
-	display_name = "black pepper"
+	display_name = "black pepper plant"
 	chems = list(/datum/reagent/blackpepper = list(10,10))
 	fruit_size = ITEM_SIZE_TINY
 
@@ -679,10 +673,10 @@
 	set_trait(TRAIT_PLANT_ICON,"vine2")
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 
-/datum/seed/cabbage
-	name = "cabbage"
+
+PRODUCE_SEED(cabbage, "cabbage")
 	seed_name = "cabbage"
-	display_name = "cabbages"
+	display_name = "cabbage patch"
 	chems = list(/datum/reagent/nutriment = list(1,7), /datum/reagent/drink/juice/cabbage = list (3, 3))
 	kitchen_tag = "cabbage"
 	fruit_size = ITEM_SIZE_NORMAL
@@ -702,8 +696,31 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/banana
-	name = "banana"
+
+PRODUCE_SEED(lettuce, "lettuce")
+	seed_name = "lettuce"
+	display_name = "lettuce plant"
+	chems = list(/datum/reagent/nutriment = list(1,5), /datum/reagent/drink/juice/lettuce = list (2, 4))
+	kitchen_tag = "lettuce"
+	fruit_size = ITEM_SIZE_NORMAL
+
+/datum/seed/lettuce/New()
+	..()
+	set_trait(TRAIT_HARVEST_REPEAT,1)
+	set_trait(TRAIT_MATURATION,5)
+	set_trait(TRAIT_PRODUCTION,2)
+	set_trait(TRAIT_YIELD,4)
+	set_trait(TRAIT_POTENCY,10)
+	set_trait(TRAIT_PRODUCT_ICON,"lettuce")
+	set_trait(TRAIT_PRODUCT_COLOUR,"#59ca42")
+	set_trait(TRAIT_PLANT_COLOUR,"#4fcb5b")
+	set_trait(TRAIT_PLANT_ICON,"vine2")
+	set_trait(TRAIT_IDEAL_LIGHT, 6)
+	set_trait(TRAIT_WATER_CONSUMPTION, 6)
+	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
+
+
+PRODUCE_SEED(banana, "banana")
 	seed_name = "banana"
 	display_name = "banana tree"
 	chems = list(/datum/reagent/drink/juice/banana = list(10,10), /datum/reagent/potassium = list(2,3))
@@ -725,10 +742,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/corn
-	name = "corn"
+
+PRODUCE_SEED(corn, "corn")
 	seed_name = "corn"
-	display_name = "ears of corn"
+	display_name = "corn plant"
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/nutriment/cornoil = list(1,10))
 	kitchen_tag = "corn"
 	trash_type = /obj/item/carvable/corncob
@@ -747,11 +764,11 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/potato
-	name = "potato"
+
+PRODUCE_SEED(potato, "potato")
 	seed_name = "potato"
-	display_name = "potatoes"
-	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/potato = list(10,10))
+	display_name = "potato plant"
+	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/potato = list(3,6))
 	kitchen_tag = "potato"
 
 /datum/seed/potato/New()
@@ -766,11 +783,11 @@
 	set_trait(TRAIT_PLANT_ICON,"bush2")
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/garlic
-	name = "garlic"
+
+PRODUCE_SEED(garlic, "garlic")
 	seed_name = "garlic"
-	display_name = "garlic"
-	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/garlic = list(10,10))
+	display_name = "garlic plant"
+	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/garlic = list(3,6))
 	kitchen_tag = "garlic"
 
 /datum/seed/garlic/New()
@@ -784,11 +801,11 @@
 	set_trait(TRAIT_PLANT_ICON,"stalk")
 	set_trait(TRAIT_WATER_CONSUMPTION, 7)
 
-/datum/seed/onion
-	name = "onion"
+
+PRODUCE_SEED(onion, "onion")
 	seed_name = "onion"
-	display_name = "onions"
-	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/onion = list(10,10))
+	display_name = "onion plant"
+	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/onion = list(3,6))
 	kitchen_tag = "onion"
 
 /datum/seed/onion/New()
@@ -802,10 +819,10 @@
 	set_trait(TRAIT_PLANT_ICON,"stalk")
 	set_trait(TRAIT_WATER_CONSUMPTION, 5)
 
-/datum/seed/soybean
-	name = "soybean"
+
+PRODUCE_SEED(soybean, "soybean")
 	seed_name = "soybean"
-	display_name = "soybeans"
+	display_name = "soybean plant"
 	chems = list(/datum/reagent/drink/milk/soymilk = list(10,20))
 	kitchen_tag = "soybeans"
 
@@ -820,10 +837,10 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#ebe7c0")
 	set_trait(TRAIT_PLANT_ICON,"stalk")
 
-/datum/seed/wheat
-	name = "wheat"
+
+PRODUCE_SEED(wheat, "wheat")
 	seed_name = "wheat"
-	display_name = "wheat stalks"
+	display_name = "patch of wheat"
 	chems = list(/datum/reagent/nutriment/flour = list(15,15))
 	kitchen_tag = "wheat"
 
@@ -840,10 +857,10 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/rice
-	name = "rice"
+
+PRODUCE_SEED(rice, "rice")
 	seed_name = "rice"
-	display_name = "rice stalks"
+	display_name = "patch of rice"
 	chems = list(/datum/reagent/nutriment/rice = list(10,15))
 	kitchen_tag = "rice"
 
@@ -860,10 +877,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/carrots
-	name = "carrot"
+
+PRODUCE_SEED(carrots, "carrot")
 	seed_name = "carrot"
-	display_name = "carrots"
+	display_name = "carrot patch"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/imidazoline = list(3,5), /datum/reagent/drink/juice/carrot = list(10,20))
 	kitchen_tag = "carrot"
 
@@ -878,10 +895,11 @@
 	set_trait(TRAIT_PLANT_ICON,"carrot")
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
+
 /datum/seed/weeds
 	name = "weeds"
 	seed_name = "weed"
-	display_name = "weeds"
+	display_name = "patch of weeds"
 
 /datum/seed/weeds/New()
 	..()
@@ -895,10 +913,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#59945a")
 	set_trait(TRAIT_PLANT_ICON,"bush6")
 
-/datum/seed/whitebeets
-	name = "whitebeet"
+
+PRODUCE_SEED(whitebeets, "whitebeet")
 	seed_name = "white-beet"
-	display_name = "white-beets"
+	display_name = "white-beet patch"
 	chems = list(/datum/reagent/nutriment = list(0,20), /datum/reagent/sugar = list(1,5))
 	kitchen_tag = "whitebeet"
 
@@ -914,10 +932,10 @@
 	set_trait(TRAIT_PLANT_ICON,"carrot2")
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/sugarcane
-	name = "sugarcane"
+
+PRODUCE_SEED(sugarcane, "sugarcane")
 	seed_name = "sugarcane"
-	display_name = "sugarcanes"
+	display_name = "sugarcane patch"
 	chems = list(/datum/reagent/sugar = list(4,5))
 	fruit_size = ITEM_SIZE_NORMAL
 
@@ -934,8 +952,8 @@
 	set_trait(TRAIT_PLANT_ICON,"stalk3")
 	set_trait(TRAIT_IDEAL_HEAT, 298)
 
-/datum/seed/watermelon
-	name = "watermelon"
+
+PRODUCE_SEED(watermelon, "watermelon")
 	seed_name = "watermelon"
 	display_name = "watermelon vine"
 	chems = list(/datum/reagent/nutriment = list(1,6), /datum/reagent/drink/juice/watermelon = list(10,6))
@@ -958,8 +976,8 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/pumpkin
-	name = "pumpkin"
+
+PRODUCE_SEED(pumpkin, "pumpkin")
 	seed_name = "pumpkin"
 	display_name = "pumpkin vine"
 	chems = list(/datum/reagent/nutriment = list(1,6))
@@ -979,10 +997,10 @@
 	set_trait(TRAIT_PLANT_ICON,"vine2")
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/citrus
-	name = "lime"
+
+PRODUCE_SEED(citrus, "lime")
 	seed_name = "lime"
-	display_name = "lime trees"
+	display_name = "lime tree"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/drink/juice/lime = list(10,20))
 	kitchen_tag = "lime"
 
@@ -1000,10 +1018,10 @@
 	set_trait(TRAIT_FLESH_COLOUR,"#3af026")
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/citrus/lemon
-	name = "lemon"
+
+PRODUCE_SEED(citrus/lemon, "lemon")
 	seed_name = "lemon"
-	display_name = "lemon trees"
+	display_name = "lemon tree"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/drink/juice/lemon = list(10,20))
 	kitchen_tag = "lemon"
 
@@ -1015,10 +1033,10 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/citrus/orange
-	name = "orange"
+
+PRODUCE_SEED(citrus/orange, "orange")
 	seed_name = "orange"
-	display_name = "orange trees"
+	display_name = "orange tree"
 	kitchen_tag = "orange"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/drink/juice/orange = list(10,20))
 
@@ -1028,10 +1046,10 @@
 	set_trait(TRAIT_FLESH_COLOUR,"#ffc20a")
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/grass
-	name = "grass"
+
+PRODUCE_SEED(grass, "grass")
 	seed_name = "grass"
-	display_name = "grass"
+	display_name = "patch of grass"
 	chems = list(/datum/reagent/nutriment = list(1,20))
 	kitchen_tag = "grass"
 	fruit_size = ITEM_SIZE_NORMAL
@@ -1050,8 +1068,8 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/cocoa
-	name = "cocoa"
+
+PRODUCE_SEED(cocoa, "cocoa")
 	seed_name = "cacao"
 	display_name = "cacao tree"
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/nutriment/coco = list(4,5))
@@ -1070,8 +1088,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/cherries
-	name = "cherry"
+
+PRODUCE_SEED(cherries, "cherry")
 	seed_name = "cherry"
 	seed_noun = SEED_NOUN_PITS
 	display_name = "cherry tree"
@@ -1092,10 +1110,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#2f7d2d")
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/kudzu
-	name = "kudzu"
+
+PRODUCE_SEED(kudzu, "kudzu")
 	seed_name = "kudzu"
-	display_name = "kudzu vines"
+	display_name = "kudzu vine"
 	chems = list(/datum/reagent/nutriment = list(1,50), /datum/reagent/dylovene = list(1,25))
 
 /datum/seed/kudzu/New()
@@ -1111,13 +1129,15 @@
 	set_trait(TRAIT_PLANT_ICON,"vine2")
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 
+
 /datum/seed/diona
 	name = "diona"
 	seed_name = "diona"
 	seed_noun = SEED_NOUN_NODES
-	display_name = "replicant pods"
+	display_name = "replicant pod"
 	can_self_harvest = TRUE
-	has_mob_product = /mob/living/carbon/alien/diona
+	possessable = TRUE
+	product_type = /mob/living/carbon/alien/diona
 
 /datum/seed/diona/New()
 	..()
@@ -1132,10 +1152,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#66804b")
 	set_trait(TRAIT_PLANT_ICON,"alien4")
 
-/datum/seed/shand
-	name = "shand"
+
+PRODUCE_SEED(shand, "shand")
 	seed_name = "S'randar's hand"
-	display_name = "S'randar's hand leaves"
+	display_name = "S'randar's hand plant"
 	chems = list(/datum/reagent/bicaridine = list(0,10))
 	kitchen_tag = "shand"
 
@@ -1152,10 +1172,10 @@
 	set_trait(TRAIT_IDEAL_HEAT, 283)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/mtear
-	name = "mtear"
+
+PRODUCE_SEED(mtear, "mtear")
 	seed_name = "Messa's tear"
-	display_name = "Messa's tear leaves"
+	display_name = "Messa's tear plant"
 	chems = list(/datum/reagent/nutriment/honey = list(1,10), /datum/reagent/kelotane = list(3,5))
 	kitchen_tag = "mtear"
 
@@ -1172,10 +1192,10 @@
 	set_trait(TRAIT_IDEAL_HEAT, 283)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/tobacco
-	name = "tobacco"
+
+PRODUCE_SEED(tobacco, "tobacco")
 	seed_name = "tobacco"
-	display_name = "tobacco leaves"
+	display_name = "tobacco plant"
 	mutants = list("finetobacco", "puretobacco", "badtobacco")
 	chems = list(/datum/reagent/tobacco = list(1,10))
 	fruit_size = ITEM_SIZE_TINY
@@ -1194,10 +1214,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/tobacco/finetobacco
-	name = "finetobacco"
+
+PRODUCE_SEED(tobacco/finetobacco, "finetobacco")
 	seed_name = "fine tobacco"
-	display_name = "fine tobacco leaves"
+	display_name = "fine tobacco plant"
 	chems = list(/datum/reagent/tobacco/fine = list(1,10))
 
 /datum/seed/tobacco/finetobacco/New()
@@ -1207,10 +1227,10 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#33571b")
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.20)
 
-/datum/seed/tobacco/puretobacco //provides the pure nicotine reagent
-	name = "puretobacco"
+
+PRODUCE_SEED(tobacco/puretobacco, "puretobacco")
 	seed_name = "succulent tobacco"
-	display_name = "succulent tobacco leaves"
+	display_name = "succulent tobacco plant"
 	chems = list(/datum/reagent/nicotine = list(1,10))
 
 /datum/seed/tobacco/puretobacco/New()
@@ -1221,17 +1241,23 @@
 	set_trait(TRAIT_PLANT_COLOUR,"#b7c61a")
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.30)
 
-/datum/seed/tobacco/bad
-	name = "badtobacco"
+
+PRODUCE_SEED(tobacco/bad, "badtobacco")
 	seed_name = "low-grade tobacco"
-	display_name = "low-grade tobacco leaves"
+	display_name = "low-grade tobacco plant"
 	mutants = list("tobacco")
 	chems = list(/datum/reagent/tobacco/bad = list(1,10))
 
-/datum/seed/algae
-	name = "algae"
+/datum/seed/tobacco/bad/New()
+	..()
+	set_trait(TRAIT_PRODUCT_COLOUR,"#8c8626")
+	set_trait(TRAIT_PLANT_COLOUR,"#8c8626")
+	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.1)
+
+
+PRODUCE_SEED(algae, "algae")
 	seed_name = "algae"
-	display_name = "algae"
+	display_name = "algae patch"
 	chems = list(
 		/datum/reagent/nutriment = list(2,12),
 		/datum/reagent/toxin/bromide = list(3,8)
@@ -1254,10 +1280,10 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/bamboo
-	name = "bamboo"
+
+PRODUCE_SEED(bamboo, "bamboo")
 	seed_name = "bamboo"
-	display_name = "bamboo"
+	display_name = "bamboo patch"
 	chems = list(/datum/reagent/bamboo = list(6,1))
 	mutants = null
 	fruit_size = ITEM_SIZE_NORMAL
@@ -1276,8 +1302,8 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/resin
-	name = "resinplant"
+
+PRODUCE_SEED(resin, "resinplant")
 	seed_name = "resin plant"
 	display_name = "resin plant"
 	chems = list(/datum/reagent/resinpulp = list(6,1))
@@ -1298,8 +1324,8 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/breather
-	name = "breather"
+
+PRODUCE_SEED(breather, "breather")
 	seed_name = "breather"
 	display_name = "breather"
 	chems = list(
@@ -1320,10 +1346,8 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 1)
 	set_trait(TRAIT_LIGHT_TOLERANCE, 6)
 
-// Fruit Expansion
 
-/datum/seed/melon
-	name = "melon"
+PRODUCE_SEED(melon, "melon")
 	seed_name = "melon"
 	display_name = "melon vine"
 	chems = list(/datum/reagent/nutriment = list(1,6), /datum/reagent/drink/juice/melon = list(10,6))
@@ -1346,8 +1370,8 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 6)
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 
-/datum/seed/coffee
-	name = "coffee"
+
+PRODUCE_SEED(coffee, "coffee")
 	seed_name = "coffee bean"
 	display_name = "coffee plant"
 	chems = list(/datum/reagent/nutriment/coffee = list(10,10))
@@ -1363,10 +1387,10 @@
 	set_trait(TRAIT_PLANT_ICON,"vine2")
 	set_trait(TRAIT_IDEAL_LIGHT, 7)
 
-/datum/seed/grapes/white
-	name = "whitegrapes"
-	seed_name = "white grape seeds"
-	display_name = "white grapevines"
+
+PRODUCE_SEED(grapes/white, "whitegrapes")
+	seed_name = "white grape"
+	display_name = "white grape vine"
 	mutants = list("grapes","greengrapes")
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/sugar = list(1,5), /datum/reagent/drink/juice/grape/white = list(10,10))
 
@@ -1376,8 +1400,8 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#f5efd4")
 	set_trait(TRAIT_PLANT_COLOUR,"#378f2e")
 
-/datum/seed/vanilla
-	name = "vanilla"
+
+PRODUCE_SEED(vanilla, "vanilla")
 	seed_name = "vanilla flower"
 	display_name = "vanilla flower"
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/syrup_vanilla = list(4,5))
@@ -1396,12 +1420,13 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/pineapple
-	name = "pineapples"
+
+PRODUCE_SEED(pineapple, "pineapples")
 	seed_name = "pineapple"
 	display_name = "pineapple plant"
 	chems = list(/datum/reagent/drink/juice/pineapple = list(10,10), /datum/reagent/enzyme = list(1,5),/datum/reagent/nutriment = list(1,10))
 	trash_type = /obj/item/carvable/corncob/hollowpineapple
+	kitchen_tag = "pineapple"
 
 /datum/seed/pineapple/New()
 	..()
@@ -1419,8 +1444,8 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/pear
-	name = "pears"
+
+PRODUCE_SEED(pear, "pears")
 	seed_name = "pear"
 	display_name = "pear tree"
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/juice/pear = list(10,10))
@@ -1439,10 +1464,10 @@
 	set_trait(TRAIT_IDEAL_LIGHT, 4)
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/coconut
-	name = "coconuts"
+
+PRODUCE_SEED(coconut, "coconuts")
 	seed_name = "coconut"
-	display_name = "coconut trees"
+	display_name = "coconut tree"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/drink/coconut = list(10,20))
 	trash_type = /obj/item/carvable/corncob/hollowcoconut
 
@@ -1458,10 +1483,10 @@
 	set_trait(TRAIT_PLANT_ICON,"tree4")
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/cinnamon
-	name = "cinnamon"
+
+PRODUCE_SEED(cinnamon, "cinnamon")
 	seed_name = "cinnamon"
-	display_name = "cinnamon"
+	display_name = "cinnamon tree"
 	chems = list(/datum/reagent/cinnamon = list(10,20))
 	fruit_size = ITEM_SIZE_TINY
 
@@ -1477,8 +1502,8 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.05)
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 
-/datum/seed/olives
-	name = "olives"
+
+PRODUCE_SEED(olives, "olives")
 	seed_name = "olives"
 	display_name = "olive tree"
 	chems = list(/datum/reagent/nutriment = list(1,20), /datum/reagent/oliveoil = list(10,20))
@@ -1498,14 +1523,11 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
 
-// Exotic Edibles
-
-/datum/seed/gukhe
-	name = "gukhe"
+PRODUCE_SEED(gukhe, "gukhe")
 	seed_name = "gukhe bloom"
 	display_name = "gukhe bloom"
 	chems = list(/datum/reagent/nutriment = list(2,12), /datum/reagent/capsaicin = list(10,10))
-	kitchen_tag = "algae"
+	kitchen_tag = "gukhe"
 
 /datum/seed/gukhe/New()
 	..()
@@ -1522,11 +1544,11 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/hrukhza
-	name = "hrukhza"
+
+PRODUCE_SEED(hrukhza, "hrukhza")
 	seed_name = "hrukhza flower"
 	display_name = "hrukhza flower"
-	chems = list(/datum/reagent/drink/alien/unathijuice = list(10,10), /datum/reagent/nutriment = list(5,5))
+	chems = list(/datum/reagent/drink/unathijuice = list(10,10), /datum/reagent/nutriment = list(5,5))
 
 /datum/seed/hrukhza/New()
 	..()
@@ -1542,13 +1564,13 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/okrri
-	name = "okrri"
+
+PRODUCE_SEED(okrri, "okrri")
 	seed_name = "o'krri mushroom"
 	seed_noun = SEED_NOUN_SPORES
-	display_name = "o'krri mushrooms"
-	chems = list(/datum/reagent/nutriment = list(1,25), /datum/reagent/psilocybin = list(1,3))
-	splat_type = /obj/effect/vine
+	display_name = "o'krri cluster"
+	chems = list(/datum/reagent/nutriment = list(1,25), /datum/reagent/drugs/psilocybin = list(1,3))
+	splat_type = /obj/vine
 	kitchen_tag = "mushroom"
 
 /datum/seed/okrri/New()
@@ -1565,10 +1587,10 @@
 	set_trait(TRAIT_IDEAL_HEAT, 288)
 	set_trait(TRAIT_LIGHT_TOLERANCE, 4)
 
-/datum/seed/ximikoa
-	name = "ximikoa"
-	seed_name = "ximi'koa stalks"
-	display_name = "ximi'koa"
+
+PRODUCE_SEED(ximikoa, "ximikoa")
+	seed_name = "ximi'koa"
+	display_name = "ximi'koa patch"
 	chems = list(/datum/reagent/nutriment = list(1,2), /datum/reagent/sugar = list(4,5))
 	fruit_size = ITEM_SIZE_TINY
 
@@ -1585,11 +1607,11 @@
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.05)
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 
-/datum/seed/qokkloa
-	name = "qokkloa"
+
+PRODUCE_SEED(qokkloa, "qokkloa")
 	seed_name = "qokk'loa moss"
 	display_name = "qokk'loa moss"
-	chems = list(/datum/reagent/space_drugs = list(1,25), /datum/reagent/ethanol/alien/qokkloa = list(10,10) )
+	chems = list(/datum/reagent/drugs/hextro = list(1,25), /datum/reagent/ethanol/qokkloa = list(10,10) )
 
 /datum/seed/qokkloa/New()
 	..()
@@ -1605,11 +1627,12 @@
 	set_trait(TRAIT_IDEAL_HEAT, 283)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/aghrassh
-	name = "aghrassh"
+
+PRODUCE_SEED(aghrassh, "aghrassh")
 	seed_name = "aghrassh"
-	display_name = "aghrassh trees"
+	display_name = "aghrassh tree"
 	chems = list(/datum/reagent/nutriment = list(1,20))
+	kitchen_tag = "aghrassh"
 
 /datum/seed/aghrassh/New()
 	..()
@@ -1623,10 +1646,10 @@
 	set_trait(TRAIT_PLANT_ICON,"tree")
 	set_trait(TRAIT_PHOTOSYNTHESIS, 1)
 
-/datum/seed/gummen
-	name = "gummen"
+
+PRODUCE_SEED(gummen, "gummen")
 	seed_name = "gummen"
-	display_name = "gummen beans"
+	display_name = "gummen bean plant"
 	chems = list(/datum/reagent/nutriment = list(10,20))
 
 /datum/seed/gummen/New()
@@ -1640,8 +1663,8 @@
 	set_trait(TRAIT_PRODUCT_COLOUR,"#36a32f")
 	set_trait(TRAIT_PLANT_ICON,"stalk")
 
-/datum/seed/flower/affelerin
-	name = "affelerin"
+
+PRODUCE_SEED(flower/affelerin, "affelerin")
 	seed_name = "affelerin"
 	display_name = "affelerin flower"
 	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/drink/affelerin = list(10,10))
@@ -1661,12 +1684,12 @@
 	set_trait(TRAIT_WATER_CONSUMPTION, 0.5)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
 
-/datum/seed/berry/iridast
-	name = "iridast"
+
+PRODUCE_SEED(berry/iridast, "iridast")
 	seed_name = "iridast"
 	display_name = "iridast bush"
 	mutants = list("berries","glowberries","poisonberries","blueberries")
-	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/ethanol/iridast = list(10,10), /datum/reagent/psilocybin = list(1,3))
+	chems = list(/datum/reagent/nutriment = list(1,10), /datum/reagent/ethanol/iridast = list(10,10), /datum/reagent/drugs/psilocybin = list(1,3))
 	kitchen_tag = "berries"
 
 /datum/seed/berry/iridast/New()
@@ -1682,3 +1705,122 @@
 	set_trait(TRAIT_PLANT_ICON,"bush")
 	set_trait(TRAIT_WATER_CONSUMPTION, 6)
 	set_trait(TRAIT_NUTRIENT_CONSUMPTION, 0.15)
+
+
+/datum/seed/shellfish 		//parent shellfish
+	name = "shellfish"
+	seed_name = "shellfish"
+	seed_noun = SEED_NOUN_EGGS
+	display_name = "bed of shellfish"
+	product_type = /obj/item/shellfish
+
+/datum/seed/shellfish/New()
+	..()
+	set_trait(TRAIT_IMMUTABLE,1)
+	set_trait(TRAIT_CARNIVOROUS,1)
+	set_trait(TRAIT_HARVEST_REPEAT,1)
+	set_trait(TRAIT_MATURATION,8)
+	set_trait(TRAIT_PRODUCTION,6)
+	set_trait(TRAIT_YIELD,4)
+	set_trait(TRAIT_POTENCY,1)
+	set_trait(TRAIT_PRODUCT_ICON,"egg")
+	set_trait(TRAIT_WATER_CONSUMPTION,6)
+	set_trait(TRAIT_IDEAL_LIGHT,4)
+	set_trait(TRAIT_LIGHT_TOLERANCE,6)
+	set_trait(TRAIT_IDEAL_HEAT, 288)
+	set_trait(TRAIT_PRODUCT_COLOUR,"#f2f2f2")
+	set_trait(TRAIT_PLANT_COLOUR,"#f2f2f2")
+	set_trait(TRAIT_PLANT_ICON,"algae")
+	set_trait(TRAIT_PHOTOSYNTHESIS,0)
+
+
+/datum/seed/shellfish/clam
+	name = "clam"
+	seed_name = "clam"
+	display_name = "bed of clams"
+	product_type = /obj/item/shellfish/clam
+
+/datum/seed/shellfish/clam/New()
+	..()
+	set_trait(TRAIT_MATURATION,10)
+	set_trait(TRAIT_PRODUCT_COLOUR,"#f2f2f2")
+	set_trait(TRAIT_PLANT_COLOUR,"#f2f2f2")
+
+
+/datum/seed/shellfish/mussel
+	name = "mussel"
+	seed_name = "mussel"
+	display_name = "bed of mussels"
+	product_type = /obj/item/shellfish/mussel
+
+/datum/seed/shellfish/mussel/New()
+	..()
+	set_trait(TRAIT_IDEAL_LIGHT,5)
+	set_trait(TRAIT_YIELD,5)
+	set_trait(TRAIT_IDEAL_HEAT, 295)
+	set_trait(TRAIT_PRODUCT_COLOUR,"#34449f")
+	set_trait(TRAIT_PLANT_COLOUR,"#34449f")
+
+
+/datum/seed/shellfish/oyster
+	name = "oyster"
+	seed_name = "oyster"
+	display_name = "bed of oysters"
+	product_type = /obj/item/shellfish/oyster
+
+/datum/seed/shellfish/oyster/New()
+	..()
+	set_trait(TRAIT_PRODUCT_COLOUR,"#a8899c")
+	set_trait(TRAIT_PLANT_COLOUR,"#a8899c")
+
+
+/datum/seed/shellfish/shrimp
+	name = "shrimp"
+	seed_name = "shrimp"
+	display_name = "bed of shrimp"
+	product_type = /obj/item/shellfish/shrimp
+
+/datum/seed/shellfish/shrimp/New()
+	..()
+	set_trait(TRAIT_MATURATION,6)
+	set_trait(TRAIT_IDEAL_LIGHT,7)
+	set_trait(TRAIT_YIELD,5)
+	set_trait(TRAIT_IDEAL_HEAT, 295)
+	set_trait(TRAIT_PRODUCT_COLOUR,"#f8897b")
+	set_trait(TRAIT_PLANT_COLOUR,"#f8897b")
+
+
+/datum/seed/shellfish/crab
+	name = "crab"
+	seed_name = "crab"
+	display_name = "bed of crabs"
+	can_self_harvest = TRUE
+	product_type = /mob/living/simple_animal/passive/crab
+
+/datum/seed/shellfish/crab/New()
+	..()
+	set_trait(TRAIT_HARVEST_REPEAT,0)
+	set_trait(TRAIT_MATURATION,10)
+	set_trait(TRAIT_YIELD,3)
+	set_trait(TRAIT_IDEAL_LIGHT,5)
+	set_trait(TRAIT_PRODUCT_COLOUR,"#ef5f32")
+	set_trait(TRAIT_PLANT_COLOUR,"#ef5f32")
+
+
+PRODUCE_SEED(almond, "almond")
+	seed_name = "almond"
+	display_name = "almond plant"
+	chems = list(/datum/reagent/nutriment/almondmeal = list(4,7))
+	kitchen_tag = "almond"
+
+/datum/seed/almond/New()
+	..()
+	set_trait(TRAIT_HARVEST_REPEAT,1)
+	set_trait(TRAIT_MATURATION,6)
+	set_trait(TRAIT_PRODUCTION,6)
+	set_trait(TRAIT_YIELD,6)
+	set_trait(TRAIT_POTENCY,10)
+	set_trait(TRAIT_PRODUCT_ICON,"nuts")
+	set_trait(TRAIT_PRODUCT_COLOUR,"#eddcc8")
+	set_trait(TRAIT_PLANT_ICON,"bush2")
+	set_trait(TRAIT_IDEAL_LIGHT, 6)

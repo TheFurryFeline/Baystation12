@@ -3,7 +3,7 @@
 
 /datum/unit_test/view_variables_special_vv_handlers_shall_be_valid/start_test()
 	var/list/faulty_handlers = list()
-	for(var/decl/vv_set_handler/sh in init_subtypes(/decl/vv_set_handler))
+	for(var/singleton/vv_set_handler/sh in init_subtypes(/singleton/vv_set_handler))
 		if(!ispath(sh.handled_type))
 			log_bad("[sh] does not have a valid handled type. Expected a path, was [log_info_line(sh.handled_type)]")
 			faulty_handlers |= sh
@@ -11,7 +11,7 @@
 		if(!islist(sh.handled_vars))
 			log_bad("[sh] does not have a handled variables list. Expected a list, was [log_info_line(sh.handled_vars)]")
 			faulty_handlers |= sh
-		else if(!sh.handled_vars.len)
+		else if(!length(sh.handled_vars))
 			log_bad("[sh] as an empty handled variables list.")
 			faulty_handlers |= sh
 		else
@@ -19,7 +19,7 @@
 			// Somehow check for missing vars here without creating instances.
 			// I.e.:  for(var/handled_var in sh.handled_vars) check handled_var in handled_type.vars
 
-	if(faulty_handlers.len)
+	if(length(faulty_handlers))
 		fail("The following special VV handlers are invalid: [english_list(faulty_handlers)]")
 	else
 		pass("All special VV handlers are valid.")
@@ -29,16 +29,16 @@
 	name = "VIEW VARIABLES: No Special VV Handlers Shall Have Overlapping Handling"
 
 /datum/unit_test/view_variables_no_special_vv_handlers_shall_have_overlapping_handling/start_test()
-	var/list/handlers = init_subtypes(/decl/vv_set_handler)
+	var/list/handlers = init_subtypes(/singleton/vv_set_handler)
 	var/failed = 0
 
-	for(var/decl/vv_set_handler/sh1 in handlers)
+	for(var/singleton/vv_set_handler/sh1 in handlers)
 		handlers -= sh1
-		for(var/decl/vv_set_handler/sh2 in handlers)
+		for(var/singleton/vv_set_handler/sh2 in handlers)
 			if(!(ispath(sh1.handled_type, sh2.handled_type) || ispath(sh2.handled_type, sh1.handled_type)))
 				continue
 			var/list/intersected_vars = sh1.handled_vars & sh2.handled_vars
-			if(intersected_vars.len)
+			if(length(intersected_vars))
 				failed =  TRUE
 				log_bad("[sh1] and [sh2] have the following overlaps: [english_list(intersected_vars)]")
 
@@ -46,4 +46,30 @@
 		fail("One or more special VV handlers had overlapping handling.")
 	else
 		pass("No special VV handlers had overlapping handling.")
+	return 1
+
+/datum/unit_test/view_variables_lists_holding_themselves_shall_be_rendered
+	name = "VIEW VARIABLES: Lists Holding Themselves Shall Be Rendered"
+
+/datum/unit_test/view_variables_lists_holding_themselves_shall_be_rendered/start_test()
+	var/list/looped = list("self")
+	looped["self"] = looped
+	// A datum's vars list holds itself under "vars".
+	var/datum/holder = new
+	var/looped_text
+	try
+		looped_text = make_view_variables_value(looped)
+		make_view_variables_value(list("holder" = holder.vars))
+	catch(var/exception/e)
+		fail("Rendering a list that holds itself caused an exception: [e] on [e.file]:[e.line]")
+		qdel(holder)
+		return 1
+	qdel(holder)
+
+	// The list is expanded once, and where it appears inside itself it is only named.
+	var/mentions = length(splittext(looped_text, "/list (1)")) - 1
+	if(mentions == 2)
+		pass("Lists that hold themselves are expanded once.")
+	else
+		fail("A list that holds itself was named [mentions] times instead of 2.")
 	return 1

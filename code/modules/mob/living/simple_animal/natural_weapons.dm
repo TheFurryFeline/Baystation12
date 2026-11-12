@@ -3,7 +3,7 @@
 	gender = PLURAL
 	attack_verb = list("attacked")
 	force = 0
-	damtype = BRUTE
+	damtype = DAMAGE_BRUTE
 	canremove = FALSE
 	obj_flags = OBJ_FLAG_CONDUCTIBLE //for intent of shocking checks, they're right inside the animal
 	var/show_in_message   // whether should we show up in attack message, e.g. 'urist has been bit with teeth by carp' vs 'urist has been bit by carp'
@@ -16,14 +16,14 @@
 
 /obj/item/natural_weapon/bite
 	name = "teeth"
-	attack_verb = list("bitten")
+	attack_verb = list("bit")
 	hitsound = 'sound/weapons/bite.ogg'
 	force = 10
 	sharp = TRUE
 
 /obj/item/natural_weapon/bite/weak
 	force = 5
-	attack_verb = list("bitten", "nipped")
+	attack_verb = list("bit", "nipped")
 
 /obj/item/natural_weapon/bite/mouse
 	force = 1
@@ -67,9 +67,12 @@
 	gender = NEUTER
 	attack_verb = list("sliced")
 	force = 5
-	damtype = BRUTE
+	damtype = DAMAGE_BRUTE
 	edge = TRUE
 	show_in_message = TRUE
+
+/obj/item/natural_weapon/drone_slicer/construction
+	force = 18
 
 /obj/item/natural_weapon/beak
 	name = "beak"

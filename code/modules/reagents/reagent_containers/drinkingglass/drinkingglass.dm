@@ -1,26 +1,25 @@
-/var/const/DRINK_FIZZ = "fizz"
-/var/const/DRINK_ICE = "ice"
-/var/const/DRINK_VAPOR = "vapor"
-/var/const/DRINK_ICON_DEFAULT = ""
-/var/const/DRINK_ICON_NOISY = "noise"
+var/global/const/DRINK_FIZZ = "fizz"
+var/global/const/DRINK_ICE = "ice"
+var/global/const/DRINK_VAPOR = "vapor"
+var/global/const/DRINK_ICON_DEFAULT = ""
+var/global/const/DRINK_ICON_NOISY = "noise"
 
 /obj/item/reagent_containers/food/drinks/glass2
 	name = "glass" // Name when empty
 	base_name = "glass"
 	desc = "A generic drinking glass." // Description when empty
-	icon = 'icons/obj/drink_glasses/square.dmi'
+	icon = 'icons/obj/food/drink_glasses/square.dmi'
 	icon_state = null
 	base_icon = "square" // Base icon name
 	filling_states = "20;40;60;80;100"
 	volume = 30
 	matter = list(MATERIAL_GLASS = 65)
-	trash = /obj/item/material/shard
 
 	var/list/extras = list() // List of extras. Two extras maximum
 
 	var/rim_pos // Position of the rim for fruit slices. list(y, x_left, x_right)
 	var/filling_overlayed //if filling should go on top of the icon (e.g. opaque cups)
-	var/global/list/filling_icons_cache = list()
+	var/static/list/filling_icons_cache = list()
 
 	center_of_mass ="x=16;y=9"
 
@@ -28,9 +27,6 @@
 	possible_transfer_amounts = "5;10;15;30"
 	atom_flags = ATOM_FLAG_OPEN_CONTAINER
 	temperature_coefficient = 4
-
-	var/custom_name
-	var/custom_desc
 
 /obj/item/reagent_containers/food/drinks/glass2/examine(mob/M)
 	. = ..()
@@ -139,7 +135,7 @@
 	if(!filling_icons_cache["[base_icon][amount][overlay]"])
 		var/icon/base = new/icon(icon, "[base_icon][amount]")
 		if(overlay)
-			var/icon/extra = new/icon('icons/obj/drink_glasses/extras.dmi', overlay)
+			var/icon/extra = new/icon('icons/obj/food/drink_glasses/extras.dmi', overlay)
 			base.Blend(extra, ICON_MULTIPLY)
 		filling_icons_cache["[base_icon][amount][overlay]"] = image(base)
 	I.appearance = filling_icons_cache["[base_icon][amount][overlay]"]
@@ -147,12 +143,20 @@
 
 /obj/item/reagent_containers/food/drinks/glass2/on_update_icon()
 	underlays.Cut()
-	overlays.Cut()
+	ClearOverlays()
+
+	if (!empty_name)
+		empty_name = name
+		if (empty_name != initial(name))
+			// Use loadout name tweaks over default base names when describing a glass of something.
+			base_name = empty_name
+	if (!empty_desc)
+		empty_desc = desc
 
 	if (length(reagents?.reagent_list))
 		var/datum/reagent/R = reagents.get_master_reagent()
 		SetName("[base_name] of [R.glass_name ? R.glass_name : "something"]")
-		desc = R.glass_desc || custom_desc || initial(desc)
+		desc = R.glass_desc || empty_desc
 
 		var/list/under_liquid = list()
 		var/list/over_liquid = list()
@@ -179,15 +183,15 @@
 		var/image/filling = get_filling_overlay(amnt, R.glass_icon)
 		filling.color = reagents.get_color()
 		if(filling_overlayed)
-			overlays += filling
+			AddOverlays(filling)
 		else
 			underlays += filling
 
-		overlays += over_liquid
+		AddOverlays(over_liquid)
 
 	else
-		SetName(custom_name || initial(name))
-		desc = custom_desc || initial(desc)
+		SetName(empty_name)
+		desc = empty_desc
 
 	var/side = "left"
 	for(var/item in extras)
@@ -203,33 +207,31 @@
 			var/list/rim_pos_data = cached_key_number_decode(rim_pos)
 			var/fsy = rim_pos_data["y"] - 20
 			var/fsx = rim_pos_data[side == "left" ? "x_left" : "x_right"] - 16
-
-			var/matrix/M = matrix()
-			M.Scale(0.5)
-			M.Translate(fsx, fsy)
-			I.transform = M
+			I.SetTransform(scale = 0.5, offset_x = fsx, offset_y = fsy)
 			underlays += I
 		else continue
 		side = "right"
 
-/obj/item/reagent_containers/food/drinks/glass2/afterattack(obj/target, mob/user, proximity)
-	if (!proximity || standard_dispenser_refill(user, target) || standard_pour_into(user, target))
+/obj/item/reagent_containers/food/drinks/glass2/use_after(obj/target, mob/living/user, click_parameters)
+	if (standard_dispenser_refill(user, target) || standard_pour_into(user, target))
 		return TRUE
 	splashtarget(target, user)
+	return TRUE
 
-/obj/item/reagent_containers/food/drinks/glass2/attackby(obj/item/W, mob/user)
-	if(istype(W, /obj/item/material/kitchen/utensil/spoon))
+/obj/item/reagent_containers/food/drinks/glass2/use_tool(obj/item/W, mob/living/user, list/click_params)
+	if(istype(W, /obj/item/material/utensil/spoon))
 		if(user.a_intent == I_HURT)
-			user.visible_message("<span class='warning'>[user] bashes \the [src] with a spoon, shattering it to pieces! What a rube.</span>")
+			user.visible_message(SPAN_WARNING("[user] bashes \the [src] with a spoon, shattering it to pieces! What a rube."))
 			playsound(src, "shatter", 30, 1)
 			if(reagents)
-				user.visible_message("<span class='notice'>The contents of \the [src] splash all over [user]!</span>")
+				user.visible_message(SPAN_NOTICE("The contents of \the [src] splash all over [user]!"))
 				reagents.splash(user, reagents.total_volume)
 			qdel(src)
-			return
-		user.visible_message("<span class='notice'>[user] gently strikes \the [src] with a spoon, calling the room to attention.</span>")
+			return TRUE
+		user.visible_message(SPAN_NOTICE("[user] gently strikes \the [src] with a spoon, calling the room to attention."))
 		playsound(src, "sound/items/wineglass.ogg", 65, 1)
-	else return ..()
+		return TRUE
+	return ..()
 
 /obj/item/reagent_containers/food/drinks/glass2/ProcessAtomTemperature()
 	var/old_temp = temperature

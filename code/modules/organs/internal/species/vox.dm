@@ -23,14 +23,10 @@
 	eye_icon = 'icons/mob/human_races/species/vox/eyes.dmi'
 	color = "#0033cc"
 
-/obj/item/organ/internal/eyes/vox/armalis
-	eye_icon = 'icons/mob/human_races/species/vox/armalis_eyes.dmi'
-	color = "#0033cc"
-
 /obj/item/organ/internal/stomach/vox
 	name = "gizzard"
 	color = "#0033cc"
-	var/global/list/gains_nutriment_from_inedible_reagents = list(
+	var/static/list/gains_nutriment_from_inedible_reagents = list(
 		/datum/reagent/woodpulp =      3,
 		/datum/reagent/ultraglue =     1,
 		/datum/reagent/coolant =       1,
@@ -43,7 +39,7 @@
 		/datum/reagent/surfactant =    1,
 		/datum/reagent/paint =         1
 	)
-	var/global/list/can_digest_matter = list(
+	var/static/list/can_digest_matter = list(
 		MATERIAL_WOOD =        TRUE,
 		MATERIAL_MAHOGANY =    TRUE,
 		MATERIAL_MAPLE =       TRUE,
@@ -56,7 +52,7 @@
 		MATERIAL_WASTE =       TRUE,
 		MATERIAL_ROCK_SALT =   TRUE
 	)
-	var/global/list/can_process_matter = list(
+	var/static/list/can_process_matter = list(
 		MATERIAL_STEEL =       TRUE,
 		MATERIAL_GLASS =       TRUE,
 		MATERIAL_GOLD =        TRUE,
@@ -83,7 +79,8 @@
 		MATERIAL_BAUXITE =     TRUE,
 		MATERIAL_COPPER =      TRUE,
 		MATERIAL_ALUMINIUM =   TRUE,
-		MATERIAL_RUTILE = 	   TRUE
+		MATERIAL_RUTILE =      TRUE,
+		MATERIAL_BORAX =       TRUE
 	)
 	var/list/stored_matter = list()
 
@@ -112,12 +109,12 @@
 				digested *= 0.75
 				if(food.matter[mat] <= 0)
 					food.matter -= mat
-				if(!food.matter.len)
+				if(!length(food.matter))
 					qdel(food)
 
 				// Process it.
 				if(can_digest_matter[mat])
-					owner.adjust_nutrition(max(1, Floor(digested/100)))
+					owner.adjust_nutrition(max(1, floor(digested/100)))
 					updated_stacks = TRUE
 				else if(can_process_matter[mat])
 					LAZYDISTINCTADD(check_materials, mat)
@@ -129,7 +126,7 @@
 			if(M && M.stack_type && stored_matter[mat] >= M.units_per_sheet)
 
 				// Remove as many sheets as possible from the gizzard.
-				var/sheets = Floor(stored_matter[mat]/M.units_per_sheet)
+				var/sheets = floor(stored_matter[mat]/M.units_per_sheet)
 				stored_matter[mat] -= M.units_per_sheet * sheets
 				if(stored_matter[mat] <= 0)
 					stored_matter -= mat
@@ -141,7 +138,7 @@
 						mat_stack.set_amount(mat_stack.amount + taking_sheets)
 						sheets -= taking_sheets
 						updated_stacks = TRUE
-						
+
 				// Create new stacks if needed.
 				while(sheets > 0)
 					var/obj/item/stack/material/mat_stack = new M.stack_type(src)
@@ -177,15 +174,15 @@
 	var/datum/mind/backup
 	var/prompting = FALSE // Are we waiting for a user prompt?
 
-/obj/item/organ/internal/voxstack/New()
-	..()
+/obj/item/organ/internal/voxstack/Initialize()
+	. = ..()
 	do_backup()
 	robotize()
 
 /obj/item/organ/internal/voxstack/examine(mob/user)
 	. = ..()
 
-	var/user_vox = user.is_species(SPECIES_VOX) || user.is_species(SPECIES_VOX_ARMALIS)
+	var/user_vox = user.is_species(SPECIES_VOX)
 	if (istype(backup))
 		var/owner_viable = find_dead_player(ownerckey, TRUE)
 		if (user_vox)
@@ -196,6 +193,7 @@
 		to_chat(user, SPAN_NOTICE("The integrity light on [src] is off. It is empty and lifeless."))
 
 /obj/item/organ/internal/voxstack/emp_act()
+	SHOULD_CALL_PARENT(FALSE)
 	return
 
 /obj/item/organ/internal/voxstack/getToxLoss()
@@ -231,9 +229,6 @@
 /obj/item/organ/internal/voxstack/removed()
 	var/obj/item/organ/external/head = owner.get_organ(parent_organ)
 	owner.visible_message(SPAN_DANGER("\The [src] rips gaping holes in \the [owner]'s [head.name] as it is torn loose!"))
-	head.take_external_damage(rand(15,20))
-	for(var/obj/item/organ/internal/O in head.contents)
-		O.take_internal_damage(rand(30,70))
 	do_backup()
 	..()
 
@@ -242,9 +237,6 @@
 		if(owner.mind == backup) // Oh, it's the same mind in the backup. Someone must've spammed the 'Start Procedure' button in a panic.
 			return
 		owner.visible_message(SPAN_DANGER("\The [owner] spasms violently!"))
-		if(prob(66))
-			to_chat(owner, SPAN_DANGER("You fight off the invading tendrils of another mind, holding onto your own body!"))
-			return
 		owner.ghostize()
 	backup.active = 1
 	backup.transfer_to(owner)
@@ -253,7 +245,7 @@
 	owner.languages = languages.Copy()
 	to_chat(owner, SPAN_NOTICE("Consciousness slowly creeps over you as your new body awakens."))
 
-/datum/species/vox/handle_death(var/mob/living/carbon/human/H)
+/singleton/species/vox/handle_death(mob/living/carbon/human/H)
 	..()
 	var/obj/item/organ/internal/voxstack/stack = H.get_organ(BP_STACK)
 	if (stack)

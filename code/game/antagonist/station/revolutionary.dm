@@ -1,4 +1,4 @@
-GLOBAL_DATUM_INIT(revs, /datum/antagonist/revolutionary, new)
+GLOBAL_TYPED_NEW(revs, /datum/antagonist/revolutionary)
 
 /datum/antagonist/revolutionary
 	id = MODE_REVOLUTIONARY
@@ -26,12 +26,11 @@ GLOBAL_DATUM_INIT(revs, /datum/antagonist/revolutionary, new)
 	faction_verb = /mob/living/proc/convert_to_rev
 	faction_welcome = "Help the cause overturn the ruling class. Do not harm your fellow freedom fighters."
 	faction_indicator = "hud_rev"
-	faction_invisible = 1
+	//faction_invisible = 1
 	faction = "revolutionary"
 
 	blacklisted_jobs = list(/datum/job/ai, /datum/job/cyborg)
-	restricted_jobs = list(/datum/job/captain, /datum/job/hop, /datum/job/hos, /datum/job/chief_engineer, /datum/job/rd, /datum/job/cmo, /datum/job/lawyer)
-	protected_jobs = list(/datum/job/officer, /datum/job/warden, /datum/job/detective)
+	restricted_jobs = list(/datum/job/captain, /datum/job/hop, /datum/job/hos, /datum/job/chief_engineer, /datum/job/rd, /datum/job/cmo, /datum/job/lawyer, /datum/job/officer, /datum/job/warden, /datum/job/detective)
 
 
 /datum/antagonist/revolutionary/create_global_objectives()
@@ -46,11 +45,11 @@ GLOBAL_DATUM_INIT(revs, /datum/antagonist/revolutionary, new)
 		rev_obj.explanation_text = "Assassinate, capture or convert [player.real_name], the [player.mind.assigned_role]."
 		global_objectives += rev_obj
 
-/datum/antagonist/revolutionary/equip(var/mob/living/carbon/human/revolutionary_mob)
+/datum/antagonist/revolutionary/equip(mob/living/carbon/human/revolutionary_mob)
 	spawn_uplink(revolutionary_mob)
 	. = ..()
 	if(!.)
 		return
 
-/datum/antagonist/revolutionary/proc/spawn_uplink(var/mob/living/carbon/human/revolutionary_mob)
+/datum/antagonist/revolutionary/proc/spawn_uplink(mob/living/carbon/human/revolutionary_mob)
 	setup_uplink_source(revolutionary_mob, DEFAULT_TELECRYSTAL_AMOUNT)

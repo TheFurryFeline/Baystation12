@@ -10,34 +10,29 @@
 	var/adj_sleepy = 0
 	var/adj_temp = 0
 	value = 0.1
+	bioavailability = 1
 
-/datum/reagent/drink/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	M.adjustToxLoss(removed) // Probably not a good idea; not very deadly though
-	return
-
-/datum/reagent/drink/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
-	if (alien == IS_SKRELL && protein_amount > 0)
-		var/datum/species/skrell/S = M.species
-		S.handle_protein(M, src)
+/datum/reagent/drink/affect_ingest(mob/living/carbon/M, removed)
 	if(nutrition)
 		M.adjust_nutrition(nutrition * removed)
 	if(hydration)
 		M.adjust_hydration(hydration * removed)
 	M.dizziness = max(0, M.dizziness + adj_dizzy)
 	M.drowsyness = max(0, M.drowsyness + adj_drowsy)
-	M.sleeping = max(0, M.sleeping + adj_sleepy)
+	M.AdjustSleeping(adj_sleepy)
 	if(adj_temp > 0 && M.bodytemperature < 310) // 310 is the normal bodytemp. 310.055
 		M.bodytemperature = min(310, M.bodytemperature + (adj_temp * TEMPERATURE_DAMAGE_COEFFICIENT))
 	if(adj_temp < 0 && M.bodytemperature > 310)
 		M.bodytemperature = min(310, M.bodytemperature - (adj_temp * TEMPERATURE_DAMAGE_COEFFICIENT))
 
 // Juices
-/datum/reagent/drink/juice/affect_ingest(var/mob/living/carbon/human/M, var/alien, var/removed)
+/datum/reagent/drink/juice
+	sugar_amount = 0.5
+	nutrition = 1
+
+/datum/reagent/drink/juice/affect_ingest(mob/living/carbon/human/M, removed)
 	..()
 	M.immunity = min(M.immunity + 0.25, M.immunity_norm*1.5)
-	if(alien == IS_UNATHI)
-		var/datum/species/unathi/S = M.species
-		S.handle_sugar(M,src,0.5)
 
 /datum/reagent/drink/juice/banana
 	name = "Banana Juice"
@@ -66,7 +61,7 @@
 	glass_name = "carrot juice"
 	glass_desc = "It is just like a carrot but without crunching."
 
-/datum/reagent/drink/juice/carrot/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/juice/carrot/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.reagents.add_reagent(/datum/reagent/imidazoline, removed * 0.2)
 
@@ -99,9 +94,9 @@
 	glass_name = "lime juice"
 	glass_desc = "A glass of sweet-sour lime juice"
 
-/datum/reagent/drink/juice/lime/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/juice/lime/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.adjustToxLoss(-0.5 * removed)
 
@@ -114,9 +109,9 @@
 	glass_name = "orange juice"
 	glass_desc = "Vitamins! Yay!"
 
-/datum/reagent/drink/juice/orange/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/juice/orange/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.adjustOxyLoss(-2 * removed)
 
@@ -130,16 +125,16 @@
 	glass_name = "poison berry juice"
 	glass_desc = "A glass of deadly juice."
 
-/datum/reagent/toxin/poisonberryjuice/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_UNATHI)
-		return //unathi are immune!
+/datum/reagent/toxin/poisonberryjuice/affect_blood(mob/living/carbon/M, removed)
+	if(M.HasTrait(/singleton/trait/boon/filtered_blood))
+		return
 	return ..()
 
 /datum/reagent/drink/juice/potato
 	name = "Potato Juice"
 	description = "Juice of the potato. Bleh."
-	taste_description = "irish sadness and potatoes"
-	nutrition = 2
+	taste_description = "potato"
+	nutrition = 3
 	color = "#302000"
 
 	glass_name = "potato juice"
@@ -148,8 +143,8 @@
 /datum/reagent/drink/juice/garlic
 	name = "Garlic Juice"
 	description = "Who would even drink this?"
-	taste_description = "bad breath"
-	nutrition = 1
+	taste_description = "garlic"
+	nutrition = 2
 	color = "#eeddcc"
 
 	glass_name = "garlic juice"
@@ -158,8 +153,8 @@
 /datum/reagent/drink/juice/onion
 	name = "Onion Juice"
 	description = "Juice from an onion, for when you need to cry."
-	taste_description = "stinging tears"
-	nutrition = 1
+	taste_description = "onion"
+	nutrition = 2
 	color = "#ffeedd"
 
 	glass_name = "onion juice"
@@ -174,9 +169,9 @@
 	glass_name = "tomato juice"
 	glass_desc = "Are you sure this is tomato juice?"
 
-/datum/reagent/drink/juice/tomato/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/juice/tomato/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.heal_organ_damage(0, 0.5 * removed)
 
@@ -226,7 +221,43 @@
 	glass_name = "cabbage juice"
 	glass_desc = "It's a health drink, apparently."
 
-// Everything else
+/datum/reagent/drink/juice/lettuce
+	name = "Lettuce Juice"
+	description = "It's mostly water, just a bit more lettucy"
+	taste_description = "fresh greens"
+	color = "#29df4b"
+
+	glass_name = "lettuce juice"
+	glass_desc = "This is just lettuce water. Fresh but boring."
+
+
+/datum/reagent/drink/thoom
+	name = "Th'oom Juice"
+	description = "A thick, off-white drink themed around the elusive skrellian Th'oom. Despite the name, no one is really sure what's in this."
+	taste_description = "thick, sweet, and savory ... milk?"
+	color = "#baeece"
+	glass_name = "th'oom juice"
+	glass_desc = "sweet and savory goodness!"
+	sugar_amount = 0.5
+	nutrition = 5
+	hydration = 3
+
+
+/datum/reagent/drink/thoom/affect_ingest(mob/living/carbon/carbon, removed)
+	..()
+	holder.remove_reagent(/datum/reagent/capsaicin, 3 * removed)
+
+	if (IS_METABOLICALLY_INERT(carbon))
+		return
+
+	if (HAS_TRAIT(carbon, /singleton/trait/boon/clear_mind))
+		carbon.heal_organ_damage(1 * removed, 0)
+		carbon.add_chemical_effect(CE_PULSE, 1)
+		carbon.add_chemical_effect(CE_STIMULANT, 2)
+	if (!HAS_TRAIT(carbon, /singleton/trait/boon/cast_iron_stomach))
+		carbon.heal_organ_damage(0.3 * removed, 0)
+
+
 
 /datum/reagent/drink/milk
 	name = "Milk"
@@ -238,12 +269,13 @@
 	glass_desc = "White and nutritious goodness!"
 	protein_amount = 0.75
 
-/datum/reagent/drink/milk/affect_ingest(mob/living/carbon/M, alien, removed)
+/datum/reagent/drink/milk/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if (alien == IS_DIONA)
+	holder.remove_reagent(/datum/reagent/capsaicin, 10 * removed)
+
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.heal_organ_damage(0.5 * removed, 0)
-	holder.remove_reagent(/datum/reagent/capsaicin, 10 * removed)
 
 /datum/reagent/drink/milk/chocolate
 	name =  "Chocolate Milk"
@@ -290,24 +322,25 @@
 	glass_name = "coffee"
 	glass_desc = "Don't drop it, or you'll send scalding liquid and glass shards everywhere."
 
-/datum/reagent/drink/coffee/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
-	if(alien == IS_DIONA)
+/datum/reagent/drink/coffee/affect_ingest(mob/living/carbon/M, removed)
+	if(adj_temp > 0)
+		holder.remove_reagent(/datum/reagent/frostoil, 10 * removed)
+
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	..()
 
-	if(adj_temp > 0)
-		holder.remove_reagent(/datum/reagent/frostoil, 10 * removed)
 	if(volume > 15)
 		M.add_chemical_effect(CE_PULSE, 1)
 	if(volume > 45)
 		M.add_chemical_effect(CE_PULSE, 1)
 
-/datum/reagent/nutriment/coffee/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/nutriment/coffee/affect_blood(mob/living/carbon/M, removed)
 	..()
 	M.add_chemical_effect(CE_PULSE, 2)
 
-/datum/reagent/drink/coffee/overdose(var/mob/living/carbon/M, var/alien)
-	if(alien == IS_DIONA)
+/datum/reagent/drink/coffee/process_overdose(mob/living/carbon/M)
+	if (IS_METABOLICALLY_INERT(M))
 		return
 	M.make_jittery(5)
 	M.add_chemical_effect(CE_PULSE, 1)
@@ -333,7 +366,7 @@
 	glass_name = "soy latte"
 	glass_desc = "A nice and refreshing beverage while you are reading your hippie books."
 
-/datum/reagent/drink/coffee/soy_latte/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/coffee/soy_latte/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.heal_organ_damage(0.5 * removed, 0)
 
@@ -346,7 +379,7 @@
 	glass_name = "iced soy latte"
 	glass_desc = "A nice and refreshing beverage while you are reading your hippie books. This one's cold."
 
-/datum/reagent/drink/coffee/icecoffee/soy_latte/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/coffee/icecoffee/soy_latte/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.heal_organ_damage(0.5 * removed, 0)
 
@@ -361,7 +394,7 @@
 	glass_name = "cafe latte"
 	glass_desc = "A nice, strong and refreshing beverage while you are reading."
 
-/datum/reagent/drink/coffee/cafe_latte/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/coffee/cafe_latte/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.heal_organ_damage(0.5 * removed, 0)
 
@@ -375,7 +408,7 @@
 	glass_name = "iced cafe latte"
 	glass_desc = "A nice, strong and refreshing beverage while you are reading. This one's cold."
 
-/datum/reagent/drink/coffee/icecoffee/cafe_latte/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/coffee/icecoffee/cafe_latte/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.heal_organ_damage(0.5 * removed, 0)
 
@@ -458,6 +491,15 @@
 	glass_name = "hot chocolate"
 	glass_desc = "Made with love! And cocoa beans."
 
+/datum/reagent/drink/hot_coco/ntella
+	name = "NTella Hot Chocolate"
+	description = "It's like a cup of hot chocolate except... More everything."
+	color = "#63432e"
+	taste_description = "hazelnutty, creamy chocolate"
+
+	glass_name = "NTella hot chocolate"
+	glass_desc = "A very chocolatey drink for the days so rough, so cold, or so celebratory that a regular hot chocolate just won't cut it. It has marshmallows!"
+
 /datum/reagent/drink/sodawater
 	name = "Soda Water"
 	description = "A can of club soda. Why not make a scotch and soda?"
@@ -494,6 +536,7 @@
 
 	glass_name = "tonic water"
 	glass_desc = "Quinine tastes funny, but at least it'll keep that Space Malaria away."
+	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/lemonade
 	name = "Lemonade"
@@ -590,15 +633,19 @@
 	color = "#aee5e4"
 	adj_temp = -9
 	protein_amount = 0.5
+	sugar_amount = 0.5
 
 	glass_name = "milkshake"
 	glass_desc = "Glorious brainfreezing mixture."
 
-/datum/reagent/milkshake/affect_ingest(var/mob/living/carbon/human/M, var/alien, var/removed)
-	..()
-	if(alien == IS_UNATHI)
-		var/datum/species/unathi/S = M.species
-		S.handle_sugar(M,src,0.5)
+/datum/reagent/drink/milkshake/ntella
+	name = "NTella Milkshake"
+	description = "An intensely sweet chocolatey concoction with whipped cream on top."
+	color = "#6d4124"
+	taste_description = "overwhelmingly sweet chocolate"
+
+	glass_name = "NTella milkshake"
+	glass_desc = "Oh look, it's that thing you actually want to get but probably shouldn't."
 
 /datum/reagent/drink/rewriter
 	name = "Rewriter"
@@ -610,7 +657,7 @@
 	glass_name = "Rewriter"
 	glass_desc = "The secret of the sanctuary of the Libarian..."
 
-/datum/reagent/drink/rewriter/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/rewriter/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.make_jittery(5)
 
@@ -626,7 +673,7 @@
 	glass_desc = "Don't cry, Don't raise your eye, It's only nuclear wasteland"
 	glass_special = list(DRINK_FIZZ)
 
-/datum/reagent/drink/nuka_cola/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/nuka_cola/affect_ingest(mob/living/carbon/M, removed)
 	..()
 	M.add_chemical_effect(CE_SPEEDBOOST, 1)
 	M.make_jittery(20)
@@ -648,15 +695,10 @@
 	description = "Canada is still going at it, no one can stop them."
 	taste_description = "nutty, sugary goodness"
 	color = "#b24403"
+	sugar_amount = 2/3 //Maple syrup is about 2/3 sugar in real life
 
 	glass_name = "maple syrup"
 	glass_desc = "Thick and very sweet, the perfect Canadian treat to enjoy under a clear sky."
-
-/datum/reagent/drink/maplesyrup/affect_ingest(mob/living/carbon/M, alien, removed)
-	..()
-	if(alien == IS_UNATHI)
-		var/datum/species/unathi/S = M.species
-		S.handle_sugar(M, src, 0.66)	//Maple syrup is about 2/3 sugar in real life
 
 /datum/reagent/drink/space_cola
 	name = "Space Cola"
@@ -675,7 +717,7 @@
 	name = "Mountain Wind"
 	description = "Blows right through you like a space wind."
 	taste_description = "sweet citrus soda"
-	color = "#102000"
+	color = "#94c93d"
 	adj_drowsy = -7
 	adj_sleepy = -1
 	adj_temp = -5
@@ -694,6 +736,7 @@
 
 	glass_name = "Dr. Gibb"
 	glass_desc = "Dr. Gibb. Not as dangerous as the name might imply."
+	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/space_up
 	name = "Space-Up"
@@ -728,17 +771,16 @@
 	glass_name = "The Doctor's Delight"
 	glass_desc = "A healthy mixture of juices, guaranteed to keep you healthy until the next toolboxing takes place."
 
-/datum/reagent/drink/doctor_delight/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/doctor_delight/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.adjustOxyLoss(-4 * removed)
 	M.heal_organ_damage(2 * removed, 2 * removed)
 	M.adjustToxLoss(-2 * removed)
 	if(M.dizziness)
 		M.dizziness = max(0, M.dizziness - 15)
-	if(M.confused)
-		M.confused = max(0, M.confused - 5)
+	M.mod_confused(-5)
 
 /datum/reagent/drink/dry_ramen
 	name = "Dry Ramen"
@@ -746,14 +788,14 @@
 	taste_description = "dry and cheap noodles"
 	reagent_state = SOLID
 	nutrition = 1
-	color = "#302000"
+	color = "#dec85d"
 
 /datum/reagent/drink/hot_ramen
 	name = "Hot Ramen"
 	description = "The noodles are boiled, the flavors are artificial, just like being back in school."
 	taste_description = "wet and cheap noodles"
 	reagent_state = LIQUID
-	color = "#302000"
+	color = "#c28f19"
 	nutrition = 5
 	adj_temp = 5
 
@@ -762,12 +804,12 @@
 	description = "The noodles are boiled, the flavors are artificial, just like being back in school."
 	taste_description = "wet and cheap noodles on fire"
 	reagent_state = LIQUID
-	color = "#302000"
+	color = "#c93f04"
 	nutrition = 5
 
-/datum/reagent/drink/hell_ramen/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/hell_ramen/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.bodytemperature += 10 * TEMPERATURE_DAMAGE_COEFFICIENT
 
@@ -808,9 +850,11 @@
 	name = "Ginger Beer"
 	description = "A hearty, non-alcoholic beverage extremely popular around the SCG."
 	taste_description = "carbonated ginger"
-	color = "#44371f"
+	color = "#f5f3c6"
+
 	glass_name = "ginger beer"
 	glass_desc = "A hearty, non-alcoholic beverage extremely popular around the SCG."
+	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/beastenergy
 	name = "Beast Energy"
@@ -820,9 +864,9 @@
 	glass_name = "beast energy"
 	glass_desc = "Why would you drink this without mixer?"
 
-/datum/reagent/drink/beastenergy/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/beastenergy/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.drowsyness = max(0, M.drowsyness - 7)
 	M.make_jittery(2)
@@ -891,7 +935,7 @@
 
 /datum/reagent/cinnamon
 	name = "Cinnamon"
-	description = "Delicious ground cinnamon spice. "
+	description = "Delicious ground cinnamon spice."
 	taste_description = "cinnamon"
 	reagent_state = SOLID
 	color = "#cd6139"
@@ -899,6 +943,9 @@
 
 	glass_name = "cinnamon"
 	glass_desc = "Delicious ground cinnamon spice, why would you drink this?"
+
+	condiment_icon_state = "cinnamonbottle"
+	condiment_name = "bottle of cinnamon"
 
 /datum/reagent/oliveoil
 	name = "Olive Oil"
@@ -908,6 +955,10 @@
 
 	glass_name = "olive oil"
 	glass_desc = "Oily."
+
+	condiment_icon_state = "oliveoil"
+	condiment_name = "olive oil"
+	condiment_desc = "Used in food preparation and flavoring."
 
 /datum/reagent/drink/affelerin
 	name = "Affelerin Nectar"
@@ -936,12 +987,12 @@
 	description = "A refreshing cola in vanilla flavour."
 	taste_description = "vanilla cola"
 	reagent_state = LIQUID
-	color = "#100800"
+	color = "#55381b"
 	adj_drowsy = -3
 	adj_temp = -5
 
-	glass_name = "Space Cola"
-	glass_desc = "A glass of refreshing Space Cola"
+	glass_name = "Vanilla Cola"
+	glass_desc = "A glass of refreshing Space Cola with hints of vanilla."
 	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/orange_cola
@@ -949,12 +1000,12 @@
 	description = "A refreshing cola in orange flavour."
 	taste_description = "orange cola"
 	reagent_state = LIQUID
-	color = "#100800"
+	color = "#a86017"
 	adj_drowsy = -3
 	adj_temp = -5
 
-	glass_name = "Space Cola"
-	glass_desc = "A glass of refreshing Space Cola"
+	glass_name = "Orange Cola"
+	glass_desc = "A glass of refreshing Space Cola with orange flavoring."
 	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/cherry_cola
@@ -962,12 +1013,12 @@
 	description = "A refreshing cola in cherry flavour."
 	taste_description = "cherry cola"
 	reagent_state = LIQUID
-	color = "#100800"
+	color = "#641010"
 	adj_drowsy = -3
 	adj_temp = -5
 
-	glass_name = "Space Cola"
-	glass_desc = "A glass of refreshing Space Cola"
+	glass_name = "Cherry Cola"
+	glass_desc = "A glass of refreshing Space Cola with cherry flavoring."
 	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/coffee/coffee_cola
@@ -975,7 +1026,7 @@
 	description = "There are people in town, man, crazy people in town."
 	taste_description = "coffee and cola"
 	reagent_state = LIQUID
-	color = "#100800"
+	color = "#3b240c"
 	adj_drowsy = -3
 	adj_temp = -5
 
@@ -992,8 +1043,8 @@
 	adj_drowsy = -3
 	adj_temp = -5
 
-	glass_name = "Space Cola"
-	glass_desc = "A glass of refreshing Space Cola"
+	glass_name = "Diet Cola"
+	glass_desc = "A glass of refreshing Space Cola. This one's calorie-free!"
 	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/ionbru
@@ -1025,13 +1076,14 @@
 /datum/reagent/drink/dandelionburdock
 	name = "Dandelion and Burdock"
 	description = "Does not contain any Taraxacum officinale, or Arctium lappa."
-	taste_description = "sassafras"
+	taste_description = "fruit and aniseed"
 	reagent_state = LIQUID
 	color = "#ff8cff"
 	nutrition = 1
 
 	glass_name = "Dandelion and Burdock"
 	glass_desc = "A tall glass of DnB"
+	glass_special = list(DRINK_FIZZ)
 
 /datum/reagent/drink/doogh
 	name = "Doogh"
@@ -1085,9 +1137,9 @@
 	glass_name = "black tea"
 	glass_desc = "Tasty black tea, it has antioxidants, it's good for you!"
 
-/datum/reagent/drink/tea/affect_ingest(var/mob/living/carbon/M, var/alien, var/removed)
+/datum/reagent/drink/tea/affect_ingest(mob/living/carbon/M, removed)
 	..()
-	if(alien == IS_DIONA)
+	if (METABOLIC_INERTNESS(M) > TRAIT_LEVEL_MINOR)
 		return
 	M.adjustToxLoss(-0.5 * removed)
 
@@ -1156,7 +1208,7 @@
 	name = "Green Tea"
 	description = "Subtle green tea, it has antioxidants, it's good for you!"
 	taste_description = "subtle green tea"
-	color = "#b4cd94"
+	color = "#8bbf49"
 
 	glass_name = "green tea"
 	glass_desc = "Subtle green tea, it has antioxidants, it's good for you!"
@@ -1165,7 +1217,7 @@
 	name = "Iced Green Tea"
 	description = "It's the green tea you know and love, but now it's cold."
 	taste_description = "cold green tea"
-	color = "#b4cd94"
+	color = "#8bbf49"
 
 	glass_name = "iced green tea"
 	glass_desc = "It's the green tea you know and love, but now it's cold."
@@ -1174,7 +1226,7 @@
 	name = "Sweet Green Tea"
 	description = "It's the green tea you know and love, but now it's cold. And sweet."
 	taste_description = "sweet green tea"
-	color = "#b4cd94"
+	color = "#8bbf49"
 
 	glass_name = "sweet green tea"
 	glass_desc = "It's the green tea you know and love, but now it's cold. And sweet."
@@ -1378,7 +1430,7 @@
 
 // Alien Drinks
 
-/datum/reagent/drink/alien/unathijuice
+/datum/reagent/drink/unathijuice
 	name = "Hrukhza Leaf Extract"
 	description = "A bitter liquid used in most recipes on Moghes."
 	taste_description = "bland, disgusting bitterness"
@@ -1386,7 +1438,7 @@
 	glass_name = "hrukhza leaf extract"
 	glass_desc = "A bitter extract from the hrukhza."
 
-/datum/reagent/drink/alien/kzkzaa
+/datum/reagent/drink/kzkzaa
 	name = "Kzkzaa"
 	description = "Fish extract from Moghes."
 	taste_description = "fishy fish"
@@ -1394,7 +1446,7 @@
 	glass_name = "kzkzaa"
 	glass_desc = "A glass of Kzkzaa, fish extract, commonly drank on Moghes."
 
-/datum/reagent/drink/alien/mumbaksting
+/datum/reagent/drink/mumbaksting
 	name = "Mumbak Sting"
 	description = "A drink made from the venom of the Yuum."
 	taste_description = "harsh and stinging sweetness"
@@ -1402,19 +1454,20 @@
 	glass_name = "Mumbak sting"
 	glass_desc = "A drink made from the venom of the Yuum."
 
-/datum/reagent/ethanol/alien/wasgaelhi
+/datum/reagent/ethanol/wasgaelhi
 	name = "Wasgaelhi"
 	description = "Wine made from various fruits from the swamps of Moghes."
 	taste_description = "swampy fruit"
 	color = "#6b596b"
-	strength = 10
+	metabolite_potency = 2.5
 	glass_name = "wasgaelhi"
 	glass_desc = "Wine made from various fruits from the swamps of Moghes."
 
-/datum/reagent/drink/alien/skrianhi
+/datum/reagent/drink/skrianhi
 	name = "Skrianhi Tea"
 	description = "A blend of teas from Moghes, commonly drank by Unathi."
 	taste_description = "bitter energising tea"
 	color = "#0e0900"
 	glass_name = "skrianhi tea"
 	glass_desc = "A blend of teas from Moghes, commonly drank by Unathi."
+	adj_temp = 20

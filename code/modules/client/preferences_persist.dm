@@ -1,7 +1,14 @@
-#define PREF_SER_VERSION 2
+// You will want to increment this for each migration you create.
+// Migrations:
+// 1: Base version
+// 2: Booster -> human species migration
+// 3: Pronouns
+// 4: Tram/oxy, alcohol, antidepressant retyping
+// 5: Sign language rename
+#define PREF_SER_VERSION 5
 
 /datum/preferences/proc/get_path(ckey, record_key, extension="json")
-	return "data/player_saves/[copytext(ckey,1,2)]/[ckey]/[record_key].[extension]"
+	return "data/player_saves/[copytext_char(ckey,1,2)]/[ckey]/[record_key].[extension]"
 
 // Returns null if there's no record file. Crashes on other error conditions.
 /datum/preferences/proc/load_pref_record(record_key)
@@ -9,7 +16,7 @@
 	if(!fexists(path))
 		return null
 	var/text = file2text(path)
-	if(text == null)
+	if(isnull(text))
 		CRASH("failed to read [path]")
 	var/list/data = json_decode(text)
 	if(!istype(data))
@@ -19,7 +26,7 @@
 /datum/preferences/proc/save_pref_record(record_key, list/data)
 	var/path = get_path(client_ckey, record_key)
 	var/text = json_encode(data)
-	if(text == null)
+	if(isnull(text))
 		CRASH("failed to encode JSON for [path]")
 
 	// Why this dance? If text2file fails, we want to leave the record as it was.
@@ -41,6 +48,17 @@
 	if(!R)
 		R = new /datum/pref_record_reader/null(PREF_SER_VERSION)
 	player_setup.load_preferences(R)
+	for(var/datum/preferences_slot/slot in slot_priority_list)
+		var/datum/pref_record_reader/SR = load_pref_record(get_slot_key(slot.slot))
+		if(!SR)
+			SR = new /datum/pref_record_reader/null(PREF_SER_VERSION)
+		player_setup.load_slot(SR, slot)
+
+/datum/preferences/proc/load_slot(datum/preferences_slot/slot)
+	var/datum/pref_record_reader/R = load_pref_record(get_slot_key(slot.slot))
+	if(!R)
+		R = new /datum/pref_record_reader/null(PREF_SER_VERSION)
+	player_setup.load_slot(R, slot)
 
 /datum/preferences/proc/save_preferences()
 	var/datum/pref_record_writer/json_list/W = new(PREF_SER_VERSION)

@@ -13,21 +13,21 @@
 	return unit_test_weight_of_path(unit_test_select_heaviest(paths))
 
 /datum/atom_creator/simple
-	prob_method = /proc/return_true
+	prob_method = GLOBAL_PROC_REF(return_true)
 
 /datum/atom_creator/weighted
-	selection_method = /proc/unit_test_select_heaviest
+	selection_method = GLOBAL_PROC_REF(unit_test_select_heaviest)
 
 /obj/random
-	spawn_method = /obj/random/proc/unit_test_spawn_item
+	spawn_method = TYPE_PROC_REF(/obj/random, unit_test_spawn_item)
 
-GLOBAL_DATUM(unit_test_last_obj_random_creation, /atom/movable)
+GLOBAL_TYPED(unit_test_last_obj_random_creation, /atom/movable)
 /obj/random/proc/unit_test_spawn_item()
 	var/build_path = unit_test_select_heaviest(spawn_choices())
 	GLOB.unit_test_last_obj_random_creation = new build_path()
 
 
-/proc/unit_test_select_heaviest(var/list/choices)
+/proc/unit_test_select_heaviest(list/choices)
 	if(ispath(choices) || istype(choices, /datum))
 		return choices
 	if(!islist(choices))
@@ -48,7 +48,7 @@ GLOBAL_DATUM(unit_test_last_obj_random_creation, /atom/movable)
 GLOBAL_LIST_EMPTY(unit_test_obj_random_weights_by_type)
 
 // If you adjust any of the values below, please also update /obj/structure/closet/proc/content_size(atom/movable/AM)
-/proc/unit_test_weight_of_path(var/path)
+/proc/unit_test_weight_of_path(path)
 	if(ispath(path, /obj/random))
 		var/weight = GLOB.unit_test_obj_random_weights_by_type[path]
 		if(!weight)

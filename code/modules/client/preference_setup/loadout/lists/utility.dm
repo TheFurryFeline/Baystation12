@@ -8,26 +8,36 @@
 	path = /obj/item/storage/briefcase
 
 /datum/gear/utility/clipboard
-	display_name = "clipboard"
-	path = /obj/item/material/clipboard
+	display_name = "clipboards"
+	path = /obj/item/material/folder/clipboard
+
+/datum/gear/utility/clipboard/New()
+	..()
+	var/clipboards = list()
+	clipboards["wooden clipboard"] = /obj/item/material/folder/clipboard
+	clipboards["plastic clipboard"] = /obj/item/material/folder/clipboard/plastic
+	clipboards["aluminium clipboard"] = /obj/item/material/folder/clipboard/aluminium
+	clipboards["glass clipboard"] = /obj/item/material/folder/clipboard/glass
+	clipboards["ebony clipboard"] = /obj/item/material/folder/clipboard/ebony
+	gear_tweaks += new/datum/gear_tweak/path(clipboards)
 
 /datum/gear/utility/folder
 	display_name = "folders"
-	path = /obj/item/folder
-
-/datum/gear/utility/taperecorder
-	display_name = "tape recorder"
-	path = /obj/item/device/taperecorder
+	path = /obj/item/material/folder
 
 /datum/gear/utility/folder/New()
 	..()
 	var/folders = list()
-	folders["blue folder"] = /obj/item/folder/blue
-	folders["grey folder"] = /obj/item/folder
-	folders["red folder"] = /obj/item/folder/red
-	folders["white folder"] = /obj/item/folder/white
-	folders["yellow folder"] = /obj/item/folder/yellow
+	folders["blue folder"] = /obj/item/material/folder/blue
+	folders["grey folder"] = /obj/item/material/folder
+	folders["red folder"] = /obj/item/material/folder/red
+	folders["white folder"] = /obj/item/material/folder/white
+	folders["yellow folder"] = /obj/item/material/folder/yellow
 	gear_tweaks += new/datum/gear_tweak/path(folders)
+
+/datum/gear/utility/taperecorder
+	display_name = "tape recorder"
+	path = /obj/item/device/taperecorder
 
 /datum/gear/utility/paicard
 	display_name = "personal AI device"
@@ -51,14 +61,19 @@
 	cost = 2
 
 /datum/gear/utility/pen
-	display_name = "Multicolored Pen"
-	path = /obj/item/pen/multi
-	cost = 2
+	display_name = "pens"
+	path = /obj/item/pen
 
-/datum/gear/utility/fancy
-	display_name = "Fancy Pen"
-	path = /obj/item/pen/fancy
-	cost = 2
+/datum/gear/utility/pen/New()
+	..()
+	var/pens = list()
+	pens["black pen"] = /obj/item/pen
+	pens["red pen"] = /obj/item/pen/red
+	pens["blue pen"] = /obj/item/pen/blue
+	pens["green pen"] = /obj/item/pen/green
+	pens["fancy pen"] = /obj/item/pen/fancy
+	pens["multicolored pen"] = /obj/item/pen/multi
+	gear_tweaks += new/datum/gear_tweak/path(pens)
 
 /datum/gear/utility/hand_labeler
 	display_name = "hand labeler"
@@ -103,6 +118,40 @@ Pouches and kits
 ****************/
 
 /datum/gear/utility/pencilcase
-	display_name = "Pencil case"
+	display_name = "pencil case"
 	path = /obj/item/storage/fancy/pencilcase
 	cost = 2
+
+/datum/gear/utility/pyx
+	display_name = "pyx"
+	path = /obj/item/storage/fancy/pyx
+	cost = 2
+	allowed_roles = list(/datum/job/chaplain)
+
+/****************
+Instruments
+****************/
+
+/datum/gear/utility/musical_instruments
+	display_name = "musical instruments"
+	path = /obj/item/device/synthesized_instrument
+	cost = 6
+
+/datum/gear/utility/musical_instruments/New()
+	..()
+	var/musical_instruments = list()
+	musical_instruments["acoustic guitar"] = /obj/item/device/synthesized_instrument/guitar
+	musical_instruments["polyguitar flying V"] = /obj/item/device/synthesized_instrument/guitar/multi_v
+	musical_instruments["polyguitar strato black"] = /obj/item/device/synthesized_instrument/guitar/multi_strato_black
+	musical_instruments["polyguitar strato gradient"] = /obj/item/device/synthesized_instrument/guitar/multi_strato_gradient
+	musical_instruments["polyguitar strato red"] = /obj/item/device/synthesized_instrument/guitar/multi_strato_red
+	musical_instruments["polyguitar strato purple"] = /obj/item/device/synthesized_instrument/guitar/multi_strato_purple
+	musical_instruments["synthesizer"] = /obj/item/device/synthesized_instrument/synthesizer
+	musical_instruments["trumpet"] = /obj/item/device/synthesized_instrument/trumpet
+	musical_instruments["violin"] = /obj/item/device/synthesized_instrument/violin
+	gear_tweaks += new/datum/gear_tweak/path(musical_instruments)
+
+/datum/gear/utility/stellascope
+	display_name = "stellascope"
+	path = /obj/item/holosign_creator/stellascope
+	cost = 4

@@ -6,6 +6,7 @@
 #define CHEM_TOUCH 1
 #define CHEM_INGEST 2
 #define CHEM_BLOOD 3
+#define CHEM_METABOLITES 4
 
 #define MINIMUM_CHEMICAL_VOLUME 0.01
 
@@ -16,14 +17,6 @@
 #define REAGENTS_OVERDOSE 30
 
 #define CHEM_SYNTH_ENERGY 500 // How much energy does it take to synthesize 1 unit of chemical, in Joules.
-
-// Some on_mob_life() procs check for alien races.
-#define IS_DIONA   1
-#define IS_VOX     2
-#define IS_SKRELL  3
-#define IS_UNATHI  4
-#define IS_SLIME   5
-#define IS_NABBER  6
 
 #define CE_STABLE        "stable"       // Inaprovaline
 #define CE_ANTIBIOTIC    "antibiotic"   // Spaceacilin
@@ -52,8 +45,8 @@
 #define CE_STIMULANT     "stimulants"   // Makes it harder to disarm someone
 
 //reagent flags
-#define IGNORE_MOB_SIZE    FLAG(0)
-#define AFFECTS_DEAD       FLAG(1)
+#define IGNORE_MOB_SIZE    FLAG_01
+#define AFFECTS_DEAD       FLAG_02
 
-#define HANDLE_REACTIONS(_reagents)  SSchemistry.active_holders[_reagents] = TRUE
-#define UNQUEUE_REACTIONS(_reagents) SSchemistry.active_holders -= _reagents
+#define HANDLE_REACTIONS(_reagents)  SSchemistry.active_reagents[_reagents] = TRUE
+#define UNQUEUE_REACTIONS(_reagents) SSchemistry.active_reagents -= _reagents

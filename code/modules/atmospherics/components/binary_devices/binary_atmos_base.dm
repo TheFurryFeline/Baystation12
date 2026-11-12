@@ -1,7 +1,6 @@
 /obj/machinery/atmospherics/binary
 	dir = SOUTH
 	initialize_directions = SOUTH|NORTH
-	layer = ABOVE_CATWALK_LAYER
 
 	var/datum/gas_mixture/air1
 	var/datum/gas_mixture/air2
@@ -28,7 +27,7 @@
 	else if(reference == node2)
 		network2 = new_network
 
-	if(list_find(new_network.normal_members, src))
+	if(new_network.normal_members.Find(src))
 		return 0
 
 	new_network.normal_members += src
@@ -124,3 +123,9 @@
 	node2 = null
 
 	. = ..()
+
+/obj/machinery/atmospherics/binary/return_air()			
+	if(air1.return_pressure() > air2.return_pressure())
+		return air1
+	else
+		return air2

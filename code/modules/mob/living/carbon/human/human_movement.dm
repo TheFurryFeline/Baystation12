@@ -1,7 +1,18 @@
-/mob/living/carbon/human
-	move_intents = list(/decl/move_intent/walk)
+/// Pain below this doesn't slow you down
+#define PAIN_SLOWDOWN_MIN_SHOCK 10
+/// Lasting pain from wounds per point of movement delay
+#define WOUND_PAIN_PER_SLOWDOWN 20
+/// Lasting pain from wounds never adds more movement delay than this
+#define WOUND_PAIN_MAX_SLOWDOWN 2
+/// Fresh pain from new hits per point of movement delay
+#define FRESH_PAIN_PER_SLOWDOWN 10
+/// Shock stage from which shock adds its flat movement delay
+#define SHOCK_STAGE_SLOWDOWN 30
 
-/mob/living/carbon/human/movement_delay()
+/mob/living/carbon/human
+	move_intents = list(/singleton/move_intent/walk)
+
+/mob/living/carbon/human/movement_delay(singleton/move_intent/using_intent = move_intent)
 	var/tally = ..()
 
 	var/obj/item/organ/external/H = get_organ(BP_GROIN) // gets species slowdown, which can be reset by robotize()
@@ -10,9 +21,8 @@
 
 	tally += species.handle_movement_delay_special(src)
 
-	var/area/a = get_area(src)
-	if(a && !a.has_gravity())
-		if(skill_check(SKILL_EVA, SKILL_PROF))
+	if(!has_gravity())
+		if(skill_check(SKILL_EVA, SKILL_MASTER))
 			tally -= 2
 		tally -= 1
 
@@ -25,8 +35,7 @@
 	var/health_deficiency = (maxHealth - health)
 	if(health_deficiency >= 40) tally += (health_deficiency / 25)
 
-	if(can_feel_pain())
-		if(get_shock() >= 10) tally += (get_shock() / 10) //pain shouldn't slow you down if you can't even feel it
+	tally += get_pain_slowdown()
 
 	if(istype(buckled, /obj/structure/bed/chair/wheelchair))
 		for(var/organ_name in list(BP_L_HAND, BP_R_HAND, BP_L_ARM, BP_R_ARM))
@@ -55,7 +64,7 @@
 			var/obj/item/organ/external/E = get_organ(organ_name)
 			tally += E ? E.movement_delay(4) : 4
 
-	if(shock_stage >= 10 || get_stamina() <= 0)
+	if(shock_stage >= SHOCK_STAGE_SLOWDOWN || get_stamina() <= 0)
 		tally += 3
 
 	if(is_asystole()) tally += 10  //heart attacks are kinda distracting
@@ -74,45 +83,64 @@
 
 	return tally
 
+/**
+ * Movement delay from pain. Lasting pain from wounds slows you down only up to a cap,
+ * while fresh pain from new hits slows you down on top of it until it fades.
+ */
+/mob/living/carbon/human/proc/get_pain_slowdown()
+	var/shock = get_shock()
+	if(shock < PAIN_SLOWDOWN_MIN_SHOCK)
+		return 0
+	var/fresh_pain = 0
+	for(var/obj/item/organ/external/organ in organs)
+		if(organ.can_feel_pain())
+			fresh_pain += organ.pain
+	// Painkillers dull the lasting pain first, so a new hit still breaks through
+	fresh_pain = min(fresh_pain, shock)
+	var/wound_pain = shock - fresh_pain
+	return min(wound_pain / WOUND_PAIN_PER_SLOWDOWN, WOUND_PAIN_MAX_SLOWDOWN) + fresh_pain / FRESH_PAIN_PER_SLOWDOWN
+
 /mob/living/carbon/human/size_strength_mod()
 	. = ..()
 	. += species.strength
 
-/mob/living/carbon/human/Allow_Spacemove(var/check_drift = 0)
-	. = ..()
-	if(.)
-		return
-
-	// This is horrible but short of spawning a jetpack inside the organ than locating
-	// it, I don't really see another viable approach short of a total jetpack refactor.
+/mob/living/carbon/human/Process_Spacemove(allow_movement)
+	var/obj/item/tank/jetpack/thrust = get_jetpack()
+	var/implant_jet = FALSE // Certified shitcode
 	for(var/obj/item/organ/internal/powered/jets/jet in internal_organs)
 		if(!jet.is_broken() && jet.active)
-			inertia_dir = 0
-			return 1
-	// End 'eugh'
+			implant_jet = TRUE
 
-	//Do we have a working jetpack?
-	var/obj/item/tank/jetpack/thrust
+	if(implant_jet || (thrust && thrust.on && (allow_movement || thrust.stabilization_on) && thrust.allow_thrust(0.01, src)))
+		return TRUE
+
+	. = ..()
+
+/mob/living/carbon/human/space_do_move(allow_move, direction)
+	if(allow_move == 1)
+		var/obj/item/tank/jetpack/thrust = get_jetpack()
+		if(thrust && thrust.on && skill_fail_prob(SKILL_EVA, 10, SKILL_TRAINED))
+			to_chat(src, SPAN_WARNING("You fumble with [thrust] controls!"))
+			if(prob(50))
+				thrust.toggle()
+			if(prob(50))
+				thrust.stabilization_on = 0
+			SetMoveCooldown(15)	//2 seconds of random rando panic drifting
+			step(src, pick(GLOB.alldirs))
+			return 0
+	. = ..()
+
+/mob/living/carbon/human/proc/get_jetpack()
 	if(back)
 		if(istype(back,/obj/item/tank/jetpack))
-			thrust = back
+			return back
 		else if(istype(back,/obj/item/rig))
 			var/obj/item/rig/rig = back
 			for(var/obj/item/rig_module/maneuvering_jets/module in rig.installed_modules)
-				thrust = module.jets
-				break
+				return module.jets
 
-	if(thrust && thrust.on)
-		if(prob(skill_fail_chance(SKILL_EVA, 10, SKILL_ADEPT)))
-			to_chat(src, "<span class='warning'>You fumble with [thrust] controls!</span>")
-			inertia_dir = pick(GLOB.cardinal)
-			return 0
 
-		if(((!check_drift) || (check_drift && thrust.stabilization_on)) && (!lying) && (thrust.allow_thrust(0.01, src)))
-			inertia_dir = 0
-			return 1
-
-/mob/living/carbon/human/slip_chance(var/prob_slip = 5)
+/mob/living/carbon/human/slip_chance(prob_slip = 5)
 	if(!..())
 		return 0
 
@@ -141,8 +169,8 @@
 	if(!can_feel_pain())
 		return
 	var/crutches = 0
-	for(var/obj/item/cane/C in list(l_hand, r_hand))
-		if(istype(C))
+	for (var/obj/item/cane/C as anything in GetAllHeld(/obj/item/cane))
+		if(istype(C) && C.can_support)
 			crutches++
 	for(var/organ_name in list(BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT))
 		var/obj/item/organ/external/E = get_organ(organ_name)
@@ -154,3 +182,9 @@
 
 /mob/living/carbon/human/can_sprint()
 	return (stamina > 0)
+
+#undef PAIN_SLOWDOWN_MIN_SHOCK
+#undef WOUND_PAIN_PER_SLOWDOWN
+#undef WOUND_PAIN_MAX_SLOWDOWN
+#undef FRESH_PAIN_PER_SLOWDOWN
+#undef SHOCK_STAGE_SLOWDOWN

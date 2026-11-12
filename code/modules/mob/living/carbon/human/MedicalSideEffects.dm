@@ -24,32 +24,34 @@
 	for(var/R in cures)
 		if(H.reagents.has_reagent(R))
 			if (cure_message)
-				to_chat(H, "<span class='notice'>[cure_message]</span>")
+				to_chat(H, SPAN_NOTICE("[cure_message]"))
 			return 1
 	return 0
 
 
 // MOB HELPERS
 // ===========
-/mob/living/carbon/human/var/list/datum/medical_effect/side_effects = list()
 /mob/proc/add_side_effect(name, strength = 0)
+	return
+
+
+/mob/living/carbon/human/var/list/datum/medical_effect/side_effects = list()
+
 /mob/living/carbon/human/add_side_effect(name, strength = 0)
-	for(var/datum/medical_effect/M in src.side_effects)
+	for(var/datum/medical_effect/M in side_effects)
 		if(M.name == name)
 			M.strength = max(M.strength, 10)
 			M.start = life_tick
 			return
-
-
-	var/T = side_effects[name]
+	var/T = GLOB.side_effects[name]
 	if (!T)
 		return
-
 	var/datum/medical_effect/M = new T
 	if(M.name == name)
 		M.strength = strength
 		M.start = life_tick
-		side_effects += M
+		GLOB.side_effects += M
+
 
 /mob/living/carbon/human/proc/handle_medical_side_effects()
 	//Going to handle those things only every few ticks.
@@ -63,14 +65,14 @@
 			src.add_side_effect(M.name)
 
 	// One full cycle(in terms of strength) every 10 minutes
-	for (var/datum/medical_effect/M in side_effects)
+	for (var/datum/medical_effect/M in GLOB.side_effects)
 		if (!M) continue
 		var/strength_percent = sin((life_tick - M.start) / 2)
 
 		// Only do anything if the effect is currently strong enough
 		if(strength_percent >= 0.4)
 			if (M.cure(src) || M.strength > 50)
-				side_effects -= M
+				GLOB.side_effects -= M
 				M = null
 			else
 				if(life_tick % 45 == 0)
@@ -78,12 +80,13 @@
 				// Effect slowly growing stronger
 				M.strength+=0.08
 
+
 // HEADACHE
 // ========
 /datum/medical_effect/headache
 	name = "Headache"
 	triggers = list(/datum/reagent/cryoxadone = 10, /datum/reagent/bicaridine = 15, /datum/reagent/tricordrazine = 15)
-	cures = list(/datum/reagent/alkysine, /datum/reagent/tramadol, /datum/reagent/paracetamol, /datum/reagent/tramadol/oxycodone)
+	cures = list(/datum/reagent/alkysine, /datum/reagent/opiate/tramadol, /datum/reagent/paracetamol, /datum/reagent/opiate/oxycodone)
 	cure_message = "Your head stops throbbing..."
 
 /datum/medical_effect/headache/on_life(mob/living/carbon/human/H, strength)
@@ -118,7 +121,7 @@
 // ======
 /datum/medical_effect/cramps
 	name = "Cramps"
-	triggers = list(/datum/reagent/dylovene = 30, /datum/reagent/tramadol = 15)
+	triggers = list(/datum/reagent/dylovene = 30, /datum/reagent/opiate/tramadol = 15)
 	cures = list(/datum/reagent/inaprovaline)
 	cure_message = "The cramps let up..."
 
@@ -136,7 +139,7 @@
 // ====
 /datum/medical_effect/itch
 	name = "Itch"
-	triggers = list(/datum/reagent/space_drugs = 10)
+	triggers = list(/datum/reagent/drugs/hextro = 10)
 	cures = list(/datum/reagent/inaprovaline)
 	cure_message = "The itching stops..."
 

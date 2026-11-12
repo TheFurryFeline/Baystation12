@@ -21,8 +21,8 @@
 		last_regen = world.time
 		update_icon()
 
-/obj/item/gun/launcher/alien/examine(mob/user)
-	. = ..()
+/obj/item/gun/launcher/alien/examine(mob/user, distance)
+	. = ..(user, distance)
 	to_chat(user, "It has [ammo] [ammo_name]\s remaining.")
 
 /obj/item/gun/launcher/alien/consume_next_projectile()
@@ -53,3 +53,7 @@
 
 /obj/item/gun/launcher/alien/spikethrower/on_update_icon()
 	icon_state = "spikethrower[ammo]"
+
+
+/obj/item/gun/launcher/alien/spikethrower/check_accidents()
+	return

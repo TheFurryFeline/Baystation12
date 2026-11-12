@@ -1,5 +1,5 @@
 // Screen objects hereon out.
-#define MECH_UI_STYLE(X) "<span style=\"font-family: 'Small Fonts'; -dm-text-outline: 1 black; font-size: 5px;\">" + X + "</span>"
+#define MECH_UI_STYLE(X) {"<span style="-dm-text-outline: 1 black; font-size: 5px;">"} + X + "</span>"
 
 /obj/screen/exosuit
 	name = "hardpoint"
@@ -63,22 +63,22 @@
 
 	var/list/new_overlays = list()
 	if(!owner.get_cell() || (owner.get_cell().charge <= 0))
-		overlays.Cut()
+		ClearOverlays()
 		maptext = ""
 		return
 
-	maptext =  SPAN_STYLE("font-family: 'Small Fonts'; -dm-text-outline: 1 black; font-size: 7px;", "[holding.get_hardpoint_maptext()]")
+	maptext =  SPAN_STYLE("-dm-text-outline: 1 black; font-size: 7px;", "[holding.get_hardpoint_maptext()]")
 
 	var/ui_damage = (!owner.body.diagnostics || !owner.body.diagnostics.is_functional() || ((owner.emp_damage>EMP_GUI_DISRUPT) && prob(owner.emp_damage)))
 
 	var/value = holding.get_hardpoint_status_value()
 	if(isnull(value))
-		overlays.Cut()
+		ClearOverlays()
 		return
 
 	if(ui_damage)
 		value = -1
-		maptext = SPAN_STYLE("font-family: 'Small Fonts'; -dm-text-outline: 1 black; font-size: 7px;", "ERROR")
+		maptext = SPAN_STYLE("-dm-text-outline: 1 black; font-size: 7px;", "ERROR")
 	else
 		if((owner.emp_damage>EMP_GUI_DISRUPT) && prob(owner.emp_damage*2))
 			if(prob(10))
@@ -121,14 +121,14 @@
 				GLOB.hardpoint_bar_cache += bar
 		for(var/i=1;i<=value;i++)
 			new_overlays += GLOB.hardpoint_bar_cache[i]
-	overlays = new_overlays
+	SetOverlays(new_overlays)
 
-/obj/screen/exosuit/hardpoint/Initialize(mapload, var/newtag)
+/obj/screen/exosuit/hardpoint/Initialize(mapload, newtag)
 	. = ..()
 	hardpoint_tag = newtag
 	name = "hardpoint ([hardpoint_tag])"
 
-/obj/screen/exosuit/hardpoint/Click(var/location, var/control, var/params)
+/obj/screen/exosuit/hardpoint/Click(location, control, params)
 
 	if(!(..()))
 		return
@@ -138,7 +138,7 @@
 		return
 
 	var/modifiers = params2list(params)
-	if(modifiers["ctrl"])
+	if(modifiers[MOUSE_CTRL])
 		if(owner.hardpoints_locked)
 			to_chat(usr, SPAN_WARNING("Hardpoint ejection system is locked."))
 			return
@@ -190,9 +190,8 @@
 	queue_icon_update()
 
 /obj/screen/exosuit/toggle/on_update_icon()
-	. = ..()
 	icon_state = "[initial(icon_state)][toggled ? "_enabled" : ""]"
-	maptext = FONT_COLORED(toggled ? COLOR_WHITE : COLOR_GRAY,initial(maptext))
+	maptext = SPAN_COLOR(toggled ? COLOR_WHITE : COLOR_GRAY,initial(maptext))
 
 /obj/screen/exosuit/toggle/Click()
 	if(..()) toggled()
@@ -229,6 +228,7 @@
 /obj/screen/exosuit/toggle/air/toggled()
 	owner.use_air = ..()
 	to_chat(usr, SPAN_NOTICE("Auxiliary atmospheric system [owner.use_air ? "enabled" : "disabled"]."))
+	playsound(src.loc, 'sound/effects/turret/open.wav', 50, 1, -6)
 
 /obj/screen/exosuit/toggle/maint
 	name = "toggle maintenance protocol"
@@ -241,6 +241,7 @@
 /obj/screen/exosuit/toggle/maint/toggled()
 	owner.maintenance_protocols = ..()
 	to_chat(usr, SPAN_NOTICE("Maintenance protocols [owner.maintenance_protocols ? "enabled" : "disabled"]."))
+	playsound(src.loc, 'sound/machines/suitstorage_lockdoor.ogg', 50, 1, -6)
 
 /obj/screen/exosuit/toggle/hardpoint
 	name = "toggle hardpoint lock"
@@ -251,6 +252,7 @@
 /obj/screen/exosuit/toggle/hardpoint/toggled()
 	owner.hardpoints_locked = ..()
 	to_chat(usr, SPAN_NOTICE("Hardpoint system access is now [owner.hardpoints_locked ? "disabled" : "enabled"]."))
+	playsound(src.loc, 'sound/machines/twobeep.ogg', 50, 1, -6)
 
 /obj/screen/exosuit/toggle/hatch
 	name = "toggle hatch lock"
@@ -264,6 +266,7 @@
 		return
 	owner.hatch_locked = ..()
 	to_chat(usr, SPAN_NOTICE("The [owner.body.hatch_descriptor] is [owner.hatch_locked ? "now" : "no longer" ] locked."))
+	playsound(src.loc, 'sound/machines/suitstorage_lockdoor.ogg', 50, 1, -6)
 
 /obj/screen/exosuit/toggle/hatch_open
 	name = "open or close hatch"
@@ -280,6 +283,7 @@
 	owner.hatch_closed = ..()
 	to_chat(usr, SPAN_NOTICE("The [owner.body.hatch_descriptor] is now [owner.hatch_closed ? "closed" : "open" ]."))
 	owner.update_icon()
+	playsound(src.loc, 'sound/machines/suitstorage_cycledoor.ogg', 50, 1, -6)
 
 /obj/screen/exosuit/toggle/hatch_open/on_update_icon()
 	toggled = owner.hatch_closed
@@ -304,7 +308,7 @@
 			playsound(owner.loc,'sound/effects/scanbeep.ogg',30,0)
 			for(var/obj/item/mech_component/MC in list(owner.arms, owner.legs, owner.body, owner.head))
 				if(MC)
-					MC.return_diagnostics(usr)	
+					MC.return_diagnostics(usr)
 
 //Controls if cameras set the vision flags
 /obj/screen/exosuit/toggle/camera
@@ -345,7 +349,7 @@
 /obj/screen/exosuit/heat/Initialize()
 	. = ..()
 	gauge_needle = new /obj/screen/exosuit/needle(owner)
-	vis_contents += gauge_needle
+	add_vis_contents(gauge_needle)
 
 /obj/screen/exosuit/heat/Destroy()
 	QDEL_NULL(gauge_needle)
@@ -354,14 +358,14 @@
 /obj/screen/exosuit/heat/Click(location, control, params)
 	if(..())
 		var/modifiers = params2list(params)
-		if(modifiers["shift"])
+		if(modifiers[MOUSE_SHIFT])
 			if(owner && owner.material)
 				usr.show_message(SPAN_NOTICE("Your suit's safe operating limit ceiling is [(celsius ? "[owner.material.melting_point - T0C] °C" : "[owner.material.melting_point] K" )]."), VISIBLE_MESSAGE)
 			return
-		if(modifiers["ctrl"])
+		if(modifiers[MOUSE_CTRL])
 			celsius = !celsius
 			usr.show_message(SPAN_NOTICE("You switch the chassis probe display to use [celsius ? "celsius" : "kelvin"]."), VISIBLE_MESSAGE)
-			return	
+			return
 		if(owner && owner.body && owner.body.diagnostics?.is_functional() && owner.loc)
 			usr.show_message(SPAN_NOTICE("The life support panel blinks several times as it updates:"), VISIBLE_MESSAGE)
 
@@ -380,11 +384,16 @@
 	//Relative value of heat
 	if(owner && owner.body && owner.body.diagnostics?.is_functional() && gauge_needle)
 		var/value = clamp( owner.bodytemperature / (owner.material.melting_point * 1.55), 0, 1)
-		var/matrix/rot_matrix = matrix()
-		rot_matrix.Turn(Interpolate(-90, 90, value))
-		rot_matrix.Translate(0, -2)
-		animate(gauge_needle, transform = rot_matrix, 0.1, easing = SINE_EASING)
-		
+		animate(
+			gauge_needle,
+			transform = matrix().Update(
+				rotation = Interpolate(-90, 90, value),
+				offset_y = -2
+			),
+			time = 0.1,
+			easing = SINE_EASING
+		)
+
 
 #undef BAR_CAP
 #undef MECH_UI_STYLE

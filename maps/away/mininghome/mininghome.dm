@@ -1,8 +1,8 @@
-/obj/effect/overmap/visitable/sector/mininghome
+/obj/overmap/visitable/sector/mininghome
 	name = "Asteroid Mining Station"
 	desc = "A small mining station. No active lifesigns found on the station. Sensors indicate an abundance of valuable ore."
 	icon_state = "object"
-	known = 1
+	place_near_main = list(1, 1)
 	initial_generic_waypoints = list(
 		"nav_mininghome_1",
 		"nav_mininghome_2",
@@ -16,20 +16,21 @@
 	description = "A chill asteroid mining station."
 	suffixes = list("mininghome/mininghome.dmm")
 	spawn_cost = 0.5
+	generate_mining_by_z = TRUE
 
-/obj/effect/shuttle_landmark/nav_mininghome_1
+/obj/shuttle_landmark/nav_mininghome_1
 	name = "Navpoint #1"
 	landmark_tag = "nav_mininghome_1"
 
-/obj/effect/shuttle_landmark/nav_mininghome_2
+/obj/shuttle_landmark/nav_mininghome_2
 	name = "Navpoint #2"
 	landmark_tag = "nav_mininghome_2"
 
-/obj/effect/shuttle_landmark/nav_mininghome_3
+/obj/shuttle_landmark/nav_mininghome_3
 	name = "Navpoint #3"
 	landmark_tag = "nav_mininghome_3"
 
-/obj/effect/shuttle_landmark/nav_mininghome_4
+/obj/shuttle_landmark/nav_mininghome_4
 	name = "Hangar"
 	landmark_tag = "nav_mininghome_4"
 	base_area = /area/map_template/mininghome_hangar
@@ -41,14 +42,14 @@
 	name = "dirty steel floor"
 	icon = 'icons/turf/flooring/tiles.dmi'
 	icon_state = "steel_dirty"
-	initial_flooring = /decl/flooring/tiling
+	initial_flooring = /singleton/flooring/tiling
 
 // Lockers
 
 /obj/structure/closet/dilapidated
 	name = "dilapidated closet"
 	desc = "A dilpidated closet, the paint is flecking off."
-	closet_appearance = /decl/closet_appearance/tactical
+	closet_appearance = /singleton/closet_appearance/tactical
 
 // Areas
 
@@ -91,6 +92,14 @@
 /area/map_template/mininghome_solars
 	name = "\improper Solars"
 	icon_state = "eva"
+
+/area/map_template/mininghome_processing
+	name = "\improper Ore Processing"
+	icon_state = "mining_production"
+
+/area/map_template/mininghome_eva
+	name = "\improper Airlock"
+	icon_state = "mining_eva"
 
 // Torch only items off torch
 

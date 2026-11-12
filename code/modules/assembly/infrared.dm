@@ -20,7 +20,7 @@
 	..()
 	beams = list()
 	seen_turfs = list()
-	proximity_trigger = new(src, /obj/item/device/assembly/infra/proc/on_beam_entered, /obj/item/device/assembly/infra/proc/on_visibility_change, world.view, PROXIMITY_EXCLUDE_HOLDER_TURF)
+	proximity_trigger = new(src, PROC_REF(on_beam_entered), PROC_REF(on_visibility_change), world.view, PROXIMITY_EXCLUDE_HOLDER_TURF)
 
 /obj/item/device/assembly/infra/Destroy()
 	qdel(proximity_trigger)
@@ -44,15 +44,15 @@
 		proximity_trigger.unregister_turfs()
 	update_icon()
 
-/obj/item/device/assembly/infra/toggle_secure()
-	secured = !secured
+/obj/item/device/assembly/infra/set_secure(make_secure)
+	..()
 	set_active(secured ? FALSE : on)
 	return secured
 
 /obj/item/device/assembly/infra/on_update_icon()
-	overlays.Cut()
+	ClearOverlays()
 	if(on)
-		overlays += "infrared_on"
+		AddOverlays("infrared_on")
 	if(holder)
 		holder.update_icon()
 	update_beams()
@@ -64,11 +64,21 @@
 		return
 
 	user.set_machine(src)
-	var/dat = list()
-	dat += text("<TT><B>Infrared Laser</B>\n<B>Status</B>: []<BR>\n<B>Visibility</B>: []<BR>\n</TT>", (on ? text("<A href='?src=\ref[];state=0'>On</A>", src) : text("<A href='?src=\ref[];state=1'>Off</A>", src)), (src.visible ? text("<A href='?src=\ref[];visible=0'>Visible</A>", src) : text("<A href='?src=\ref[];visible=1'>Invisible</A>", src)))
-	dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
-	dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
-	show_browser(user, jointext(dat,null), "window=infra")
+	var/dat
+	var/onoff
+	if (on)
+		onoff = "<A href='byond://?src=\ref[src];state=0'>On</A>"
+	else
+		onoff = "<A href='byond://?src=\ref[src];state=1'>Off</A>"
+	var/visibility
+	if (visible)
+		visibility = "<A href='byond://?src=\ref[src];visible=0'>Visible</A>"
+	else
+		visibility = "<A href='byond://?src=\ref[src];visible=1'>Invisible</A>"
+	dat = "<TT><B>Infrared Laser</B>\n<B>Status</B>: [onoff]<BR>\n<B>Visibility</B>: [visibility]<BR>\n</TT>"
+	dat += "<BR><BR><A href='byond://?src=\ref[src];refresh=1'>Refresh</A>"
+	dat += "<BR><BR><A href='byond://?src=\ref[src];close=1'>Close</A>"
+	show_browser(user, dat, "window=infra")
 	onclose(user, "infra")
 
 /obj/item/device/assembly/infra/Topic(href, href_list, state = GLOB.physical_state)
@@ -91,7 +101,7 @@
 	if(usr)
 		attack_self(usr)
 
-/obj/item/device/assembly/infra/proc/on_beam_entered(var/atom/enterer)
+/obj/item/device/assembly/infra/proc/on_beam_entered(atom/enterer)
 	if(enterer == src)
 		return
 	if(enterer.invisibility > INVISIBILITY_LEVEL_TWO)
@@ -108,14 +118,14 @@
 	spawn(10)
 		process_cooldown()
 
-/obj/item/device/assembly/infra/proc/on_visibility_change(var/list/old_turfs, var/list/new_turfs)
+/obj/item/device/assembly/infra/proc/on_visibility_change(list/old_turfs, list/new_turfs)
 	seen_turfs = new_turfs
 	update_beams()
 
 /obj/item/device/assembly/infra/proc/update_beams()
 	create_update_and_delete_beams(on, visible, dir, seen_turfs, beams)
 
-/proc/create_update_and_delete_beams(var/active, var/visible, var/dir, var/list/seen_turfs, var/list/existing_beams)
+/proc/create_update_and_delete_beams(active, visible, dir, list/seen_turfs, list/existing_beams)
 	if(!active)
 		for(var/b in existing_beams)
 			qdel(b)
@@ -125,7 +135,7 @@
 	var/list/turfs_that_need_beams = seen_turfs.Copy()
 
 	for(var/b in existing_beams)
-		var/obj/effect/beam/ir_beam/beam = b
+		var/obj/beam/ir_beam/beam = b
 		if(beam.loc in turfs_that_need_beams)
 			turfs_that_need_beams -= beam.loc
 			beam.set_invisibility(visible ? 0 : INVISIBILITY_MAXIMUM)
@@ -137,11 +147,11 @@
 		return
 
 	for(var/t in turfs_that_need_beams)
-		var/obj/effect/beam/ir_beam/beam = new(t)
+		var/obj/beam/ir_beam/beam = new(t)
 		existing_beams += beam
 		beam.set_dir(dir)
 
-/obj/effect/beam/ir_beam
+/obj/beam/ir_beam
 	name = "ir beam"
 	icon = 'icons/obj/projectiles.dmi'
 	icon_state = "ibeam"

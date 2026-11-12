@@ -1,23 +1,25 @@
 /obj/item/ore
+	force = 5
+	throwforce = 5
 	name = "ore"
 	icon_state = "lump"
 	icon = 'icons/obj/materials/ore.dmi'
 	randpixel = 8
-	w_class = 2
+	w_class = ITEM_SIZE_SMALL
 	var/material/material
 	var/datum/geosample/geologic_data
 
 /obj/item/ore/get_material()
 	return material
 
-/obj/item/ore/attackby(obj/item/W as obj, mob/user as mob)
+/obj/item/ore/use_tool(obj/item/W, mob/living/user, list/click_params)
 	if(istype(W,/obj/item/device/core_sampler))
 		var/obj/item/device/core_sampler/C = W
 		C.sample_item(src, user)
-	else
-		return ..()
+		return TRUE
+	return ..()
 
-/obj/item/ore/New(var/newloc, var/_mat)
+/obj/item/ore/New(newloc, _mat)
 	if(_mat)
 		matter = list()
 		matter[_mat] = SHEET_MATERIAL_AMOUNT
@@ -36,6 +38,8 @@
 				desc = M.ore_desc
 			if(icon_state == "dust")
 				slot_flags = SLOT_HOLSTER
+				throwforce = 0
+				force = 0 
 			break
 	. = ..()
 
@@ -51,29 +55,29 @@
 			QDEL_IN(src, 1)
 
 // Map definitions.
-/obj/item/ore/uranium/New(var/newloc)
+/obj/item/ore/uranium/New(newloc)
 	..(newloc, MATERIAL_PITCHBLENDE)
-/obj/item/ore/iron/New(var/newloc)
+/obj/item/ore/iron/New(newloc)
 	..(newloc, MATERIAL_HEMATITE)
-/obj/item/ore/coal/New(var/newloc)
+/obj/item/ore/coal/New(newloc)
 	..(newloc, MATERIAL_GRAPHITE)
-/obj/item/ore/glass/New(var/newloc)
+/obj/item/ore/glass/New(newloc)
 	..(newloc, MATERIAL_SAND)
-/obj/item/ore/silver/New(var/newloc)
+/obj/item/ore/silver/New(newloc)
 	..(newloc, MATERIAL_SILVER)
-/obj/item/ore/gold/New(var/newloc)
+/obj/item/ore/gold/New(newloc)
 	..(newloc, MATERIAL_GOLD)
-/obj/item/ore/diamond/New(var/newloc)
+/obj/item/ore/diamond/New(newloc)
 	..(newloc, MATERIAL_DIAMOND)
-/obj/item/ore/osmium/New(var/newloc)
+/obj/item/ore/osmium/New(newloc)
 	..(newloc, MATERIAL_PLATINUM)
-/obj/item/ore/hydrogen/New(var/newloc)
+/obj/item/ore/hydrogen/New(newloc)
 	..(newloc, MATERIAL_HYDROGEN)
-/obj/item/ore/slag/New(var/newloc)
+/obj/item/ore/slag/New(newloc)
 	..(newloc, MATERIAL_WASTE)
-/obj/item/ore/phoron/New(var/newloc)
+/obj/item/ore/phoron/New(newloc)
 	..(newloc, MATERIAL_PHORON)
-/obj/item/ore/aluminium/New(var/newloc)
+/obj/item/ore/aluminium/New(newloc)
 	..(newloc, MATERIAL_BAUXITE)
-/obj/item/ore/rutile/New(var/newloc)
+/obj/item/ore/rutile/New(newloc)
 	..(newloc, MATERIAL_RUTILE)

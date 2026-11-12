@@ -1,4 +1,4 @@
-client/script = {"<style>
+/client/script = {"<style>
 body					{font-family: Verdana, sans-serif;}
 
 h1, h2, h3, h4, h5, h6	{color: #0000ff;font-family: Georgia, Verdana, sans-serif;}
@@ -85,21 +85,22 @@ h1.alert, h2.alert		{color: #000080;}
 
 .italic				{font-style: italic;}
 .bold					{font-weight: bold;}
-.danger					{color: #ff0000; font-weight: bold;}
-.bigdanger					{color: #ff0000; font-weight: bold; font-size: 115%;}
-.warning				{color: #ff0000; font-style: italic;}
-.bigwarning				{color: #ff0000; font-style: italic; font-size: 115%;}
+.danger					{color: #dc3545; font-weight: bold;}
+.bigdanger				{color: #dc3545; font-weight: bold; font-size: 115%;}
+.warning				{color: #cc7606; font-weight: bold; font-style: italic;}
+.bigwarning				{color: #cc7606; font-weight: bold; font-style: italic; font-size: 115%;}
 .boldannounce			{color: #ff0000; font-weight: bold;}
 .rose					{color: #ff5050;}
-.info					{color: #0000cc;}
+.info					{color: #9b53c4; font-style: italic;}
 .debug					{color: #ff00ff;}
-.notice					{color: #000099;}
-.subtle					{color: #000099; font-size: 75%; font-style: italic;}
+.notice					{color: #0d5ef3;}
+.subtle					{color: #919ca7; font-style: italic;}
 .alium					{color: #00ff00;}
 .cult					{color: #800080; font-weight: bold; font-style: italic;}
 .cultannounce			{color: #800080; font-style: italic; font-size: 175%;}
 .mfauna					{color: #884422; font-weight: bold; font-size: 125%;}
 .antagdesc				{color: #ff0033; font-size: 125%}
+.legion					{color: #e09000; font-weight: bold; font-family: 'Courier New', Courier, monospace}
 
 .reflex_shoot			{color: #000099; font-style: italic;}
 
@@ -130,5 +131,17 @@ h1.alert, h2.alert		{color: #000080;}
 .bad                    {color: #ee0000; font-weight: bold;}
 
 BIG IMG.icon 			{width: 32px; height: 32px;}
+
+/* Admin: Misc */
+.who_dead				{color: #000000;}
+.who_observing			{color: #808080;}
+.who_new_account		{color: #ff0000;}
+.who_newish_account		{color: #ff8c00;}
+.who_new_account		{color: #000000;}
+.who_antag				{color: #ff0000;}
+
+/* Admin: PM */
+.pm						{color: #ff0000;}
+.staff_pm				{color: #0000FF;}
 
 </style>"}

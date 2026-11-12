@@ -1,7 +1,7 @@
 /obj/item/reagent_containers/spray
 	name = "spray bottle"
 	desc = "A spray bottle, with an unscrewable top."
-	icon = 'icons/obj/janitor.dmi'
+	icon = 'icons/obj/janitor_tools.dmi'
 	icon_state = "cleaner"
 	item_state = "cleaner"
 	item_flags = ITEM_FLAG_NO_BLUDGEON
@@ -18,6 +18,7 @@
 	var/list/spray_sizes = list(1,3)
 	var/step_delay = 10 // lower is faster
 	volume = 250
+	var/spray_sound = 'sound/effects/spray2.ogg'
 
 /obj/item/reagent_containers/spray/New()
 	..()
@@ -35,7 +36,7 @@
 			return
 
 	if(reagents.total_volume < amount_per_transfer_from_this)
-		to_chat(user, "<span class='notice'>\The [src] is empty!</span>")
+		to_chat(user, SPAN_NOTICE("\The [src] is empty!"))
 		return
 
 	Spray_at(A, user, proximity)
@@ -44,42 +45,46 @@
 	return
 
 /obj/item/reagent_containers/spray/proc/Spray_at(atom/A as mob|obj, mob/user as mob, proximity)
-	playsound(src.loc, 'sound/effects/spray2.ogg', 50, 1, -6)
+	playsound(src.loc, spray_sound, 50, 1, -6)
 	if (reagents.should_admin_log())
 		var/contained = reagents.get_reagents()
-		if (istype(A, /mob))
+		if (ismob(A))
 			admin_attack_log(user, A, "Used \the [src] containing [contained] to spray the victim", "Was sprayed by \the [src] containing [contained]", "used \the [src] containing [contained] to spray")
 		else
 			admin_attacker_log(user, "Used \the [name] containing [contained] to spray \the [A]")
 	if (A.density && proximity)
 		reagents.splash(A, amount_per_transfer_from_this)
 		if(A == user)
-			A.visible_message("<span class='notice'>\The [user] sprays themselves with \the [src].</span>")
+			A.visible_message(SPAN_NOTICE("\The [user] sprays themselves with \the [src]."))
 		else
-			A.visible_message("<span class='notice'>\The [user] sprays \the [A] with \the [src].</span>")
+			A.visible_message(SPAN_NOTICE("\The [user] sprays \the [A] with \the [src]."))
 	else
 		spawn(0)
-			var/obj/effect/effect/water/chempuff/D = new/obj/effect/effect/water/chempuff(get_turf(src))
+			var/obj/effect/water/chempuff/D = new/obj/effect/water/chempuff(get_turf(src))
 			var/turf/my_target = get_turf(A)
 			D.create_reagents(amount_per_transfer_from_this)
 			if(!src)
 				return
 			reagents.trans_to_obj(D, amount_per_transfer_from_this)
-			D.set_color()
 			D.set_up(my_target, spray_size, step_delay)
 	return
 
-/obj/item/reagent_containers/spray/attack_self(var/mob/user)
+/obj/item/reagent_containers/spray/attack_self(mob/user)
 	if(!possible_transfer_amounts)
 		return
 	amount_per_transfer_from_this = next_in_list(amount_per_transfer_from_this, cached_number_list_decode(possible_transfer_amounts))
 	spray_size = next_in_list(spray_size, spray_sizes)
-	to_chat(user, "<span class='notice'>You adjusted the pressure nozzle. You'll now use [amount_per_transfer_from_this] units per spray.</span>")
+	to_chat(user, SPAN_NOTICE("You adjusted the pressure nozzle. You'll now use [amount_per_transfer_from_this] units per spray."))
 
 /obj/item/reagent_containers/spray/examine(mob/user, distance)
 	. = ..()
-	if(distance == 0 && loc == user)
-		to_chat(user, "[round(reagents.total_volume)] unit\s left.")
+	if(distance > 0)
+		return
+
+	if(length(reagents?.reagent_list))
+		to_chat(user, SPAN_NOTICE("It contains [round(reagents.total_volume)] units of liquid."))
+	else
+		to_chat(user, SPAN_NOTICE("It is empty."))
 
 /obj/item/reagent_containers/spray/verb/empty()
 
@@ -90,7 +95,7 @@
 	if (alert(usr, "Are you sure you want to empty that?", "Empty Bottle:", "Yes", "No") != "Yes")
 		return
 	if(isturf(usr.loc))
-		to_chat(usr, "<span class='notice'>You empty \the [src] onto the floor.</span>")
+		to_chat(usr, SPAN_NOTICE("You empty \the [src] onto the floor."))
 		reagents.splash(usr.loc, reagents.total_volume)
 
 //space cleaner
@@ -139,20 +144,20 @@
 	if(distance <= 1)
 		to_chat(user, "The safety is [safety ? "on" : "off"].")
 
-/obj/item/reagent_containers/spray/pepper/attack_self(var/mob/user)
+/obj/item/reagent_containers/spray/pepper/attack_self(mob/user)
 	safety = !safety
-	to_chat(usr, "<span class = 'notice'>You switch the safety [safety ? "on" : "off"].</span>")
+	to_chat(usr, SPAN_NOTICE("You switch the safety [safety ? "on" : "off"]."))
 
 /obj/item/reagent_containers/spray/pepper/Spray_at(atom/A as mob|obj)
 	if(safety)
-		to_chat(usr, "<span class = 'warning'>The safety is on!</span>")
+		to_chat(usr, SPAN_WARNING("The safety is on!"))
 		return
 	..()
 
 /obj/item/reagent_containers/spray/waterflower
 	name = "water flower"
 	desc = "A seemingly innocent sunflower...with a twist."
-	icon = 'icons/obj/device.dmi'
+	icon = 'icons/obj/flora/sunflower.dmi'
 	icon_state = "sunflower"
 	item_state = "sunflower"
 	amount_per_transfer_from_this = 1
@@ -164,10 +169,14 @@
 	reagents.add_reagent(/datum/reagent/water, 10)
 
 /obj/item/reagent_containers/spray/chemsprayer
-	name = "chem sprayer"
+	name = "industrial chemical sprayer"
 	desc = "A utility used to spray large amounts of reagent in a given area."
 	icon = 'icons/obj/weapons/other.dmi'
 	icon_state = "chemsprayer"
+	item_icons = list(
+		slot_r_hand_str = 'icons/mob/onmob/items/righthand.dmi',
+		slot_l_hand_str = 'icons/mob/onmob/items/lefthand.dmi'
+	)
 	item_state = "chemsprayer"
 	throwforce = 3
 	w_class = ITEM_SIZE_LARGE
@@ -176,17 +185,25 @@
 	origin_tech = list(TECH_COMBAT = 3, TECH_MATERIAL = 3, TECH_ENGINEERING = 3)
 	step_delay = 8
 
-/obj/item/reagent_containers/spray/chemsprayer/Spray_at(atom/A as mob|obj)
+/obj/item/reagent_containers/spray/chemsprayer/Spray_at(atom/A, mob/user, proximity)
+	playsound(src.loc, 'sound/effects/spray.ogg', 50, 1, -6)
 	var/direction = get_dir(src, A)
 	var/turf/T = get_turf(A)
 	var/turf/T1 = get_step(T,turn(direction, 90))
 	var/turf/T2 = get_step(T,turn(direction, -90))
 	var/list/the_targets = list(T, T1, T2)
 
+	if (reagents.should_admin_log())
+		var/contained = reagents.get_reagents()
+		if (ismob(A))
+			admin_attack_log(user, A, "Used \the [src] containing [contained] to spray the victim", "Was sprayed by \the [src] containing [contained]", "used \the [src] containing [contained] to spray")
+		else
+			admin_attacker_log(user, "Used \the [name] containing [contained] to spray \the [A]")
+
 	for(var/a = 1 to 3)
 		spawn(0)
 			if(reagents.total_volume < 1) break
-			var/obj/effect/effect/water/chempuff/D = new/obj/effect/effect/water/chempuff(get_turf(src))
+			var/obj/effect/water/chempuff/D = new/obj/effect/water/chempuff(get_turf(src))
 			var/turf/my_target = the_targets[a]
 			D.create_reagents(amount_per_transfer_from_this)
 			if(!src)
@@ -199,7 +216,7 @@
 /obj/item/reagent_containers/spray/plantbgone
 	name = "Plant-B-Gone"
 	desc = "Kills those pesky weeds!"
-	icon = 'icons/obj/hydroponics_machines.dmi'
+	icon = 'icons/obj/machines/hydroponics_machines.dmi'
 	icon_state = "plantbgone"
 	item_state = "plantbgone"
 	volume = 100
@@ -211,7 +228,7 @@
 /obj/item/reagent_containers/spray/plantbgone/afterattack(atom/A as mob|obj, mob/user as mob, proximity)
 	if(!proximity) return
 
-	if(istype(A, /obj/effect/blob)) // blob damage in blob code
+	if(istype(A, /obj/blob)) // blob damage in blob code
 		return
 
 	..()
@@ -221,6 +238,18 @@
 	desc = "A can of Gold Standard spray deodorant - for when you're too lazy to shower."
 	gender = PLURAL
 	volume = 35
-	icon = 'icons/obj/items.dmi'
+	icon = 'icons/obj/lavatory.dmi'
 	icon_state = "deodorant"
 	item_state = "deodorant"
+
+/obj/item/reagent_containers/spray/aspergillum
+	name = "aspergillum"
+	desc = "A ceremonial item used in Christianity for sprinkling holy water, or other liquids, on a subject."
+	icon = 'icons/obj/weapons/other.dmi'
+	icon_state = "aspergillum"
+	item_state = "aspergillum"
+	amount_per_transfer_from_this = 5
+	possible_transfer_amounts = null
+	spray_size = 1
+	volume = 10
+	spray_sound = 'sound/effects/jingle.ogg'

@@ -2,22 +2,18 @@
 For the main html chat area
 *********************************/
 
-/// Cache of icons for the browser output
-GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
-
-
 /// Should match the value set in the browser js
 #define MAX_COOKIE_LENGTH 5
 #define SPAM_TRIGGER_AUTOMUTE 10
 
-/client/var/chatOutput/chatOutput
+/client/var/datum/chatOutput/chatOutput
 
 /client/New()
 	chatOutput = new (src)
 	return ..()
 
 /// Member of /client that manages caching and sending messages to its holder
-/chatOutput
+/datum/chatOutput
 	var/client/owner
 
 	/// How many times client data has been checked
@@ -42,26 +38,26 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 	var/list/connectionHistory = list()
 
 
-/chatOutput/Destroy(force)
+/datum/chatOutput/Destroy()
 	SSping.chats -= src
 	return ..()
 
 
-/chatOutput/New(client/C)
+/datum/chatOutput/New(client/C)
 	SSping.chats += src
 	owner = C
 
 
-/chatOutput/proc/start()
+/datum/chatOutput/proc/start()
 	if (!owner)
 		return FALSE
 	if (!winexists(owner, "browseroutput"))
 		set waitfor = FALSE
 		broken = TRUE
-		message_admins("Couldn't start chat for [key_name_admin(owner)]!")
-		. = FALSE
-		alert(owner.mob, "Updated chat window does not exist. If you are using a custom skin file please allow the game to update.")
-		return
+		log_debug("Couldn't start chat for [key_name_admin(owner)]!")
+		if (owner.mob)
+			alert(owner.mob, "Updated chat window does not exist. If you are using a custom skin file please allow the game to update.")
+		return FALSE
 	if (owner && winget(owner, "browseroutput", "is-visible") == "true")
 		doneLoading()
 	else
@@ -69,7 +65,7 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 	return TRUE
 
 
-/chatOutput/proc/load()
+/datum/chatOutput/proc/load()
 	set waitfor = FALSE
 	if(!owner)
 		return
@@ -78,7 +74,7 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 	show_browser(owner, file('code/modules/goonchat/browserassets/html/browserOutput.html'), "window=browseroutput")
 
 
-/chatOutput/Topic(href, list/href_list)
+/datum/chatOutput/Topic(href, list/href_list)
 	if(usr.client != owner)
 		return TRUE
 	var/list/params = list() // Build proc parameters from the form "param[paramname]=thing"
@@ -99,12 +95,15 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 			swaptodarkmode()
 		if ("swaptolightmode")
 			swaptolightmode()
+		if ("reload")
+			loaded = FALSE
+			start()
 	if(data)
 		ehjax_send(data = data)
 
 
 //Called on chat output done-loading by JS.
-/chatOutput/proc/doneLoading()
+/datum/chatOutput/proc/doneLoading()
 	if(loaded)
 		return
 	loaded = TRUE
@@ -115,14 +114,15 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 	sendClientData()
 	syncRegex()
 	legacy_chat(owner, SPAN_DANGER("Failed to load fancy chat. Some features won't work.")) // do NOT convert to to_chat()
+	legacy_chat(owner, SPAN_DANGER("Shall we <a href='byond://?_src_=chat&proc=reload'>try again</a>?")) // do NOT convert to to_chat()
 
 
-/chatOutput/proc/showChat()
+/datum/chatOutput/proc/showChat()
 	winset(owner, "output", "is-visible=false")
 	winset(owner, "browseroutput", "is-disabled=false;is-visible=true")
 
 
-/chatOutput/proc/updatePing()
+/datum/chatOutput/proc/updatePing()
 	if (!owner)
 		qdel(src)
 		return
@@ -132,25 +132,25 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 /proc/syncChatRegexes()
 	for (var/user in GLOB.clients)
 		var/client/C = user
-		var/chatOutput/Cchat = C.chatOutput
+		var/datum/chatOutput/Cchat = C.chatOutput
 		if (Cchat && !Cchat.broken && Cchat.loaded)
 			Cchat.syncRegex()
 
 
-/chatOutput/proc/syncRegex()
+/datum/chatOutput/proc/syncRegex()
 	var/list/regexes = list()
-	if (regexes.len)
+	if (length(regexes))
 		ehjax_send(data = list("syncRegex" = regexes))
 
 
-/chatOutput/proc/ehjax_send(client/C = owner, window = "browseroutput", data)
+/datum/chatOutput/proc/ehjax_send(client/C = owner, window = "browseroutput", data)
 	if(islist(data))
 		data = json_encode(data)
 	send_output(C, "[data]", "[window]:ehjaxCallback")
 
 
 //Sends client connection details to the chat to handle and save
-/chatOutput/proc/sendClientData()
+/datum/chatOutput/proc/sendClientData()
 	var/list/deets = list("clientData" = list())
 	deets["clientData"]["ckey"] = owner.ckey
 	deets["clientData"]["ip"] = owner.address
@@ -160,7 +160,7 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 
 
 //Called by client, sent data to investigate (cookie history so far)
-/chatOutput/proc/analyzeClientData(cookie = "")
+/datum/chatOutput/proc/analyzeClientData(cookie = "")
 	if(world.time  >  next_time_to_clear)
 		next_time_to_clear = world.time + (3 SECONDS)
 		total_checks = 0
@@ -173,24 +173,24 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 		return
 	if(cookie != "none")
 		var/list/connData = json_decode(cookie)
-		if (connData && islist(connData) && connData.len > 0 && connData["connData"])
+		if (connData && islist(connData) && length(connData) > 0 && connData["connData"])
 			connectionHistory = connData["connData"]
 			var/list/found = new()
-			if(connectionHistory.len > MAX_COOKIE_LENGTH)
+			if(length(connectionHistory) > MAX_COOKIE_LENGTH)
 				message_admins("[key_name(src.owner)] was kicked for an invalid ban cookie)")
 				qdel(owner)
 				return
-			for(var/i in connectionHistory.len to 1 step -1)
+			for(var/i in length(connectionHistory) to 1 step -1)
 				if(QDELETED(owner))
 					return
 				var/list/row = src.connectionHistory[i]
-				if (!row || row.len < 3 || (!row["ckey"] || !row["compid"] || !row["ip"]))
+				if (!row || length(row) < 3 || (!row["ckey"] || !row["compid"] || !row["ip"]))
 					return
 				if (world.IsBanned(row["ckey"], row["ip"], row["compid"]))
 					found = row
 					break
 				CHECK_TICK
-			if (found.len > 0)
+			if (length(found) > 0)
 				var/msg = "[key_name(src.owner)] has a cookie from a banned account! (Matched: [found["ckey"]], [found["ip"]], [found["compid"]])"
 				message_admins(msg)
 				log_admin(msg)
@@ -198,12 +198,12 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 
 
 //Called by js client every 60 seconds
-/chatOutput/proc/ping()
+/datum/chatOutput/proc/ping()
 	return "pong"
 
 
 //Called by js client on js error
-/chatOutput/proc/debug(error)
+/datum/chatOutput/proc/debug(error)
 	log_world("\[[time2text(world.realtime, "YYYY-MM-DD hh:mm:ss")]\] Client: [(src.owner.key ? src.owner.key : src.owner)] triggered JS error: [error]")
 
 
@@ -221,7 +221,7 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 	//regex/Replace with a proc won't work here because icon2html takes target as an argument and there is no way to pass it to the replacement proc
 	//not even hacks with reassigning usr work
 	var/regex/i = new(@/<IMG CLASS=icon SRC=(\[[^]]+])(?: ICONSTATE='([^']+)')?>/, "g")
-	while(regex_find(i, message))
+	while(i.Find_char(message))
 		message = copytext(message,1,i.index)+icon2html(locate(i.group[1]), target, icon_state=i.group[2])+copytext(message,i.next)
 
 	if(trailing_newline)
@@ -239,6 +239,8 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 			//Send it to the old style output window.
 			legacy_chat(C, original_message)
 
+			if (C.get_preference_value(/datum/client_preference/goonchat) != GLOB.PREF_YES)
+				continue
 			if(!C.chatOutput || C.chatOutput.broken) // A player who hasn't updated his skin file.
 				continue
 
@@ -253,6 +255,8 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 		if (!C)
 			return
 		legacy_chat(C, original_message) //Send it to the old style output window.
+		if (C.get_preference_value(/datum/client_preference/goonchat) != GLOB.PREF_YES)
+			return
 		if(!C.chatOutput || C.chatOutput.broken) // A player who hasn't updated his skin file.
 			return
 		if(!C.chatOutput.loaded)
@@ -264,17 +268,19 @@ GLOBAL_DATUM_INIT(iconCache, /savefile, new("data/tmp/iconCache.sav"))
 
 /proc/to_chat(target, message, handle_whitespace = TRUE, trailing_newline = TRUE)
 	set waitfor = FALSE
+	if (!target)
+		return
 	if(Master.current_runlevel == RUNLEVEL_INIT || !SSchat?.initialized)
 		to_chat_immediate(target, message, handle_whitespace, trailing_newline)
 		return
 	SSchat.queue(target, message, handle_whitespace, trailing_newline)
 
 
-/chatOutput/proc/swaptolightmode() //Dark mode light mode stuff. Yell at KMC if this breaks! (See darkmode.dm for documentation)
+/datum/chatOutput/proc/swaptolightmode() //Dark mode light mode stuff. Yell at KMC if this breaks! (See darkmode.dm for documentation)
 	owner.force_white_theme()
 
 
-/chatOutput/proc/swaptodarkmode()
+/datum/chatOutput/proc/swaptodarkmode()
 	owner.force_dark_theme()
 
 

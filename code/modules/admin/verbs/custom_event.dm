@@ -7,7 +7,7 @@
 		to_chat(src, "Only administrators may use this command.")
 		return
 
-	var/input = sanitize(input(usr, "Enter the description of the event. Be descriptive. To cancel the event, make this blank or hit cancel.", "Event", config.event) as message|null, MAX_BOOK_MESSAGE_LEN, extra = 0)
+	var/input = sanitize(input(usr, "Enter the description of the event. Be descriptive. To cancel the event, make this blank or hit cancel.", "Event", html_decode(config.event)) as message|null, MAX_BOOK_MESSAGE_LEN, extra = 0)
 	if(isnull(input))
 		config.event = ""
 		log_admin("[usr.key] has cleared the event text.")
@@ -21,7 +21,7 @@
 
 	to_world("<h1 class='alert'>Event</h1>")
 	to_world("<h2 class='alert'>An event is starting. OOC Info:</h2>")
-	to_world("<span class='alert'>[config.event]</span>")
+	to_world(SPAN_CLASS("alert", "[config.event]"))
 	to_world("<br>")
 
 	SSwebhooks.send(WEBHOOK_CUSTOM_EVENT, list("text" = config.event))
@@ -38,5 +38,5 @@
 
 	to_chat(src, "<h1 class='alert'>Event</h1>")
 	to_chat(src, "<h2 class='alert'>An event is taking place. OOC Info:</h2>")
-	to_chat(src, "<span class='alert'>[config.event]</span>")
+	to_chat(src, SPAN_CLASS("alert", "[config.event]"))
 	to_chat(src, "<br>")

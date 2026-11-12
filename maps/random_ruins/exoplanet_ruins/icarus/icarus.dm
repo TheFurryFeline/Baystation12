@@ -1,3 +1,5 @@
+#include "../../../torch/items/weapons.dm"
+
 /datum/map_template/ruin/exoplanet/icarus
 	name = "SEV Icarus"
 	id = "icarus"
@@ -5,14 +7,14 @@
 	suffixes = list("icarus/icarus.dmm")
 	spawn_cost = 1
 	ruin_tags = RUIN_HUMAN|RUIN_WRECK
-	template_flags = TEMPLATE_FLAG_CLEAR_CONTENTS | TEMPLATE_FLAG_NO_RUINS
+	template_flags = TEMPLATE_FLAG_CLEAR_CONTENTS | TEMPLATE_FLAG_NO_RUINS | TEMPLATE_FLAG_RUIN_STARTS_DISALLOWED
 	apc_test_exempt_areas = list(
 		/area/map_template/icarus = NO_SCRUBBER|NO_VENT|NO_APC
 	)
 
 //Radiation death spawner thing from old Icarus
 
-/obj/effect/icarus_irradiate
+/obj/icarus_irradiate
 	name = "SEV Icarus Radiation Spawner"
 	icon = 'icons/effects/landmarks.dmi'
 	icon_state = "x2"
@@ -20,7 +22,7 @@
 	var/datum/radiation_source/S
 	var/req_range = 20 //to cover part of the ruin
 
-/obj/effect/icarus_irradiate/Initialize()
+/obj/icarus_irradiate/Initialize()
 	. = ..()
 
 	name = null
@@ -36,9 +38,9 @@
 	S.update_rad_power(radiation_power)
 	SSradiation.add_source(S)
 
-	loc.set_light(0.4, 1, req_range, l_color = COLOR_LIME) //The goo doesn't last, so this is another indicator
+	loc.set_light(req_range, 0.4, l_color = COLOR_LIME) //The goo doesn't last, so this is another indicator
 
-/obj/effect/icarus_irradiate/Destroy()
+/obj/icarus_irradiate/Destroy()
 	. = ..()
 	QDEL_NULL(S)
 
@@ -48,6 +50,7 @@
 	name = "SEV Icarus"
 	icon = 'maps/random_ruins/exoplanet_ruins/icarus/icarus.dmi'
 	icon_state = "icarus"
+	turfs_airless = TRUE
 
 /area/map_template/icarus/bridge
 	name = "SEV Icarus Bridge"
@@ -83,8 +86,8 @@
 
 /obj/item/icarus_disk
 	name = "disk"
-	desc = "A dusty disk. Its label says: \"Deliver to SCG Expeditionary Corps Command!\". Its content is encrypted with quantum crypthography methods."
-	icon = 'icons/obj/items.dmi'
+	desc = "A dusty disk. Its label says: \"Deliver to SCG Expeditionary Corps Command!\". Its content is encrypted with quantum cryptography methods."
+	icon = 'icons/obj/datadisks.dmi'
 	icon_state = "nucleardisk"
 	item_state = "card-id"
 	w_class = ITEM_SIZE_TINY
@@ -95,9 +98,9 @@
 	icon = 'maps/random_ruins/exoplanet_ruins/icarus/icarus.dmi'
 	icon_state = "model"
 
-/obj/item/gun/projectile/pistol/military/icarus
+/obj/item/gun/projectile/pistol/m22f/icarus
 	name = "rusty military pistol"
-	desc = "The Hephaestus Industries P20 - a mass produced kinetic sidearm in widespread service with the SCGDF. This one has seen better days, and has the name \"Alex\" engraved into it."
+	desc = "A Hephaestus Industries M22F. A large pistol issued as an SCGDF service weapon. This one has seen better days, and has the name \"Alex\" engraved into it."
 
 //SCG deco
 
@@ -129,7 +132,7 @@
 	icon = 'maps/random_ruins/exoplanet_ruins/icarus/icarus.dmi'
 	icon_state = "solgovseal"
 
-/obj/effect/floor_decal/icarus_scglogo
+/obj/floor_decal/icarus_scglogo
 	alpha = 230
 	icon = 'maps/random_ruins/exoplanet_ruins/icarus/icarus_scglogo.dmi'
 	icon_state = "center"

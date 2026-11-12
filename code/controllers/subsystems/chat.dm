@@ -1,14 +1,18 @@
 SUBSYSTEM_DEF(chat)
 	name = "Chat"
 	wait = 1
-	runlevels = RUNLEVELS_DEFAULT | RUNLEVEL_LOBBY
+	runlevels = RUNLEVELS_PREGAME | RUNLEVELS_GAME
 	priority = SS_PRIORITY_CHAT
 	init_order = SS_INIT_CHAT
 	var/static/list/payload = list()
 
 
+/datum/controller/subsystem/chat/UpdateStat(time)
+	return
+
+
 /datum/controller/subsystem/chat/fire(resumed)
-	FOR_BLIND(client/C, payload)
+	for (var/client/C as anything in payload)
 		send_output(C, payload[C], "browseroutput:output")
 		payload -= C
 		if (MC_TICK_CHECK)
@@ -43,25 +47,11 @@ SUBSYSTEM_DEF(chat)
 	if (!C)
 		return
 	legacy_chat(C, original)
-	if (!C?.chatOutput || C.chatOutput.broken)
+	if (C?.get_preference_value(/datum/client_preference/goonchat) != GLOB.PREF_YES)
+		return
+	if (!C.chatOutput || C.chatOutput.broken)
 		return
 	if (!C.chatOutput.loaded)
 		C.chatOutput.messageQueue += message
 		return
 	payload[C] += encoded
-
-
-SUBSYSTEM_DEF(ping)
-	name = "Ping"
-	flags = SS_NO_INIT
-	runlevels = RUNLEVELS_ALL
-	wait = 30 SECONDS
-	var/static/list/chats = list()
-
-
-/datum/controller/subsystem/ping/fire(resumed)
-	FOR_BLIND(chatOutput/O, chats)
-		if (O.loaded && !O.broken)
-			O.updatePing()
-		if (MC_TICK_CHECK)
-			return

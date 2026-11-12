@@ -1,6 +1,6 @@
 /datum/map/torch
 
-	base_floor_type = /turf/simulated/floor/reinforced/airless
+	base_floor_type = /turf/simulated/floor/reinforced
 	base_floor_area = /area/torchexterior
 
 	post_round_safe_areas = list (
@@ -43,14 +43,14 @@
 /area/maintenance/substation/fifthdeck
 	name = "Fifth Deck Substation"
 
+/area/maintenance/substation/hangar
+	name = "Hangar Substation"
+
 //Fourth Deck (Z-1)
 /area/hallway/primary/fourthdeck/fore
 	name = "\improper Fourth Deck Fore Hallway"
 	icon_state = "hallF"
 
-/area/hallway/primary/fourthdeck/center
-	name = "\improper Fourth Deck Central Hallway"
-	icon_state = "hallC3"
 
 /area/hallway/primary/fourthdeck/aft
 	name = "\improper Fourth Deck Aft Hallway"
@@ -292,57 +292,69 @@
 
 //torch large pods
 /area/shuttle/escape_pod6/station
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 	name = "Escape Pod One"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
 
 /area/shuttle/escape_pod7/station
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 	name = "Escape Pod Two"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
 
 /area/shuttle/escape_pod8/station
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 	name = "Escape Pod Three"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
 
 /area/shuttle/escape_pod9/station
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 	name = "Escape Pod Four"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
 
 /area/shuttle/escape_pod10/station
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 	name = "Escape Pod Five"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
 
 /area/shuttle/escape_pod11/station
 	name = "Escape Pod Six"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 //torch small pods
 /area/shuttle/escape_pod12/station
 	name = "Escape Pod Seven"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 /area/shuttle/escape_pod13/station
 	name = "Escape Pod Eight"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 /area/shuttle/escape_pod15/station
 	name = "Escape Pod Ten"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 /area/shuttle/escape_pod16/station
 	name = "Escape Pod Eleven"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 /area/shuttle/escape_pod17/station
 	name = "Escape Pod Twelve"
 	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_IS_NOT_PERSISTENT
+	holomap_color = HOLOMAP_AREACOLOR_ESCAPE
 
 //Charon
 
-/area/exploration_shuttle/
+/area/exploration_shuttle
 	name = "\improper Charon"
 	icon_state = "shuttlered"
 	base_turf = /turf/simulated/floor/plating
-	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED
+	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_HIDE_FROM_HOLOMAP
+	base_turf_special_handling = TRUE
 
 /area/exploration_shuttle/cockpit
 	name = "\improper Charon - Cockpit"
@@ -363,44 +375,48 @@
 /area/exploration_shuttle/airlock
 	name = "\improper Charon - Airlock Compartment"
 
+/area/exploration_shuttle/fuel
+	name = "\improper Charon - Fuel Compartment"
+
+/area/exploration_shuttle/medical
+	name = "\improper Charon - Medical Compartment"
+
 //Aquila
 
 /area/aquila
 	name = "\improper SEV Aquila"
 	icon_state = "shuttlered"
-	base_turf = /turf/simulated/floor/reinforced/airless
+	base_turf = /turf/simulated/floor/reinforced
 	requires_power = 1
 	dynamic_lighting = 1
-	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED
+	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_HIDE_FROM_HOLOMAP
+	base_turf_special_handling = TRUE
 
 /area/aquila/cockpit
 	name = "\improper SEV Aquila - Cockpit"
 	req_access = list(access_aquila)
 
-/area/aquila/maintenance
-	name = "\improper SEV Aquila - Maintenance"
+/area/aquila/power
+	name = "\improper SEV Aquila - Engineering Compartment"
 	req_access = list(access_solgov_crew)
 
 /area/aquila/storage
-	name = "\improper SEV Aquila - Storage"
+	name = "\improper SEV Aquila - Storage Bay"
 	req_access = list(access_solgov_crew)
 
-/area/aquila/secure_storage
-	name = "\improper SEV Aquila - Secure Storage"
+/area/aquila/suits
+	name = "\improper SEV Aquila - Suit Storage Compartment"
 	req_access = list(access_aquila)
 
-/area/aquila/mess
-	name = "\improper SEV Aquila - Mess Hall"
+/area/aquila/air
+	name = "\improper SEV Aquila - Life Support Compartment"
 
-/area/aquila/passenger
-	name = "\improper SEV Aquila - Passenger Compartment"
+/area/aquila/crew
+	name = "\improper SEV Aquila - Crew Compartment"
 
 /area/aquila/medical
-	name = "\improper SEV Aquila - Medical"
+	name = "\improper SEV Aquila - Medical Compartment"
 	lighting_tone = AREA_LIGHTING_COOL
-
-/area/aquila/head
-	name = "\improper SEV Aquila - Head"
 
 /area/aquila/airlock
 	name = "\improper SEV Aquila - Airlock Compartment"
@@ -413,8 +429,9 @@
 	icon_state = "shuttlered"
 	requires_power = 1
 	dynamic_lighting = 1
-	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED
+	area_flags = AREA_FLAG_RAD_SHIELDED | AREA_FLAG_ION_SHIELDED | AREA_FLAG_HIDE_FROM_HOLOMAP
 	req_access = list(access_guppy)
+	base_turf_special_handling = TRUE
 
 
 //Petrov
@@ -578,13 +595,13 @@
 	name = "lift (third deck)"
 	lift_floor_label = "Deck 3"
 	lift_floor_name = "Habitation Deck"
-	lift_announce_str = "Arriving at Habitation Deck: Telecommunications. Mess Hall. Officer's Mess. Lounge. Observation. Hydroponics. Cryogenic Storage. Holodeck. Gym."
+	lift_announce_str = "Arriving at Habitation Deck: Mess Hall. Officer's Mess. Lounge. Observation. Hydroponics. Cryogenic Storage. Holodeck. Gym."
 
 /area/turbolift/torch_first
 	name = "lift (fourth deck)"
 	lift_floor_label = "Deck 4"
 	lift_floor_name = "Supply Deck"
-	lift_announce_str = "Arriving at Supply Deck: EVA. Docking Ports. Pathfinder's Office. Cargo Storage. Supply Office. Laundry. Sanitation."
+	lift_announce_str = "Arriving at Supply Deck: Telecommunications. EVA. Docking Ports. Pathfinder's Office. Cargo Storage. Supply Office. Laundry. Sanitation."
 
 /area/turbolift/torch_ground
 	name = "lift (fifth deck)"
@@ -594,28 +611,34 @@
 	base_turf = /turf/simulated/floor
 
 // Command
+/area/command
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
+
 /area/command/conference
 	name = "Briefing Room"
-	icon_state = "head_quarters"
+	icon_state = "briefing_room"
 	sound_env = MEDIUM_SOFTFLOOR
 
 /area/command/captainmess
 	name = "Officer's Mess"
 	icon_state = "bar"
 	sound_env = MEDIUM_SOFTFLOOR
+	req_access = list(access_o_mess, access_solgov_crew)
 	lighting_tone = AREA_LIGHTING_WARM
 
 /area/command/pathfinder
 	name = "\improper Pathfinder's Office"
-	icon_state = "head_quarters"
+	icon_state = "pathfinder_office"
 	sound_env = MEDIUM_SOFTFLOOR
 	req_access = list(access_pathfinder)
+	holomap_color = HOLOMAP_AREACOLOR_EXPLORATION
 
 /area/command/pilot
 	name = "\improper Pilot's Lounge"
-	icon_state = "head_quarters"
+	icon_state = "pilot_lounge"
 	sound_env = MEDIUM_SOFTFLOOR
 	req_access = list(access_pilot)
+	holomap_color = HOLOMAP_AREACOLOR_EXPLORATION
 
 /area/command/armoury
 	name = "\improper Emergency Armory"
@@ -632,6 +655,11 @@
 
 /area/command/disperser
 	name = "\improper Obstruction Field Disperser"
+	icon_state = "disperser"
+	req_access = list(access_bridge)
+
+/area/command/probe_bay
+	name = "\improper Probe Bay"
 	icon_state = "disperser"
 	req_access = list(access_bridge)
 
@@ -704,7 +732,6 @@
 	req_access = list(access_senadv)
 
 // Engineering
-
 /area/engineering/shieldbay
 	name = "Shield Bay"
 	icon_state = "engineering"
@@ -714,6 +741,14 @@
 	name = "Bluespace Drive Containment"
 	icon_state = "engineering"
 	color = COLOR_BLUE_LIGHT
+	sound_env = LARGE_ENCLOSED
+	req_access = list(list(access_engine_equip, access_heads), access_engine, access_maint_tunnels)
+
+/area/engineering/bluespacebay
+	name = "Bluespace Drive Containment Control Room"
+	icon_state = "engineering"
+	color = COLOR_LUMINOL
+	sound_env = SMALL_ENCLOSED
 	req_access = list(list(access_engine_equip, access_heads), access_engine, access_maint_tunnels)
 
 /area/engineering/atmos/aux
@@ -742,6 +777,7 @@
 /area/vacant
 	name = "\improper Vacant Area"
 	icon_state = "construction"
+	area_flags = AREA_FLAG_RAD_SHIELDED
 
 /area/vacant/armory
 	name = "\improper Vacant Armory"
@@ -769,24 +805,15 @@
 	name = "\improper Auxiliary Monitoring Room"
 	icon_state = "engine_monitoring"
 
-/area/vacant/prototype
-	req_access = list(access_engine)
-
-/area/vacant/prototype/control
-	name = "\improper Prototype Fusion Reactor Control Room"
-	icon_state = "engine_monitoring"
-
-/area/vacant/prototype/engine
-	name = "\improper Prototype Fusion Reactor Chamber"
-	icon_state = "firingrange"
-
 /area/vacant/cargo
 	name = "\improper Requisitions Office"
 	icon_state = "quart"
+	holomap_color = HOLOMAP_AREACOLOR_CARGO
 
 /area/vacant/brig
 	name = "\improper Permanent Brig"
 	icon_state = "brig"
+	holomap_color = HOLOMAP_AREACOLOR_SECURITY
 
 /area/vacant/bar
 	name = "\improper Hidden Bar"
@@ -810,6 +837,7 @@
 	icon_state = "quartstorage"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_cargo)
+	holomap_color = HOLOMAP_AREACOLOR_CARGO
 
 /area/storage/medical
 	name = "Medical Storage"
@@ -817,6 +845,7 @@
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_medical)
 	lighting_tone = AREA_LIGHTING_COOL
+	holomap_color = HOLOMAP_AREACOLOR_MEDICAL
 
 /area/storage/research
 	name = "Research Storage"
@@ -824,11 +853,13 @@
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_research)
 	lighting_tone = AREA_LIGHTING_COOL
+	holomap_color = HOLOMAP_AREACOLOR_SCIENCE
 
 // Supply
 
 /area/quartermaster
 	req_access = list(access_cargo)
+	holomap_color = HOLOMAP_AREACOLOR_CARGO
 
 /area/quartermaster/office
 	name = "\improper Supply Office"
@@ -875,6 +906,7 @@
 	name = "\improper Exploration Equipment"
 	icon_state = "exploration"
 	req_access = list(list(access_explorer, access_pathfinder, access_pilot))
+	holomap_color = HOLOMAP_AREACOLOR_EXPLORATION
 
 /area/quartermaster/shuttlefuel
 	name = "\improper Shuttle Fuel Bay"
@@ -887,14 +919,9 @@
 	sound_env = LARGE_ENCLOSED
 	req_access = list(access_hangar)
 
-/area/quartermaster/hangar/top
-	name = "\improper Hangar Upper Walkway"
-	req_access = list()
-
-/area/quartermaster/flightcontrol
-	name = "\improper Flight Control Tower"
-	icon_state = "hangar"
-	req_access = list(access_hangar)
+/area/quartermaster/hangar/catwalks
+	name = "\improper Upper Hangar Deck"
+	icon_state = "hangar_catwalk_p"
 
 // Research
 /area/rnd/canister
@@ -905,6 +932,7 @@
 /area/rnd/development
 	name = "\improper Fabricator Lab"
 	icon_state = "devlab"
+	req_access = list(access_fabrication)
 
 /area/rnd/office
 	name = "\improper Research Paperwork Office"
@@ -925,12 +953,8 @@
 	req_access = list() // This is a separate vestibule thing, needs low access.
 
 // Crew areas
-/area/crew_quarters/bar
-	name = "\improper Bar"
-	icon_state = "bar"
-	sound_env = LARGE_SOFTFLOOR
-	req_access = list(access_bar)
-	lighting_tone = AREA_LIGHTING_WARM
+/area/crew_quarters
+	holomap_color = HOLOMAP_AREACOLOR_CREW
 
 /area/crew_quarters/cryolocker
 	name = "\improper Cryogenic Storage Wardrobe"
@@ -941,8 +965,11 @@
 	icon_state = "toilet"
 	sound_env = SMALL_ENCLOSED
 
-/area/crew_quarters/head/aux
+/area/crew_quarters/head/deck1
 	name = "\improper First Deck Head"
+
+/area/crew_quarters/head/deck4
+	name = "\improper Fourth Deck Head"
 
 /area/crew_quarters/head/sauna
 	name = "\improper Sauna"
@@ -983,6 +1010,24 @@
 	icon_state = "crew_quarters"
 	req_access = list(access_commissary)
 
+/area/crew_quarters/diplomatic_office
+	name = "\improper Diplomatic Meeting Room"
+	icon_state = "crew_quarters"
+	lighting_tone = AREA_LIGHTING_COOL
+
+/area/crew_quarters/chief_steward
+	name = "\improper Chief Steward's Office"
+	icon_state = "kitchen"
+	req_access = list(access_chief_steward)
+	sound_env = SMALL_ENCLOSED
+	lighting_tone = AREA_LIGHTING_WARM
+
+/area/crew_quarters/service_break_room
+	name = "\improper Service Break Room"
+	icon_state = "fitness"
+	sound_env = SMALL_ENCLOSED
+	lighting_tone = AREA_LIGHTING_WARM
+
 /area/crew_quarters/lounge
 	name = "\improper Lounge"
 	icon_state = "crew_quarters"
@@ -1019,14 +1064,6 @@
 	name = "\improper Holodeck Control"
 	icon_state = "Holodeck"
 
-/area/hydroponics/storage
-	name = "\improper Hydroponics Storage"
-
-// Tcomms
-/area/tcommsat/storage
-	name = "\improper Telecoms Storage"
-	icon_state = "tcomsatstore"
-
 // Borg Upload
 
 /area/synth/borg_upload
@@ -1047,10 +1084,15 @@
 	icon_state = "security"
 	req_access = list(access_brig)
 
+/area/security/secure_storage
+	name = "\improper Security - Secure Storage"
+	icon_state = "security"
+	req_access = list(access_armory)
+
 /area/security/armoury
 	name = "\improper Security - Armory"
 	icon_state = "Warden"
-	req_access = list(access_armory)
+	req_access = list(access_hos)
 
 /area/security/detectives_office
 	name = "\improper Security - Investigations Office"
@@ -1189,6 +1231,7 @@
 	icon_state = "engineering"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_engine_equip)
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/shield/bridge
 	name = "\improper Bridge Shield Generator"
@@ -1199,11 +1242,13 @@
 	icon_state = "teleporter"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_teleporter)
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/maintenance/auxsolarbridge
 	name = "Solar Maintenance - Bridge"
 	icon_state = "SolarcontrolS"
 	sound_env = SMALL_ENCLOSED
+	holomap_color = HOLOMAP_AREACOLOR_AIRLOCK
 
 /area/solar/bridge
 	name = "\improper Bridge Solar Array"
@@ -1213,15 +1258,18 @@
 	name = "\improper EVA Storage"
 	icon_state = "eva"
 	req_access = list(access_eva)
+	holomap_color = HOLOMAP_AREACOLOR_AIRLOCK
 
 /area/aux_eva
 	name = "\improper Command EVA Storage"
 	icon_state = "eva"
 	req_access = list(access_eva)
+	holomap_color = HOLOMAP_AREACOLOR_AIRLOCK
 
 /area/thruster
 	icon_state = "thruster"
 	req_access = list(access_engine)
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/thruster/d1port
 	name = "\improper First Deck Port Nacelle"
@@ -1240,11 +1288,6 @@
 	icon_state = "engineering"
 	req_access = list(access_construction)
 
-/area/engineering/fuelbay/aux
-	name = "\improper Auxiliary Fuel Bay"
-	icon_state = "engineering"
-	req_access = list(access_construction)
-
 /area/engineering/wastetank
 	name = "\improper Waste Tank"
 	icon_state = "engineering"
@@ -1256,6 +1299,7 @@
 	name = "\improper SEV Torch Bridge"
 	icon_state = "bridge"
 	req_access = list(access_bridge)
+	holomap_color = HOLOMAP_AREACOLOR_COMMAND
 
 /area/bridge/hallway
 	name = "\improper Bridge Access Hallway"
@@ -1291,14 +1335,16 @@
 	icon_state = "substation"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_engine_equip)
+	holomap_color = HOLOMAP_AREACOLOR_ENGINEERING
 
 /area/torchexterior
 	name = "\improper Exterior Reinforcements"
 	icon_state = "maint_exterior"
 	area_flags = AREA_FLAG_EXTERNAL
 	has_gravity = FALSE
-	turf_initializer = /decl/turf_initializer/maintenance/space
+	turf_initializer = /singleton/turf_initializer/maintenance/space
 	req_access = list(access_external_airlocks, access_maint_tunnels)
+	turfs_airless = TRUE
 
 // CentCom
 
@@ -1329,12 +1375,14 @@
 	icon_state = "SolarcontrolP"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_engine_equip, access_maint_tunnels)
+	holomap_color = HOLOMAP_AREACOLOR_AIRLOCK
 
 /area/maintenance/auxsolarstarboard
 	name = "Solar Maintenance - Starboard"
 	icon_state = "SolarcontrolS"
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_engine_equip, access_maint_tunnels)
+	holomap_color = HOLOMAP_AREACOLOR_AIRLOCK
 
 /area/solar
 	area_flags = AREA_FLAG_EXTERNAL
@@ -1343,6 +1391,7 @@
 	has_gravity = FALSE
 	base_turf = /turf/space
 	req_access = list(access_engine_equip)
+	turfs_airless = TRUE
 
 /area/solar/auxstarboard
 	name = "\improper Fore Starboard Solar Array"
@@ -1479,16 +1528,21 @@
 	sound_env = LARGE_ENCLOSED
 	req_access = list(access_engine, access_engine_equip)
 
-/area/engineering/drone_fabrication
-	name = "\improper Engineering Drone Fabrication"
-	icon_state = "drone_fab"
-	sound_env = SMALL_ENCLOSED
-	req_access = list(access_robotics)
-
 /area/engineering/engine_monitoring
 	name = "\improper Engine Monitoring Room"
 	icon_state = "engine_monitoring"
 	req_access = list(access_engine, access_engine_equip)
+
+/area/engineering/prototype
+	req_access = list(access_engine)
+
+/area/engineering/prototype/control
+	name = "\improper Prototype Fusion Reactor Control Room"
+	icon_state = "engine_monitoring"
+
+/area/engineering/prototype/engine
+	name = "\improper Prototype Fusion Reactor Chamber"
+	icon_state = "rust_reactor"
 
 /area/engineering/engine_smes
 	name = "\improper Engineering SMES"
@@ -1496,20 +1550,10 @@
 	sound_env = SMALL_ENCLOSED
 	req_access = list(access_engine, access_engine_equip)
 
-/area/engineering/engineering_monitoring
-	name = "\improper Engineering Monitoring Room"
-	icon_state = "engine_monitoring"
-	req_access = list(access_engine)
-
 /area/engineering/foyer
 	name = "\improper Engineering Foyer"
 	icon_state = "engineering_foyer"
 	req_access = list()
-
-/area/engineering/locker_room
-	name = "\improper Engineering Locker Room"
-	icon_state = "engineering_locker"
-	req_access = list(access_engine)
 
 /area/engineering/engineering_bay
 	name = "\improper Engineering Bay"
@@ -1541,9 +1585,9 @@
 
 /area/assembly/robotics/laboratory
 	name = "\improper Robotics Laboratory"
-	req_access = list(list(access_medical,access_robotics))
+	req_access = list(list(access_medical,access_robotics, access_synth))
 
-area/assembly/robotics/office
+/area/assembly/robotics/office
 	name = "\improper Robotics Office"
 
 /area/assembly/robotics/surgery
@@ -1621,7 +1665,7 @@ area/assembly/robotics/office
 	name = "\improper Custodial Storage Closet"
 
 // Tcomm
-/area/tcommsat/
+/area/tcommsat
 	ambience = list('sound/ambience/ambisin2.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/signal.ogg', 'sound/ambience/ambigen10.ogg')
 	req_access = list(access_tcomsat)
 

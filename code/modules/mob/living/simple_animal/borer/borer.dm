@@ -25,10 +25,15 @@
 
 	bleed_colour = "#816e12"
 
-	var/static/list/chemical_types = list(
+	var/list/chemical_types = list(
+		"adrenaline" = /datum/reagent/adrenaline,
 		"bicaridine" = /datum/reagent/bicaridine,
 		"hyperzine" =  /datum/reagent/hyperzine,
-		"tramadol" =   /datum/reagent/tramadol
+		"tramadol" =   /datum/reagent/opiate/tramadol,
+		"dermaline" =  /datum/reagent/dermaline,
+		"peridaxon" =  /datum/reagent/peridaxon,
+		"inaprovaline" =  /datum/reagent/inaprovaline,
+		"dylovene" =  /datum/reagent/dylovene
 	)
 
 	var/generation = 1
@@ -47,6 +52,18 @@
 	var/neutered                            // 'borer lite' mode - fewer powers, less hostile to the host.
 	var/mob/living/carbon/human/host        // Human host for the brain worm.
 	var/mob/living/captive_brain/host_brain // Used for swapping control of the body back and forth.
+
+	var/list/bonus_chemical_types = list(
+		"dexalin" = /datum/reagent/dexalin,
+		"hyronalin" = /datum/reagent/hyronalin,
+		"ryetalyn" = /datum/reagent/ryetalyn,
+		"rezadone" = /datum/reagent/rezadone,
+	)
+	var/deep_link = FALSE 					// Used to unlock stronger abilities
+	var/max_chemicals = 250					// Max amount of chemicals that borer can store, for deep_link
+	var/chem_gen_amount = 1					// Chemicals generation ratio, for deep_link
+	var/psi_boost = FALSE 					// Used to toggle psi boost
+	var/max_psi_rank = 5					// Max psi rank that host can recieve through psi boost
 
 /mob/living/simple_animal/borer/roundstart
 	roundstart = TRUE
@@ -68,7 +85,7 @@
 		client.screen -= hud_elements
 		client.screen -= hud_intent_selector
 
-/mob/living/simple_animal/borer/Initialize(var/mapload, var/gen=1)
+/mob/living/simple_animal/borer/Initialize(mapload, gen=1)
 
 	hud_intent_selector =  new
 	hud_inject_chemicals = new
@@ -97,9 +114,7 @@
 	aura_image.color = "#aaffaa"
 	aura_image.blend_mode = BLEND_SUBTRACT
 	aura_image.alpha = 125
-	var/matrix/M = matrix()
-	M.Scale(0.33)
-	aura_image.transform = M
+	aura_image.SetTransform(scale = 0.33)
 
 /mob/living/simple_animal/borer/death(gibbed, deathmessage, show_dead_message)
 	if(aura_image)
@@ -122,7 +137,7 @@
 	. = ..()
 
 /mob/living/simple_animal/borer/proc/set_borer_name()
-	truename = "[borer_names[min(generation, borer_names.len)]] [random_id("borer[generation]", 1000, 9999)]"
+	truename = "[borer_names[min(generation, length(borer_names))]] [random_id("borer[generation]", 1000, 9999)]"
 
 /mob/living/simple_animal/borer/Life()
 
@@ -163,9 +178,9 @@
 						to_chat(src, SPAN_NOTICE("You shake off your lethargy as the sugar leaves your host's blood."))
 					docile = 0
 
-			if(chemicals < 250 && host.nutrition >= (neutered ? 200 : 50))
+			if(chemicals < max_chemicals && host.nutrition >= (neutered ? 200 : 50))
 				host.nutrition--
-				chemicals++
+				chemicals += chem_gen_amount
 
 			if(controlling)
 
@@ -178,7 +193,7 @@
 					host.release_control()
 					return
 
-				if(prob(5))
+				if(!deep_link && prob(5))
 					host.adjustBrainLoss(0.1)
 
 				if(prob(host.getBrainLoss()/20))
@@ -200,17 +215,13 @@
 
 	if(!host || !controlling) return
 
-	if(istype(host,/mob/living/carbon/human))
-		var/mob/living/carbon/human/H = host
-		var/obj/item/organ/external/head = H.get_organ(BP_HEAD)
-		head.implants -= src
-
 	controlling = 0
 
 	host.remove_language(LANGUAGE_BORER_GLOBAL)
 	host.verbs -= /mob/living/carbon/proc/release_control
 	host.verbs -= /mob/living/carbon/proc/punish_host
 	host.verbs -= /mob/living/carbon/proc/spawn_larvae
+	host.verbs -= /mob/living/carbon/proc/borer_stun
 
 	if(host_brain)
 
@@ -218,41 +229,43 @@
 		// computer_id and IP are not updated magically on their own in offline mobs -walter0o
 
 		// host -> self
-		var/h2s_id = host.computer_id
-		var/h2s_ip= host.lastKnownIP
-		host.computer_id = null
-		host.lastKnownIP = null
+		var/h2s_id = host.last_cid
+		var/h2s_ip= host.last_address
+		host.last_cid = null
+		host.last_address = null
 
 		src.ckey = host.ckey
 
-		if(!src.computer_id)
-			src.computer_id = h2s_id
+		if(!src.last_cid)
+			src.last_cid = h2s_id
 
-		if(!host_brain.lastKnownIP)
-			src.lastKnownIP = h2s_ip
+		if(!host_brain.last_address)
+			src.last_address = h2s_ip
 
 		// brain -> host
-		var/b2h_id = host_brain.computer_id
-		var/b2h_ip= host_brain.lastKnownIP
-		host_brain.computer_id = null
-		host_brain.lastKnownIP = null
+		var/b2h_id = host_brain.last_cid
+		var/b2h_ip= host_brain.last_address
+		host_brain.last_cid = null
+		host_brain.last_address = null
 
 		host.ckey = host_brain.ckey
 
-		if(!host.computer_id)
-			host.computer_id = b2h_id
+		if(!host.last_cid)
+			host.last_cid = b2h_id
 
-		if(!host.lastKnownIP)
-			host.lastKnownIP = b2h_ip
+		if(!host.last_address)
+			host.last_address = b2h_ip
 
 	qdel(host_brain)
 
+	set_ability_cooldown(15 SECONDS)
+
 #define COLOR_BORER_RED "#ff5555"
-/mob/living/simple_animal/borer/proc/set_ability_cooldown(var/amt)
+/mob/living/simple_animal/borer/proc/set_ability_cooldown(amt)
 	last_special = world.time + amt
 	for(var/obj/thing in hud_elements)
 		thing.color = COLOR_BORER_RED
-	addtimer(CALLBACK(src, /mob/living/simple_animal/borer/proc/reset_ui_callback), amt)
+	addtimer(new Callback(src, PROC_REF(reset_ui_callback)), amt)
 #undef COLOR_BORER_RED
 
 /mob/living/simple_animal/borer/proc/leave_host()
@@ -266,6 +279,11 @@
 	if(host.mind)
 		GLOB.borers.remove_antagonist(host.mind)
 
+	if(istype(host,/mob/living/carbon/human))
+		var/mob/living/carbon/human/H = host
+		var/obj/item/organ/external/head = H.get_organ(BP_HEAD)
+		head.implants -= src
+
 	dropInto(host.loc)
 
 	reset_view(null)
@@ -276,6 +294,14 @@
 
 	var/mob/living/H = host
 	H.status_flags &= ~PASSEMOTES
+
+	if(deep_link)
+		host.adjustBrainLoss(rand(80, 160))
+		host.visible_message(SPAN_WARNING("\The [host] twitches violently upon the removal of [src]. Seems like this procedure tore off a portion of their brain."))
+
+	weaken_connection()
+	reset_psi()
+
 	host = null
 	return
 
@@ -286,4 +312,21 @@
 
 /mob/living/simple_animal/borer/flash_eyes(intensity, override_blindness_check, affect_silicon, visual, type)
 	intensity *= 1.5
+	. = ..()
+
+/mob/living/simple_animal/borer/handle_atmos(atmos_suitable = 1)
+	if(host)
+		return
+	. = ..()
+
+/mob/living/simple_animal/borer/attack_ghost(mob/observer/ghost/user)
+	if(!roundstart && !client && !key && user.client)
+		var/datum/ghosttrap/G = get_ghost_trap("cortical borer")
+
+		if (G.assess_candidate(user, src))
+			var/possess = alert(user, "Do you wish to become \the [src]?", "Become [src]?", "Yes", "No")
+			if (possess == "Yes")
+				G.transfer_personality(user, src)
+				return
+
 	. = ..()

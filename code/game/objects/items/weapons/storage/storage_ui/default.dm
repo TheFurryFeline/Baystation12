@@ -1,42 +1,53 @@
 /datum/storage_ui/default
-	var/list/is_seeing = new/list() //List of mobs which are currently seeing the contents of this item's storage
+	var/list/is_seeing = list() //List of mobs which are currently seeing the contents of this item's storage
 
-	var/obj/screen/storage/boxes
-	var/obj/screen/storage/storage_start //storage UI
-	var/obj/screen/storage/storage_continue
-	var/obj/screen/storage/storage_end
-	var/obj/screen/storage/stored_start
-	var/obj/screen/storage/stored_continue
-	var/obj/screen/storage/stored_end
+	// mapping of screen locations to items in slots
+	var/list/slot_obj_locs = alist()
+
+	// arrays containing the start-x and end-x for items in a space storage. each index corresponds to the item of the same one in storage.contents
+	var/list/space_obj_x_start = list()
+	var/list/space_obj_x_end = list()
+
+	var/obj/screen/item_relayed/storage/boxes
+	var/obj/screen/item_relayed/storage/storage_start //storage UI
+	var/obj/screen/item_relayed/storage/storage_continue
+	var/obj/screen/item_relayed/storage/storage_end
+	var/obj/screen/item_relayed/storage/stored_start
+	var/obj/screen/item_relayed/storage/stored_continue
+	var/obj/screen/item_relayed/storage/stored_end
 	var/obj/screen/close/closer
 
-/datum/storage_ui/default/New(var/storage)
+/datum/storage_ui/default/New(storage)
 	..()
-	boxes = new /obj/screen/storage(  )
+	boxes = new /obj/screen/item_relayed/storage
 	boxes.SetName("storage")
 	boxes.master = storage
 	boxes.icon_state = "block"
 	boxes.screen_loc = "7,7 to 10,8"
 	boxes.layer = HUD_BASE_LAYER
+	boxes.containing_ui = src
 
-	storage_start = new /obj/screen/storage(  )
+	storage_start = new /obj/screen/item_relayed/storage
 	storage_start.SetName("storage")
 	storage_start.master = storage
 	storage_start.icon_state = "storage_start"
 	storage_start.screen_loc = "7,7 to 10,8"
 	storage_start.layer = HUD_BASE_LAYER
-	storage_continue = new /obj/screen/storage(  )
+	storage_start.containing_ui = src
+	storage_continue = new /obj/screen/item_relayed/storage
 	storage_continue.SetName("storage")
 	storage_continue.master = storage
 	storage_continue.icon_state = "storage_continue"
 	storage_continue.screen_loc = "7,7 to 10,8"
 	storage_continue.layer = HUD_BASE_LAYER
-	storage_end = new /obj/screen/storage(  )
+	storage_continue.containing_ui = src
+	storage_end = new /obj/screen/item_relayed/storage
 	storage_end.SetName("storage")
 	storage_end.master = storage
 	storage_end.icon_state = "storage_end"
 	storage_end.screen_loc = "7,7 to 10,8"
 	storage_end.layer = HUD_BASE_LAYER
+	storage_end.containing_ui = src
 
 	stored_start = new /obj //we just need these to hold the icon
 	stored_start.icon_state = "stored_start"
@@ -65,33 +76,33 @@
 	QDEL_NULL(closer)
 	. = ..()
 
-/datum/storage_ui/default/on_open(var/mob/user)
+/datum/storage_ui/default/on_open(mob/user)
 	if (user.s_active)
 		user.s_active.close(user)
 
-/datum/storage_ui/default/after_close(var/mob/user)
+/datum/storage_ui/default/after_close(mob/user)
 	user.s_active = null
 
-/datum/storage_ui/default/on_insertion(var/mob/user)
+/datum/storage_ui/default/on_insertion(mob/user)
 	if(user.s_active)
 		user.s_active.show_to(user)
 
-/datum/storage_ui/default/on_pre_remove(var/mob/user, var/obj/item/W)
+/datum/storage_ui/default/on_pre_remove(mob/user, obj/item/W)
 	for(var/mob/M in range(1, storage.loc))
 		if (M.s_active == storage)
 			if (M.client)
 				M.client.screen -= W
 
-/datum/storage_ui/default/on_post_remove(var/mob/user)
+/datum/storage_ui/default/on_post_remove(mob/user)
 	if(user?.s_active)
 		user.s_active.show_to(user)
 
-/datum/storage_ui/default/on_hand_attack(var/mob/user)
+/datum/storage_ui/default/on_hand_attack(mob/user)
 	for(var/mob/M in range(1))
 		if (M.s_active == storage)
 			storage.close(M)
 
-/datum/storage_ui/default/show_to(var/mob/user)
+/datum/storage_ui/default/show_to(mob/user)
 	if(!user.client) return
 	if(user.s_active != storage)
 		for(var/obj/item/I in storage)
@@ -116,7 +127,7 @@
 	is_seeing |= user
 	user.s_active = storage
 
-/datum/storage_ui/default/hide_from(var/mob/user)
+/datum/storage_ui/default/hide_from(mob/user)
 	is_seeing -= user
 	if(!user.client)
 		return
@@ -132,7 +143,7 @@
 //Creates the storage UI
 /datum/storage_ui/default/prepare_ui()
 	//if storage slots is null then use the storage space UI, otherwise use the slots UI
-	if(storage.storage_slots == null)
+	if(isnull(storage.storage_slots))
 		space_orient_objs()
 	else
 		slot_orient_objs()
@@ -151,25 +162,9 @@
 			is_seeing -= M
 	return cansee
 
-//This proc draws out the inventory and places the items on it. tx and ty are the upper left tile and mx, my are the bottm right.
-//The numbers are calculated from the bottom-left The bottom-left slot being 1,1.
-/datum/storage_ui/default/proc/orient_objs(tx, ty, mx, my)
-	var/cx = tx
-	var/cy = ty
-	boxes.screen_loc = "[tx]:,[ty] to [mx],[my]"
-	for(var/obj/O in storage.contents)
-		O.screen_loc = "[cx],[cy]"
-		O.hud_layerise()
-		cx++
-		if (cx > mx)
-			cx = tx
-			cy--
-	closer.screen_loc = "[mx+1],[my]"
-	return
-
 //This proc determins the size of the inventory to be displayed. Please touch it only if you know what you're doing.
 /datum/storage_ui/default/proc/slot_orient_objs()
-	var/adjusted_contents = storage.contents.len
+	var/adjusted_contents = length(storage.contents)
 	var/row_num = 0
 	var/col_count = min(7,storage.storage_slots) -1
 	if (adjusted_contents > 7)
@@ -177,13 +172,15 @@
 	arrange_item_slots(row_num, col_count)
 
 //This proc draws out the inventory and places the items on it. It uses the standard position.
-/datum/storage_ui/default/proc/arrange_item_slots(var/rows, var/cols)
+/datum/storage_ui/default/proc/arrange_item_slots(rows, cols)
 	var/cx = 4
 	var/cy = 2+rows
 	boxes.screen_loc = "4:16,2:16 to [4+cols]:16,[2+rows]:16"
+	slot_obj_locs.Cut()
 
 	for(var/obj/O in storage.contents)
 		O.screen_loc = "[cx]:16,[cy]:16"
+		slot_obj_locs["[cx],[cy]"] = O
 		O.maptext = ""
 		O.hud_layerise()
 		cx++
@@ -200,11 +197,9 @@
 	var/stored_cap_width = 4 //length of sprite for start and end of the box representing the stored item
 	var/storage_width = min( round( 224 * storage.max_storage_space/baseline_max_storage_space ,1) ,284) //length of sprite for the box representing total storage space
 
-	storage_start.overlays.Cut()
+	storage_start.ClearOverlays()
 
-	var/matrix/M = matrix()
-	M.Scale((storage_width-storage_cap_width*2+3)/32,1)
-	storage_continue.transform = M
+	storage_continue.SetTransform(scale_x = (storage_width - storage_cap_width * 2 + 3) / 32)
 
 	storage_start.screen_loc = "4:16,2:16"
 	storage_continue.screen_loc = "4:[storage_cap_width+(storage_width-storage_cap_width*2)/2+2],2:16"
@@ -213,34 +208,39 @@
 	var/startpoint = 0
 	var/endpoint = 1
 
+	space_obj_x_start.Cut()
+	space_obj_x_end.Cut()
+
 	for(var/obj/item/O in storage.contents)
 		startpoint = endpoint + 1
 		endpoint += storage_width * O.get_storage_cost()/storage.max_storage_space
-
-		var/matrix/M_start = matrix()
-		var/matrix/M_continue = matrix()
-		var/matrix/M_end = matrix()
-		M_start.Translate(startpoint,0)
-		M_continue.Scale((endpoint-startpoint-stored_cap_width*2)/32,1)
-		M_continue.Translate(startpoint+stored_cap_width+(endpoint-startpoint-stored_cap_width*2)/2 - 16,0)
-		M_end.Translate(endpoint-stored_cap_width,0)
-		stored_start.transform = M_start
-		stored_continue.transform = M_continue
-		stored_end.transform = M_end
-		storage_start.overlays += stored_start
-		storage_start.overlays += stored_continue
-		storage_start.overlays += stored_end
+		stored_start.SetTransform(offset_x = startpoint)
+		stored_end.SetTransform(offset_x = endpoint - stored_cap_width)
+		stored_continue.SetTransform(
+			offset_x = startpoint + stored_cap_width + (endpoint - startpoint - stored_cap_width * 2) / 2 - 16,
+			scale_x = (endpoint - startpoint - stored_cap_width * 2) / 32
+		)
+		storage_start.AddOverlays(list(
+			stored_start,
+			stored_continue,
+			stored_end
+		))
 
 		O.screen_loc = "4:[round((startpoint+endpoint)/2)+2],2:16"
 		O.maptext = ""
 		O.hud_layerise()
 
+		var/base = 4 * WORLD_ICON_SIZE + 2 + (WORLD_ICON_SIZE/2)
+
+		space_obj_x_start.Add(base + startpoint)
+		space_obj_x_end.Add(base + endpoint)
+
 	closer.screen_loc = "4:[storage_width+19],2:16"
 
 // Sets up numbered display to show the stack size of each stored mineral
 // NOTE: numbered display is turned off currently because it's broken
-/datum/storage_ui/default/sheetsnatcher/prepare_ui(var/mob/user)
-	var/adjusted_contents = storage.contents.len
+/datum/storage_ui/default/sheetsnatcher/prepare_ui(mob/user)
+	var/adjusted_contents = length(storage.contents)
 
 	var/row_num = 0
 	var/col_count = min(7,storage.storage_slots) -1

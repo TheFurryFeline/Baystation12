@@ -12,7 +12,7 @@ var/global/nttransfer_uid = 0
 	requires_ntnet_feature = NTNET_PEERTOPEER
 	network_destination = "other device via P2P tunnel"
 	available_on_ntnet = TRUE
-	nanomodule_path = /datum/nano_module/program/computer_nttransfer/
+	nanomodule_path = /datum/nano_module/program/computer_nttransfer
 	category = PROG_UTIL
 
 	/// Error message
@@ -116,11 +116,11 @@ var/global/nttransfer_uid = 0
 	else if (PRG.provided_file)
 		data["uploading"] = TRUE
 		data["upload_uid"] = PRG.unique_token
-		data["upload_clients"] = PRG.connected_clients.len
+		data["upload_clients"] = length(PRG.connected_clients)
 		data["upload_haspassword"] = PRG.server_password ? TRUE : FALSE
 		data["upload_filename"] = "[PRG.provided_file.filename].[PRG.provided_file.filetype]"
 	else if (PRG.upload_menu)
-		var/list/all_files[0]
+		var/list/all_files = list()
 		for(var/datum/computer_file/F in PRG.computer.get_all_files())
 			all_files.Add(list(list(
 				"uid" = F.uid,
@@ -129,7 +129,7 @@ var/global/nttransfer_uid = 0
 			)))
 		data["upload_filelist"] = all_files
 	else
-		var/list/all_servers[0]
+		var/list/all_servers = list()
 		for(var/datum/computer_file/program/nttransfer/P in ntnet_global.fileservers)
 			if(!P.provided_file)
 				continue

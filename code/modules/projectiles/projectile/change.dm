@@ -2,14 +2,14 @@
 	name = "bolt of change"
 	icon_state = "ice_1"
 	damage = 0
-	damage_type = BURN
+	damage_type = DAMAGE_BURN
 	damage_flags = 0
 	nodamage = TRUE
 
-/obj/item/projectile/change/on_hit(var/atom/change)
+/obj/item/projectile/change/on_hit(atom/change)
 	wabbajack(change)
 
-/obj/item/projectile/change/proc/wabbajack(var/mob/M)
+/obj/item/projectile/change/proc/wabbajack(mob/M)
 	if(istype(M, /mob/living) && M.stat != DEAD)
 		if(HAS_TRANSFORMATION_MOVEMENT_HANDLER(M))
 			return
@@ -30,7 +30,7 @@
 		var/mob/living/new_mob
 
 		var/options = list("robot", "slime")
-		for(var/t in all_species)
+		for(var/t in GLOB.species_by_name)
 			options += t
 		if(ishuman(M))
 			var/mob/living/carbon/human/H = M
@@ -90,10 +90,10 @@
 			else
 				new_mob.key = M.key
 
-			to_chat(new_mob, "<span class='warning'>Your form morphs into that of \a [lowertext(randomize)].</span>")
+			to_chat(new_mob, SPAN_WARNING("Your form morphs into that of \a [lowertext(randomize)]."))
 
 			qdel(M)
 			return
 		else
-			to_chat(M, "<span class='warning'>Your form morphs into that of \a [lowertext(randomize)].</span>")
+			to_chat(M, SPAN_WARNING("Your form morphs into that of \a [lowertext(randomize)]."))
 			return

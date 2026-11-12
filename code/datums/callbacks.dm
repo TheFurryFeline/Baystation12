@@ -1,95 +1,95 @@
-// USAGE:
-// 
-// 	var/datum/callback/C = new(object|null, /proc/type/path|"procstring", arg1, arg2, ... argn)
-// 	var/timerid = addtimer(C, time, timertype)
-// 	OR
-// 	var/timerid = addtimer(CALLBACK(object|null, /proc/type/path|procstring, arg1, arg2, ... argn), time, timertype)
-// 
-// 	Note: proc strings can only be given for datum proc calls, global procs must be proc paths
-// 	Also proc strings are strongly advised against because they don't compile error if the proc stops existing
-// 	See the note on proc typepath shortcuts
-// 
-// INVOKING THE CALLBACK:
-// 	var/result = C.Invoke(args, to, add) //additional args are added after the ones given when the callback was created
-// 	OR
-// 	var/result = C.InvokeAsync(args, to, add) //Sleeps will not block, returns . on the first sleep (then continues on in the "background" after the sleep/block ends), otherwise operates normally.
-// 	OR
-// 	INVOKE_ASYNC(<CALLBACK args>) to immediately create and call InvokeAsync
-// 
-// PROC TYPEPATH SHORTCUTS (these operate on paths, not types, so to these shortcuts, datum is NOT a parent of atom, etc...)
-// 
-// 	global proc while in another global proc:
-// 		.procname
-// 		Example:
-// 			CALLBACK(GLOBAL_PROC, .some_proc_here)
-// 
-// 	proc defined on current(src) object (when in a /proc/ and not an override) OR overridden at src or any of it's parents:
-// 		.procname
-// 		Example:
-// 			CALLBACK(src, .some_proc_here)
-// 
-// 
-// 	when the above doesn't apply:
-// 		.proc/procname
-// 		Example:
-// 			CALLBACK(src, .proc/some_proc_here)
-// 
-// 	proc defined on a parent of a some type:
-// 		/some/type/.proc/some_proc_here
-// 
-// 
-// 
-// 	Other wise you will have to do the full typepath of the proc (/type/of/thing/proc/procname)
+/**
+** Callbacks
+Callbacks wrap a target, callable, and arguments to pass. See the dm reference for call().
+When the target is GLOBAL_PROC, the callable is global - otherwise it is a datum (or dead) reference.
+Callbacks are created with the new keyword via a global alias like:
+- var/datum/callback/instance = new Callback(GLOBAL_PROC, GLOBAL_PROC_REF(get_area), someObject)
+Callbacks are thin - they should be used with invoke or invoke_async.
+
+** Invocation
+invoke and invoke_async call a callable against a target with optional params. They accept either:
+invoke(target, callable, params...)
+or invoke(<callback>, extra params...)
+and return the result of calling those. invoke_async does not wait for an outcome and will return (.)
+on the first sleep, and so should be used only where results are not required.
+
+** Callables
+Callables are proc names or proc references, with references preferred for safety at compile time.
+Generally these should always be wrapped by PROC_REF and friends.
+
+** Timers
+Timers accept callbacks as their first argument. For full timer documentation, see the timedevent
+datum. For example:
+addTimer(new Callback(myMob, TYPE_PROC_REF(/mob/living/drop_l_hand)), 10 SECONDS)
+*/
+
+var/global/const/GLOBAL_PROC = FALSE
+
+var/global/const/datum/callback/Callback = /datum/callback
+
 
 /datum/callback
-	var/datum/object = GLOBAL_PROC
-	var/delegate
-	var/list/arguments
+	var/identity
+	var/datum/target = GLOBAL_PROC
+	var/callable
+	var/list/params
 
-/datum/callback/New(thingtocall, proctocall, ...)
-	if (thingtocall)
-		object = thingtocall
-	delegate = proctocall
+
+/datum/callback/Destroy()
+	target = null
+	callable = null
+	LAZYCLEARLIST(params)
+	return ..()
+
+
+/datum/callback/New(datum/target, callable, ...)
+	src.target = target
+	src.callable = callable
 	if (length(args) > 2)
-		arguments = args.Copy(3)
-
-/proc/ImmediateInvokeAsync(thingtocall, proctocall, ...)
-	set waitfor = FALSE
-
-	if (!thingtocall)
-		return
-
-	var/list/calling_arguments = length(args) > 2 ? args.Copy(3) : null
-
-	if (thingtocall == GLOBAL_PROC)
-		call(proctocall)(arglist(calling_arguments))
-	else
-		call(thingtocall, proctocall)(arglist(calling_arguments))
-
-/datum/callback/proc/Invoke(...)
-	if (!object)
-		return
-	var/list/calling_arguments = arguments
-	if (length(args))
-		if (length(arguments))
-			calling_arguments = calling_arguments + args //not += so that it creates a new list so the arguments list stays clean
+		params = args.Copy(3)
+	switch (target)
+		if (null)
+			identity = "(null) [callable]"
+		if (FALSE)
+			identity = "(global) [callable]"
 		else
-			calling_arguments = args
-	if (object == GLOBAL_PROC)
-		return call(delegate)(arglist(calling_arguments))
-	return call(object, delegate)(arglist(calling_arguments))
+			identity = "([target.type] \ref[target]) [callable]"
 
-//copy and pasted because fuck proc overhead
-/datum/callback/proc/InvokeAsync(...)
+
+#define INVOKE_BEHAVIOR \
+	if (target == GLOBAL_PROC) { \
+		var/list/params; \
+		if (length(args) > 2) { \
+			params = args.Copy(3); \
+		} \
+		return call(callable)(arglist(params)); \
+	} else if (QDELETED(target)) { \
+		return; \
+	} else if (istype(target)) { \
+		var/list/params = list(target.target, target.callable); \
+		if (length(target.params)) { \
+			params += target.params; \
+		} \
+		if (length(args) > 1) { \
+			params += args.Copy(2); \
+		} \
+		return invoke(arglist(params)); \
+	} else { \
+		var/list/params; \
+		if (length(args) > 2) { \
+			params = args.Copy(3); \
+		} \
+		return call(target, callable)(arglist(params)); \
+	} \
+
+
+/proc/invoke(datum/callback/target, callable, ...)
+	INVOKE_BEHAVIOR
+
+
+/proc/invoke_async(datum/callback/target, callable, ...)
 	set waitfor = FALSE
-	if (!object)
-		return
-	var/list/calling_arguments = arguments
-	if (length(args))
-		if (length(arguments))
-			calling_arguments = calling_arguments + args //not += so that it creates a new list so the arguments list stays clean
-		else
-			calling_arguments = args
-	if (object == GLOBAL_PROC)
-		return call(delegate)(arglist(calling_arguments))
-	return call(object, delegate)(arglist(calling_arguments))
+	INVOKE_BEHAVIOR
+
+
+#undef INVOKE_BEHAVIOR

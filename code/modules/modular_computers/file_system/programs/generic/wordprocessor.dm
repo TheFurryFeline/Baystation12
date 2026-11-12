@@ -7,7 +7,7 @@
 	size = 4
 	requires_ntnet = FALSE
 	available_on_ntnet = TRUE
-	nanomodule_path = /datum/nano_module/program/computer_wordprocessor/
+	nanomodule_path = /datum/nano_module/program/computer_wordprocessor
 	var/browsing = FALSE
 	var/open_file
 	var/loaded_data
@@ -135,7 +135,7 @@
 	name = "Word Processor"
 
 /datum/nano_module/program/computer_wordprocessor/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
 	var/datum/computer_file/program/wordprocessor/PRG
 	PRG = program
 
@@ -146,7 +146,7 @@
 		if(!PRG.computer || !PRG.computer.has_component(PART_HDD))
 			data["error"] = "I/O ERROR: Unable to access hard drive."
 		else
-			var/list/files[0]
+			var/list/files = list()
 			for(var/datum/computer_file/F in PRG.computer.get_all_files())
 				if(F.filetype == "TXT")
 					files.Add(list(list(
@@ -158,7 +158,7 @@
 			var/obj/item/stock_parts/computer/hard_drive/portable/RHDD = PRG.computer.get_component(PART_DRIVE)
 			if(RHDD)
 				data["usbconnected"] = TRUE
-				var/list/usbfiles[0]
+				var/list/usbfiles = list()
 				for(var/datum/computer_file/F in PRG.computer.get_all_files(disk = RHDD))
 					if(F.filetype == "TXT")
 						usbfiles.Add(list(list(
@@ -167,10 +167,10 @@
 						)))
 				data["usbfiles"] = usbfiles
 	else if(PRG.open_file)
-		data["filedata"] = digitalPencode2html(PRG.loaded_data)
+		data["filedata"] = digitalPencode2html(sanitize(PRG.loaded_data, MAX_TEXTFILE_LENGTH, FALSE))
 		data["filename"] = PRG.is_edited ? "[PRG.open_file]*" : PRG.open_file
 	else
-		data["filedata"] = digitalPencode2html(PRG.loaded_data)
+		data["filedata"] = digitalPencode2html(sanitize(PRG.loaded_data, MAX_TEXTFILE_LENGTH, FALSE))
 		data["filename"] = "UNNAMED"
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)

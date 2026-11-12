@@ -2,7 +2,7 @@
 /obj/item/cell
 	name = "power cell"
 	desc = "A rechargable electrochemical power cell."
-	icon = 'icons/obj/power.dmi'
+	icon = 'icons/obj/powercells.dmi'
 	icon_state = "cell"
 	item_state = "cell"
 	origin_tech = list(TECH_POWER = 1)
@@ -25,7 +25,7 @@
 		charge = maxcharge
 	update_icon()
 
-/obj/item/cell/drain_power(var/drain_check, var/surge, var/power = 0)
+/obj/item/cell/drain_power(drain_check, surge, power = 0)
 
 	if(drain_check)
 		return 1
@@ -50,9 +50,9 @@
 
 	if(new_overlay_state != overlay_state)
 		overlay_state = new_overlay_state
-		overlays.Cut()
+		ClearOverlays()
 		if(overlay_state)
-			overlays += image('icons/obj/power.dmi', overlay_state)
+			AddOverlays(image('icons/obj/powercells.dmi', overlay_state))
 
 /obj/item/cell/proc/percent()		// return % charge of cell
 	return maxcharge && (100.0*charge/maxcharge)
@@ -61,11 +61,11 @@
 	return (charge == maxcharge)
 
 // checks if the power cell is able to provide the specified amount of charge
-/obj/item/cell/proc/check_charge(var/amount)
+/obj/item/cell/proc/check_charge(amount)
 	return (charge >= amount)
 
 // use power from a cell, returns the amount actually used
-/obj/item/cell/proc/use(var/amount)
+/obj/item/cell/proc/use(amount)
 	var/used = min(charge, amount)
 	charge -= used
 	update_icon()
@@ -73,13 +73,13 @@
 
 // Checks if the specified amount can be provided. If it can, it removes the amount
 // from the cell and returns 1. Otherwise does nothing and returns 0.
-/obj/item/cell/proc/checked_use(var/amount)
+/obj/item/cell/proc/checked_use(amount)
 	if(!check_charge(amount))
 		return 0
 	use(amount)
 	return 1
 
-/obj/item/cell/proc/give(var/amount)
+/obj/item/cell/proc/give(amount)
 	var/amount_used = min(maxcharge-charge,amount)
 	charge += amount_used
 	update_icon()
@@ -162,6 +162,9 @@
 	maxcharge = 100
 	matter = list(MATERIAL_STEEL = 700, MATERIAL_GLASS = 40, MATERIAL_PLASTIC = 20)
 
+/obj/item/cell/crap/discharged
+	charge = 5
+
 /obj/item/cell/crap/empty
 	charge = 0
 
@@ -224,7 +227,7 @@
 	name = "potato battery"
 	desc = "A rechargable starch based power cell."
 	origin_tech = list(TECH_POWER = 1)
-	icon = 'icons/obj/power.dmi' //'icons/obj/harvest.dmi'
+	icon = 'icons/obj/powercells.dmi' //'icons/obj/harvest.dmi'
 	icon_state = "potato_cell" //"potato_battery"
 	maxcharge = 20
 

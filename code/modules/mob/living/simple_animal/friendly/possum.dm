@@ -23,13 +23,13 @@
 	universal_understand = TRUE
 	holder_type = /obj/item/holder/possum
 	mob_size = MOB_SMALL
-	possession_candidate = 1
+	possession_candidate = TRUE
 	can_escape = TRUE
 	can_pull_size = ITEM_SIZE_SMALL
 	can_pull_mobs = MOB_PULL_SMALLER
 	var/is_angry = FALSE
 
-	ai_holder_type = /datum/ai_holder/simple_animal/passive/opossum
+	ai_holder = /datum/ai_holder/simple_animal/passive/opossum
 	say_list_type = /datum/say_list/opossum
 
 /mob/living/simple_animal/passive/opossum/Life()
@@ -67,15 +67,15 @@
 	if(!resting && stat == CONSCIOUS)
 		if(!is_angry)
 			is_angry = TRUE
-			custom_emote(src, "hisses!")
+			custom_emote(AUDIBLE_MESSAGE, "hisses!")
 		else
 			resting = TRUE
-			custom_emote(src, "dies!")
+			custom_emote(VISIBLE_MESSAGE, "dies!")
 		update_icon()
 
 /mob/living/simple_animal/passive/opossum/on_update_icon()
 
-	if(stat == DEAD || (resting && is_angry))
+	if(is_dead() || (resting && is_angry))
 		icon_state = icon_dead
 	else if(resting || stat == UNCONSCIOUS)
 		icon_state = "[icon_living]_sleep"
@@ -101,13 +101,13 @@
 
 /mob/living/simple_animal/passive/opossum/poppy/hear_broadcast(datum/language/language, mob/speaker, speaker_name, message)
 	. = ..()
-	addtimer(CALLBACK(src, .proc/check_keywords, message), rand(1 SECOND, 3 SECONDS))
+	addtimer(new Callback(src, PROC_REF(check_keywords), message), rand(1 SECOND, 3 SECONDS))
 
-/mob/living/simple_animal/passive/opossum/poppy/hear_say(var/message, var/verb = "says", var/datum/language/language = null, var/alt_name = "",var/italics = 0, var/mob/speaker = null, var/sound/speech_sound, var/sound_vol)
+/mob/living/simple_animal/passive/opossum/poppy/hear_say(message, verb = "says", datum/language/language = null, alt_name = "",italics = 0, mob/speaker = null, sound/speech_sound, sound_vol)
 	. = ..()
-	addtimer(CALLBACK(src, .proc/check_keywords, message), rand(1 SECOND, 3 SECONDS))
+	addtimer(new Callback(src, PROC_REF(check_keywords), message), rand(1 SECOND, 3 SECONDS))
 
-/mob/living/simple_animal/passive/opossum/poppy/proc/check_keywords(var/message)
+/mob/living/simple_animal/passive/opossum/poppy/proc/check_keywords(message)
 	if(!client && stat == CONSCIOUS)
 		message = lowertext(message)
 		for(var/aaa in aaa_words)

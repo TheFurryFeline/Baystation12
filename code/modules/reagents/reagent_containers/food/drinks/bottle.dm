@@ -1,8 +1,10 @@
 /obj/item/reagent_containers/food/drinks/bottle
+	icon = 'icons/obj/food/drinks/bottles.dmi'
 	amount_per_transfer_from_this = 10
 	volume = 100
 	item_state = "broken_beer"
 	force = 5
+	drink_offset_y = 15
 	var/can_shatter = TRUE
 	var/obj/item/reagent_containers/glass/rag/rag
 	var/rag_underlay = "rag"
@@ -24,7 +26,7 @@
 	return ..()
 
 
-/obj/item/reagent_containers/food/drinks/bottle/throw_impact(atom/hit_atom, var/datum/thrownthing/TT)
+/obj/item/reagent_containers/food/drinks/bottle/throw_impact(atom/hit_atom, datum/thrownthing/TT)
 	..()
 	if (can_shatter && TT.thrower)
 		if (TT.speed > throw_speed || smash_check(TT.dist_travelled))
@@ -47,37 +49,45 @@
 		return
 	var/static/list/chance_table = list(95, 95, 90, 85, 75, 60, 40, 15)
 	var/idx = max(distance + 1, 1)
-	if (idx > chance_table.len)
+	if (idx > length(chance_table))
 		return
 	return prob(chance_table[idx])
 
 
-/obj/item/reagent_containers/food/drinks/bottle/proc/smash(newloc, atom/against)
+/obj/item/reagent_containers/food/drinks/bottle/proc/smash(newloc, atom/against, break_top)
 	var/obj/item/broken_bottle/B = new (newloc)
 	if (prob(33))
 		new /obj/item/material/shard (newloc)
 	B.icon_state = icon_state
-	var/icon/I = new ('icons/obj/drinks.dmi', icon_state)
-	I.Blend(B.broken_outline, ICON_OVERLAY, rand(5), 1)
+
+	var/icon/I = new ('icons/obj/food/drinks/bottles.dmi', icon_state)
+	if(break_top)
+		desc = "A bottle with its neck smashed off."
+		I.Blend(B.flipped_broken_outline, ICON_OVERLAY, rand(5), 0)
+	else
+		I.Blend(B.broken_outline, ICON_OVERLAY, rand(5), 1)
 	I.SwapColor(rgb(255, 0, 220, 255), rgb(0, 0, 0, 0))
 	B.icon = I
+
 	if (rag && rag.on_fire && isliving(against))
 		var/mob/living/L = against
 		L.IgniteMob()
+
 	playsound(src, "shatter", 70, 1)
 	transfer_fingerprints_to(B)
+
 	qdel(src)
 	return B
 
 
-/obj/item/reagent_containers/food/drinks/bottle/attackby(obj/item/W, mob/user)
+/obj/item/reagent_containers/food/drinks/bottle/use_tool(obj/item/W, mob/living/user, list/click_params)
 	if (!rag && istype(W, /obj/item/reagent_containers/glass/rag))
 		insert_rag(W, user)
-		return
-	if (rag && isflamesource(W))
-		rag.attackby(W, user)
-		return
-	..()
+		return TRUE
+	if (rag && W.IsFlameSource())
+		rag.use_tool(W, user)
+		return TRUE
+	return ..()
 
 
 /obj/item/reagent_containers/food/drinks/bottle/attack_self(mob/user)
@@ -117,9 +127,9 @@
 /obj/item/reagent_containers/food/drinks/bottle/on_update_icon()
 	underlays.Cut()
 	if (rag)
-		var/underlay_image = image(icon='icons/obj/drinks.dmi', icon_state=rag.on_fire? "[rag_underlay]_lit" : rag_underlay)
+		var/underlay_image = image(icon='icons/obj/food/drinks/drink_effects.dmi', icon_state=rag.on_fire? "[rag_underlay]_lit" : rag_underlay)
 		underlays += underlay_image
-		set_light(rag.light_max_bright, 0.1, rag.light_outer_range, 2, rag.light_color)
+		set_light(rag.light_range, rag.light_power, rag.light_color)
 	else
 		set_light(0)
 
@@ -134,10 +144,10 @@
 	if (istype(H) && H.headcheck(hit_zone))
 		var/obj/item/organ/affecting = H.get_organ(hit_zone)
 		user.visible_message(SPAN_DANGER("\The [user] smashes \the [src] into \the [H]'s [affecting.name]!"))
-		var/blocked = target.get_blocked_ratio(hit_zone, BRUTE, damage = 10) * 100
+		var/blocked = target.get_blocked_ratio(hit_zone, DAMAGE_BRUTE, damage = 10) * 100
 		var/weaken_duration = smash_duration + min(0, force - blocked + 10)
 		if (weaken_duration)
-			target.apply_effect(min(weaken_duration, 5), WEAKEN, blocked)
+			target.apply_effect(min(weaken_duration, 5), EFFECT_WEAKEN, blocked)
 	else
 		user.visible_message(SPAN_DANGER("\The [user] smashes [src] into [target]!"))
 	if (reagents)
@@ -329,7 +339,7 @@
 /obj/item/reagent_containers/food/drinks/bottle/melonliquor
 	name = "Emeraldine Melon Liquor"
 	desc = "A bottle of 46 proof Emeraldine Melon Liquor. Sweet and light."
-	icon_state = "alco-green"
+	icon_state = "melonliquor"
 	center_of_mass = "x=16;y=6"
 
 
@@ -341,7 +351,7 @@
 /obj/item/reagent_containers/food/drinks/bottle/bluecuracao
 	name = "Miss Blue Curacao"
 	desc = "A fruity, exceptionally azure drink. Does not allow the imbiber to use the fifth magic."
-	icon_state = "alco-blue"
+	icon_state = "curacaobottle"
 	center_of_mass = "x=16;y=6"
 
 
@@ -374,42 +384,6 @@
 	reagents.add_reagent(/datum/reagent/drink/grenadine, 100)
 
 
-/obj/item/reagent_containers/food/drinks/bottle/cola
-	name = "\improper Space Cola"
-	desc = "Cola. in space."
-	icon_state = "colabottle"
-	center_of_mass = "x=16;y=6"
-
-
-/obj/item/reagent_containers/food/drinks/bottle/cola/Initialize()
-	. = ..()
-	reagents.add_reagent(/datum/reagent/drink/space_cola, 100)
-
-
-/obj/item/reagent_containers/food/drinks/bottle/space_up
-	name = "\improper Space-Up"
-	desc = "Tastes like a hull breach in your mouth."
-	icon_state = "space-up_bottle"
-	center_of_mass = "x=16;y=6"
-
-
-/obj/item/reagent_containers/food/drinks/bottle/space_up/Initialize()
-	. = ..()
-	reagents.add_reagent(/datum/reagent/drink/space_up, 100)
-
-
-/obj/item/reagent_containers/food/drinks/bottle/space_mountain_wind
-	name = "\improper Space Mountain Wind"
-	desc = "Blows right through you like a space wind."
-	icon_state = "space_mountain_wind_bottle"
-	center_of_mass = "x=16;y=6"
-
-
-/obj/item/reagent_containers/food/drinks/bottle/space_mountain_wind/Initialize()
-	. = ..()
-	reagents.add_reagent(/datum/reagent/drink/spacemountainwind, 100)
-
-
 /obj/item/reagent_containers/food/drinks/bottle/pwine
 	name = "Warlock's Velvet"
 	desc = "What a delightful packaging for a surely high quality wine! The vintage must be amazing!"
@@ -424,7 +398,7 @@
 
 /obj/item/reagent_containers/food/drinks/bottle/blackstrap
 	name = "Two Brothers Blackstrap"
-	desc = "A bottle of Blackstrap, distilled in Two Brothers, Tersten."
+	desc = "A bottle of Blackstrap, distilled in Two Brothers, Earth."
 	icon_state = "blackstrap"
 	center_of_mass = "x=16;y=4"
 
@@ -446,16 +420,16 @@
 	reagents.add_reagent(/datum/reagent/ethanol/sake, 100)
 
 
-/obj/item/reagent_containers/food/drinks/bottle/lordaniawine
-	name = "New Aresian Vintage 2230"
+/obj/item/reagent_containers/food/drinks/bottle/tadmorwine
+	name = "Palmyran Vintage 2230"
 	desc = "The kind of wine that just demands attention, and a big wallet."
-	icon_state = "lordaniawine"
+	icon_state = "tadmorwine"
 	center_of_mass = "x=16;y=4"
 
 
-/obj/item/reagent_containers/food/drinks/bottle/lordaniawine/Initialize()
+/obj/item/reagent_containers/food/drinks/bottle/tadmorwine/Initialize()
 	. = ..()
-	reagents.add_reagent(/datum/reagent/ethanol/lordaniawine, 100)
+	reagents.add_reagent(/datum/reagent/ethanol/tadmorwine, 100)
 
 
 /obj/item/reagent_containers/food/drinks/bottle/champagne
@@ -463,11 +437,105 @@
 	desc = "The regal drink of celebrities and royalty."
 	icon_state = "champagne"
 	center_of_mass = "x=16;y=4"
+	atom_flags = 0
+	var/sabraged = FALSE
 
 
 /obj/item/reagent_containers/food/drinks/bottle/champagne/Initialize()
 	. = ..()
 	reagents.add_reagent(/datum/reagent/ethanol/champagne, 100)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/champagne/attack_self(mob/user)
+	if(is_open_container())
+		return ..()
+	user.visible_message(
+		SPAN_NOTICE("\The [user] begins fiddling with \the [src]'s cork."),
+		SPAN_NOTICE("You begin fiddling with \the [src]'s cork.")
+	)
+	if(do_after(user, 1 SECOND, src, DO_PUBLIC_UNIQUE))
+		return open(user, sabrage = FALSE, froth_severity = pick(1,2))
+
+/obj/item/reagent_containers/food/drinks/bottle/champagne/use_tool(obj/item/attacking_item, mob/user)
+	. = ..()
+
+	if(is_open_container())
+		return ..()
+
+	if(!has_edge(attacking_item) && !istype(attacking_item, /obj/item/material/sword))
+		return
+
+	if((attacking_item.force < 4))
+		USE_FEEDBACK_FAILURE("\The [attacking_item] is not strong enough to open \the [src].")
+		return TRUE
+
+	playsound(user, 'sound/effects/holster/sheathout.ogg', 25, TRUE)
+	user.visible_message(
+		SPAN_NOTICE("\The [user] prepares to swing \the [attacking_item] at \the [src]."),
+		SPAN_NOTICE("You prepare to swing \the [attacking_item] at \the [src].")
+	)
+
+	if (!user.do_skilled(2 SECONDS, SKILL_COOKING, user))
+		return TRUE
+	if(!prob(user.skill_fail_chance(SKILL_COOKING, 80, SKILL_EXPERIENCED)))
+		return open(user, sabrage = TRUE, froth_severity = 3)
+	else
+		var/datum/pronouns/pronouns = user.choose_from_pronouns()
+		user.visible_message(
+			SPAN_WARNING("\The [user] fumbles and cuts \the [src] in half, spilling it over [pronouns.self]!"),
+			SPAN_WARNING("You fumble and cut \the [src] in half, spilling it over yourself!"),
+			SPAN_NOTICE("You hear spilling.")
+			)
+		if (user.isEquipped(src))
+			user.drop_from_inventory(src)
+		return smash(loc, user, break_top = TRUE)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/champagne/on_update_icon()
+	..()
+	if(is_open_container())
+		if(sabraged)
+			icon_state = "[initial(icon_state)]_sabrage"
+		else
+			icon_state = "[initial(icon_state)]_popped"
+	else
+		icon_state = initial(icon_state)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/champagne/open(mob/user, sabrage, froth_severity)
+	if(!sabrage)
+		visible_message(
+			SPAN_WARNING("The cork flies off of \the [src]!"),
+			SPAN_NOTICE("You can hear a pop.")
+			)
+	else
+		sabraged = TRUE
+		drink_offset_y = 13
+		user.visible_message(
+			SPAN_WARNING("\The [user] cleanly slices off the cork of \the [src]!"),
+			SPAN_WARNING("You elegantly slice the cork off of \the [src]!"),
+			SPAN_NOTICE("You can hear a pop.")
+			)
+	playsound(src, 'sound/items/champagne_pop.ogg', 70, TRUE)
+	atom_flags |= ATOM_FLAG_OPEN_CONTAINER
+	update_icon()
+	make_froth(froth_severity)
+	var/obj/item/trash/cork_to_fire = sabraged ? /obj/item/trash/champagne_cork/sabrage : /obj/item/trash/champagne_cork
+	var/obj/item/trash/champagne_cork/popped_cork = new cork_to_fire(loc)
+	if (user.isEquipped(src))
+		user.drop_from_inventory(popped_cork)
+	popped_cork.throw_at_random(include_own_turf = FALSE, maxrange = 4, speed = 4)
+
+
+/obj/item/trash/champagne_cork
+	name = "champagne cork"
+	icon = 'icons/obj/food/drinks/bottles.dmi'
+	icon_state = "champagne_cork"
+	w_class = ITEM_SIZE_TINY
+
+
+/obj/item/trash/champagne_cork/sabrage
+	icon_state = "champagne_cork_sabrage"
 
 
 /obj/item/reagent_containers/food/drinks/bottle/prosecco
@@ -497,7 +565,7 @@
 /obj/item/reagent_containers/food/drinks/bottle/jagermeister
 	name = "Kaisermeister Deluxe Jagermeister"
 	desc = "Jagermeister. This drink just demands a party."
-	icon_state = "herbal"
+	icon_state = "jagermeister"
 	center_of_mass = "x=16;y=6"
 
 
@@ -508,7 +576,7 @@
 
 /obj/item/reagent_containers/food/drinks/bottle/cachaca
 	name = "Acacara Cachaca"
-	desc = "Cachaca, distilled from fermented sugarcane.  This one was bottled in Acacara, Yuklid."
+	desc = "Cachaca, distilled from fermented sugarcane.  This one was bottled in New Aarhus, Brahe."
 	icon_state = "cachaca"
 	center_of_mass = "x=16;y=6"
 
@@ -572,7 +640,7 @@
 /obj/item/reagent_containers/food/drinks/bottle/premiumwine
 	name = "Uve De Blanc"
 	desc = "You feel pretentious just looking at it."
-	icon_state = "premiumwine"
+	icon_state = "whitewinebottle"
 	center_of_mass = "x=16;y=4"
 
 
@@ -669,7 +737,7 @@
 
 /obj/item/reagent_containers/food/drinks/bottle/unathijuice/Initialize()
 	. = ..()
-	reagents.add_reagent(/datum/reagent/drink/alien/unathijuice, 100)
+	reagents.add_reagent(/datum/reagent/drink/unathijuice, 100)
 
 
 /obj/item/reagent_containers/food/drinks/bottle/lemonjuice
@@ -703,6 +771,7 @@
 	smash_duration = 1
 	atom_flags = 0
 	rag_underlay = "rag_small"
+	drink_offset_y = 13
 
 
 /obj/item/reagent_containers/food/drinks/bottle/small/beer
@@ -715,6 +784,14 @@
 /obj/item/reagent_containers/food/drinks/bottle/small/beer/Initialize()
 	. = ..()
 	reagents.add_reagent(/datum/reagent/ethanol/beer, 30)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/beer/fake
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/beer/fake/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/chloralhydrate/beer, 50)
 
 
 /obj/item/reagent_containers/food/drinks/bottle/small/ale
@@ -790,6 +867,45 @@
 	reagents.add_reagent(/datum/reagent/ethanol/lager, 50)
 
 
+/obj/item/reagent_containers/food/drinks/bottle/small/cola
+	name = "\improper Space Cola"
+	desc = "Cola. in space."
+	icon_state = "colabottle"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/cola/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/drink/space_cola, 50)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/space_up
+	name = "\improper Space-Up"
+	desc = "Tastes like a hull breach in your mouth."
+	icon_state = "space-up_bottle"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/space_up/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/drink/space_up, 50)
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/space_mountain_wind
+	name = "\improper Space Mountain Wind"
+	desc = "Blows right through you like a space wind."
+	icon_state = "space_mountain_wind_bottle"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+
+/obj/item/reagent_containers/food/drinks/bottle/small/space_mountain_wind/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/drink/spacemountainwind, 50)
+
+
 /obj/item/reagent_containers/food/drinks/bottle/oiljug
 	name = "oil jug"
 	desc = "A plastic jug of engine oil. Not for human consumption."
@@ -805,18 +921,59 @@
 /obj/item/broken_bottle
 	name = "Broken Bottle"
 	desc = "A bottle with a sharp broken bottom."
-	icon = 'icons/obj/drinks.dmi'
+	icon = 'icons/obj/food/drinks/bottles.dmi'
 	icon_state = "broken_bottle"
 	force = 9
 	throwforce = 5
 	throw_speed = 3
 	throw_range = 5
 	item_state = "beer"
+	hitsound = 'sound/weapons/bladeslice.ogg'
 	attack_verb = list("stabbed", "slashed", "attacked")
 	sharp = TRUE
-	var/icon/broken_outline = icon('icons/obj/drinks.dmi', "broken")
+	var/icon/broken_outline = icon('icons/obj/food/drinks/drink_effects.dmi', "broken")
+	var/icon/flipped_broken_outline = icon('icons/obj/food/drinks/drink_effects.dmi', "broken-flipped")
 
+/obj/item/reagent_containers/food/drinks/bottle/new_douro_vintage
+	name = "New Douro Vintage 2293"
+	desc = "A prestigious Gaian port wine, made even more sought after due to its wartime production."
+	icon_state = "new_douro"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
 
-/obj/item/broken_bottle/attack(mob/living/carbon/M, mob/living/carbon/user)
-	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1, -1)
-	return ..()
+/obj/item/reagent_containers/food/drinks/bottle/new_douro_vintage/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/ethanol/wine/newdouro, 100)
+
+/obj/item/reagent_containers/food/drinks/bottle/chartrose
+	name = "Chartreuse Valley Rose"
+	desc = "A sweet rose wine, produced on Amelie and famous across the known universe."
+	icon_state = "chartrose"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+/obj/item/reagent_containers/food/drinks/bottle/chartrose/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/ethanol/wine/chartrose, 100)
+
+/obj/item/reagent_containers/food/drinks/bottle/andawine
+	name = "Andalusia Vinyeards Sherry"
+	desc = "A delicacy rarely found in Solar Space, this Gaian wine has obtained a mythic aura due to its rare export."
+	icon_state = "andawine"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+/obj/item/reagent_containers/food/drinks/bottle/andawine/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/ethanol/wine/andawine, 100)
+
+/obj/item/reagent_containers/food/drinks/bottle/cloudnine
+	name = "Cloud District Nine"
+	desc = "A wine from the highest cloud district on Venus. It tastes of old school Hollywood films and hushed whispers."
+	icon_state = "cloudnine"
+	center_of_mass = "x=16;y=6"
+	drink_offset_y = 11
+
+/obj/item/reagent_containers/food/drinks/bottle/cloudnine/Initialize()
+	. = ..()
+	reagents.add_reagent(/datum/reagent/ethanol/wine/cloudnine, 100)

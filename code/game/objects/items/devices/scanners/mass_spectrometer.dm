@@ -1,6 +1,7 @@
 /obj/item/device/scanner/spectrometer
 	name = "mass spectrometer"
 	desc = "A hand-held mass spectrometer which identifies trace chemicals in a blood sample or analyzes unusual chemicals."
+	icon = 'icons/obj/tools/spectrometer.dmi'
 	icon_state = "spectrometer"
 	item_state = "analyzer"
 
@@ -30,7 +31,7 @@
 
 /obj/item/device/scanner/spectrometer/scan(atom/A, mob/user)
 	if(A != src)
-		to_chat(user, "<span class='notice'>\The [src] takes a sample out of \the [A]</span>")
+		to_chat(user, SPAN_NOTICE("\The [src] takes a sample out of \the [A]"))
 		reagents.clear_reagents()
 		A.reagents.trans_to(src, 5)
 	scan_title = "Spectrometer scan - [A]"
@@ -46,41 +47,42 @@
 	else
 		..()
 
-/proc/mass_spectrometer_scan(var/datum/reagents/reagents, mob/user, var/details)
+/proc/mass_spectrometer_scan(datum/reagents/reagents, mob/user, details)
 	if(!reagents || !reagents.total_volume)
-		return "<span class='warning'>No sample to scan.</span>"
-	var/list/blood_traces = list()
-	var/list/blood_doses = list()
+		return SPAN_WARNING("No sample to scan.")
+	var/list/blood_chems = list()
+	var/list/blood_metabolites = list()
 	for(var/datum/reagent/R in reagents.reagent_list)
 		if(length(reagents.reagent_list) == 1)
 			var/datum/reagent/random/random = R
 			if(istype(random))
 				return random.get_scan_data(user)
-				
+
 		if(R.type != /datum/reagent/blood)
-			return "<span class='warning'>The sample was contaminated! Please insert another sample</span>"
+			return SPAN_WARNING("The sample was contaminated! Please insert another sample")
 		else
-			blood_traces = R.data["trace_chem"]
-			blood_doses = R.data["dose_chem"]
+			blood_chems = R.data["blood_chem"]
+			blood_metabolites = R.data["metabolites_chem"]
 			break
 
 	var/list/dat = list("Trace Chemicals Found: ")
-	for(var/T in blood_traces)
+	for(var/T in blood_chems)
 		var/datum/reagent/R = T
 		if(details)
-			dat += "[initial(R.name)] ([blood_traces[T]] units) "
+			dat += "[initial(R.name)] ([blood_chems[T]] units) "
 		else
 			dat += "[initial(R.name)] "
 	if(details)
 		dat += "Metabolism Products of Chemicals Found:"
-		for(var/T in blood_doses)
+		for(var/T in blood_metabolites)
 			var/datum/reagent/R = T
-			dat += "[initial(R.name)] ([blood_doses[T]] units) "
+			dat += "[initial(R.name)] ([blood_metabolites[T]] units) "
 
 	return jointext(dat, "<br>")
 
 /obj/item/device/scanner/spectrometer/adv
 	name = "advanced mass spectrometer"
+	icon = 'icons/obj/tools/spectrometer_advanced.dmi'
 	icon_state = "adv_spectrometer"
 	details = 1
 	origin_tech = list(TECH_MAGNET = 4, TECH_BIO = 2)

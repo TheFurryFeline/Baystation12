@@ -1,54 +1,67 @@
 /client
-		//////////////////////
-		//BLACK MAGIC THINGS//
-		//////////////////////
+	// Allow client instances to be treated like regular datums
 	parent_type = /datum
-		////////////////
-		//ADMIN THINGS//
-		////////////////
-	var/datum/admins/holder = null
-	var/datum/admins/deadmin_holder = null
 
-		/////////
-		//OTHER//
-		/////////
-	var/datum/preferences/prefs = null
-	var/adminobs		= null
-
-	var/adminhelped = 0
-
-	var/staffwarn = null
-
-		///////////////
-		//SOUND STUFF//
-		///////////////
-	var/ambience_playing= null
-	var/played			= 0
-
-		////////////
-		//SECURITY//
-		////////////
-	// comment out the line below when debugging locally to enable the options & messages menu
-	//control_freak = 1
-
-	var/received_irc_pm = -99999
-	var/irc_admin			//IRC admin that spoke with them last.
-	var/mute_irc = 0
-	var/warned_about_multikeying = 0	// Prevents people from being spammed about multikeying every time their mob changes.
-
-		////////////////////////////////////
-		//things that require the database//
-		////////////////////////////////////
-	var/player_age = "Requires database"	//So admins know why it isn't working - Used to determine how old the account is - in days.
-	var/related_accounts_ip = "Requires database"	//So admins know why it isn't working - Used to determine what other accounts previously logged in from this ip
-	var/related_accounts_cid = "Requires database"	//So admins know why it isn't working - Used to determine what other accounts previously logged in from this computer id
-
-	/*
-	As of byond 512, due to how broken preloading is, preload_rsc MUST be set to 1 at compile time if resource URLs are *not* in use,
-	BUT you still want resource preloading enabled (from the server itself). If using resource URLs, it should be set to 0 and
-	changed to a URL at runtime (see client_procs.dm for procs that do this automatically). More information about how goofy this broken setting works at
-	http://www.byond.com/forum/post/1906517?page=2#comment23727144
+	/** At compile time, should be TRUE if serving the rsc from DD or FALSE if using other
+		http server(s) to spread load. Defaults FALSE as /client/New() handles setting either
+		a url from config.resource_urls, or TRUE if none exist
+		Refer to http://www.byond.com/forum/post/1906517?page=2#comment23727144
 	*/
-	preload_rsc = 0
+	preload_rsc = FALSE
 
+	/// When some kind of staff member, the client's permissions and behaviors
+	var/datum/admins/holder
+
+	/// When not currently wanting to see buttons, holder lives here instead
+	var/datum/admins/deadmin_holder
+
+	/// The client's preferences object, populated from save data and runtime changes
+	var/datum/preferences/prefs
+
+	/// Controls the display of tooltips to this client
+	var/datum/tooltip/tooltips
+
+	/// When starting an ahelp conversation, whether the client gets a reply button
+	var/adminhelped
+
+	/// A message to show to online staff when joining, if any
+	var/staffwarn
+
+	/// Whether or not the client is currently playing the "ship hum" ambience sound
+	var/playing_vent_ambience = FALSE
+
+	/// The next threshold time for the client to be able to play basic ambience sounds
+	var/next_ambience_time = 0
+
+	/// The last time this client was messaged from IRC. Prevents responses after 10 minutes
+	var/received_irc_pm = -99999
+
+	/// Prevents people from being spammed about multikeying every time their mob changes
+	var/warned_about_multikeying = FALSE
+
+	/// If the database is available, how old the account is in days
+	var/player_age = "Requires database"
+
+	/// If the database is available, what other accounts previously logged in from this IP
+	var/related_accounts_ip = "Requires database"
+
+	/// If the database is available, what other accounts previously logged in from this CID
+	var/related_accounts_cid = "Requires database"
+
+	/// The current fullscreen state for /client/toggle_fullscreen()
 	var/fullscreen = FALSE
+
+	/// When the client has atom outlines enabled and hovers something applicable, that thing's outline
+	var/image/atom_outline
+
+	/// A hidden copy of the outline target without its transform. It masks the inside of atom_outline
+	var/image/atom_outline_mask
+
+	/// A resolvable to the current atom outline target, if any
+	var/weakref/outline_atom
+
+	/// True while an atom outline update is in-flight
+	var/outline_updating
+
+	/// Mirror of the truthiness of the atom_outlines preference
+	var/outline_enabled

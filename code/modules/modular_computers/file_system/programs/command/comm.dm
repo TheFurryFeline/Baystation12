@@ -3,6 +3,7 @@
 #define STATE_VIEWMESSAGE	3
 #define STATE_STATUSDISPLAY	4
 #define STATE_ALERT_LEVEL	5
+
 /datum/computer_file/program/comm
 	filename = "comm"
 	filedesc = "Command and Communications Program"
@@ -11,19 +12,16 @@
 	program_menu_icon = "flag"
 	nanomodule_path = /datum/nano_module/program/comm
 	extended_desc = "Used to command and control. Can relay long-range communications. This program can not be run on tablet computers."
-	required_access = access_bridge
 	requires_ntnet = TRUE
 	size = 12
 	usage_flags = PROGRAM_CONSOLE | PROGRAM_LAPTOP
 	network_destination = "long-range communication array"
 	category = PROG_COMMAND
-	var/datum/comm_message_listener/message_core = new
+	var/singleton/comm_message_listener/message_core
 
-/datum/computer_file/program/comm/clone()
-	var/datum/computer_file/program/comm/temp = ..()
-	temp.message_core.messages = null
-	temp.message_core.messages = message_core.messages.Copy()
-	return temp
+/datum/computer_file/program/comm/New()
+	..()
+	message_core = GET_SINGLETON(/singleton/comm_message_listener)
 
 /datum/nano_module/program/comm
 	name = "Command and Communications Program"
@@ -36,14 +34,16 @@
 	var/datum/announcement/priority/crew_announcement = new
 	var/current_viewing_message_id = 0
 	var/current_viewing_message = null
+	var/admin_access = list(access_bridge)
 
 /datum/nano_module/program/comm/New()
 	..()
 	crew_announcement.newscast = 1
 
-/datum/nano_module/program/comm/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null, var/force_open = 1, var/datum/topic_state/state = GLOB.default_state)
+/datum/nano_module/program/comm/ui_interact(mob/user, ui_key = "main", datum/nanoui/ui = null, force_open = 1, datum/topic_state/state = GLOB.default_state)
 
-	var/list/data = host.initial_data()
+	var/list/data = host.initial_data(program)
+	var/authenticated = check_access(user, admin_access)
 
 	if(program && program.computer)
 		data["net_comms"] = program.computer.get_ntnet_capability(NTNET_COMMUNICATION)
@@ -63,27 +63,25 @@
 	data["message_line2"] = msg_line2
 	data["state"] = current_status
 	data["isAI"] = issilicon(usr)
-	data["authenticated"] = is_autenthicated(user)
 	data["boss_short"] = GLOB.using_map.boss_short
+	data["authenticated"] = authenticated
 
-	var/decl/security_state/security_state = decls_repository.get_decl(GLOB.using_map.security_state)
+	var/singleton/security_state/security_state = GET_SINGLETON(GLOB.using_map.security_state)
 	data["current_security_level_ref"] = any2ref(security_state.current_security_level)
 	data["current_security_level_title"] = security_state.current_security_level.name
 
 	data["cannot_change_security_level"] = !security_state.can_change_security_level()
 	data["current_security_level_is_high_security_level"] = security_state.current_security_level == security_state.high_security_level
 	var/list/security_levels = list()
-	for(var/decl/security_level/security_level in security_state.comm_console_security_levels)
+	for(var/singleton/security_level/security_level in security_state.comm_console_security_levels)
 		var/list/security_setup = list()
 		security_setup["title"] = security_level.name
 		security_setup["ref"] = any2ref(security_level)
-		security_levels[++security_levels.len] = security_setup
+		security_levels[LIST_PRE_INC(security_levels)] = security_setup
 	data["security_levels"] = security_levels
 
-	var/datum/comm_message_listener/l = obtain_message_listener()
+	var/singleton/comm_message_listener/l = GET_SINGLETON(/singleton/comm_message_listener)
 	data["messages"] = l.messages
-	data["message_deletion_allowed"] = l != global_message_listener
-	data["message_current_id"] = current_viewing_message_id
 	if(current_viewing_message)
 		data["message_current"] = current_viewing_message
 
@@ -97,7 +95,7 @@
 			option["option_target"] = EO.option_target
 			option["needs_syscontrol"] = EO.needs_syscontrol
 			option["silicon_allowed"] = EO.silicon_allowed
-			processed_evac_options[++processed_evac_options.len] = option
+			processed_evac_options[LIST_PRE_INC(processed_evac_options)] = option
 	data["evac_options"] = processed_evac_options
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
@@ -107,16 +105,10 @@
 		ui.set_initial_data(data)
 		ui.open()
 
-/datum/nano_module/program/comm/proc/is_autenthicated(var/mob/user)
+/datum/nano_module/program/comm/proc/is_authenticated(authenticated, mob/user)
 	if(program)
 		return program.can_run(user)
 	return TRUE
-
-/datum/nano_module/program/comm/proc/obtain_message_listener()
-	if(program)
-		var/datum/computer_file/program/comm/P = program
-		return P.message_core
-	return global_message_listener
 
 /datum/nano_module/program/comm/Topic(href, href_list)
 	if(..())
@@ -124,14 +116,14 @@
 	var/mob/user = usr
 	var/ntn_comm = (program && program.computer) ? program.computer.get_ntnet_capability(NTNET_COMMUNICATION) : TRUE
 	var/ntn_cont = (program && program.computer) ? program.computer.get_ntnet_capability(NTNET_SYSTEMCONTROL) : TRUE
-	var/datum/comm_message_listener/l = obtain_message_listener()
+	var/singleton/comm_message_listener/l = GET_SINGLETON(/singleton/comm_message_listener)
 	switch(href_list["action"])
 		if("sw_menu")
 			. = TOPIC_HANDLED
 			current_status = text2num(href_list["target"])
 		if("announce")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && !issilicon(usr) && ntn_comm)
+			if(is_authenticated(user) && !issilicon(usr) && ntn_comm)
 				if(user)
 					var/obj/item/card/id/id_card = user.GetIdCard()
 					crew_announcement.announcer = GetNameAndAssignmentFromId(id_card)
@@ -140,11 +132,11 @@
 				if(announcment_cooldown)
 					to_chat(usr, "Please allow at least one minute to pass between announcements")
 					return
-				var/input = input(usr, "Please write a message to announce to the [station_name()].", "Priority Announcement") as null|message
+				var/input = sanitize(input(usr, "Please write a message to announce to the [station_name()].", "Priority Announcement") as null|message, extra = FALSE)
 				if(!input || !can_still_topic())
 					return
 				var/affected_zlevels = GetConnectedZlevels(get_host_z())
-				crew_announcement.Announce(input, zlevels = affected_zlevels)
+				crew_announcement.Announce(input, msg_sanitized = TRUE, zlevels = affected_zlevels)
 				announcment_cooldown = 1
 				spawn(600)//One minute cooldown
 					announcment_cooldown = 0
@@ -152,41 +144,41 @@
 			. = TOPIC_HANDLED
 			if(href_list["target"] == "emagged")
 				if(program)
-					if(is_autenthicated(user) && program.computer.emagged() && !issilicon(usr) && ntn_comm)
+					if(is_authenticated(user) && program.computer.emagged() && !issilicon(usr) && ntn_comm)
 						if(centcomm_message_cooldown)
-							to_chat(usr, "<span class='warning'>Arrays recycling. Please stand by.</span>")
+							to_chat(usr, SPAN_WARNING("Arrays recycling. Please stand by."))
 							SSnano.update_uis(src)
 							return
 						var/input = sanitize(input(usr, "Please choose a message to transmit to \[ABNORMAL ROUTING CORDINATES\] via quantum entanglement.  Please be aware that this process is very expensive, and abuse will lead to... termination. Transmission does not guarantee a response. There is a 30 second delay before you may send another message, be clear, full and concise.", "To abort, send an empty message.", "") as null|text)
 						if(!input || !can_still_topic())
 							return
 						Syndicate_announce(input, usr)
-						to_chat(usr, "<span class='notice'>Message transmitted.</span>")
+						to_chat(usr, SPAN_NOTICE("Message transmitted."))
 						log_say("[key_name(usr)] has made an illegal announcement: [input]")
 						centcomm_message_cooldown = 1
 						spawn(300)//30 second cooldown
 							centcomm_message_cooldown = 0
 			else if(href_list["target"] == "regular")
-				if(is_autenthicated(user) && !issilicon(usr) && ntn_comm)
+				if(is_authenticated(user) && !issilicon(usr) && ntn_comm)
 					if(centcomm_message_cooldown)
-						to_chat(usr, "<span class='warning'>Arrays recycling. Please stand by.</span>")
+						to_chat(usr, SPAN_WARNING("Arrays recycling. Please stand by."))
 						SSnano.update_uis(src)
 						return
 					if(!is_relay_online())//Contact Centcom has a check, Syndie doesn't to allow for Traitor funs.
-						to_chat(usr, "<span class='warning'>No Emergency Bluespace Relay detected. Unable to transmit message.</span>")
+						to_chat(usr, SPAN_WARNING("No Emergency Bluespace Relay detected. Unable to transmit message."))
 						return
 					var/input = sanitize(input("Please choose a message to transmit to [GLOB.using_map.boss_short] via quantum entanglement.  Please be aware that this process is very expensive, and abuse will lead to... termination.  Transmission does not guarantee a response. There is a 30 second delay before you may send another message, be clear, full and concise.", "To abort, send an empty message.", "") as null|text)
 					if(!input || !can_still_topic())
 						return
 					Centcomm_announce(input, usr)
-					to_chat(usr, "<span class='notice'>Message transmitted.</span>")
+					to_chat(usr, SPAN_NOTICE("Message transmitted."))
 					log_say("[key_name(usr)] has made an IA [GLOB.using_map.boss_short] announcement: [input]")
 					centcomm_message_cooldown = 1
 					spawn(300) //30 second cooldown
 						centcomm_message_cooldown = 0
 		if("evac")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user))
+			if(is_authenticated(user))
 				var/datum/evacuation_option/selected_evac_option = evacuation_controller.evacuation_options[href_list["target"]]
 				if (isnull(selected_evac_option) || !istype(selected_evac_option))
 					return
@@ -199,7 +191,7 @@
 					evacuation_controller.handle_evac_option(selected_evac_option.option_target, user)
 		if("setstatus")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && ntn_cont)
+			if(is_authenticated(user) && ntn_cont)
 				switch(href_list["target"])
 					if("line1")
 						var/linput = reject_bad_text(sanitize(input("Line 1", "Enter Message Text", msg_line1) as text|null, 40), 40)
@@ -217,45 +209,39 @@
 						post_status(href_list["target"])
 		if("setalert")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && !issilicon(usr) && ntn_cont && ntn_comm)
-				var/decl/security_state/security_state = decls_repository.get_decl(GLOB.using_map.security_state)
-				var/decl/security_level/target_level = locate(href_list["target"]) in security_state.comm_console_security_levels
+			if(is_authenticated(user) && !issilicon(usr) && ntn_cont && ntn_comm)
+				var/singleton/security_state/security_state = GET_SINGLETON(GLOB.using_map.security_state)
+				var/singleton/security_level/target_level = locate(href_list["target"]) in security_state.comm_console_security_levels
 				if(target_level && security_state.can_switch_to(target_level))
 					var/confirm = alert("Are you sure you want to change the alert level to [target_level.name]?", name, "No", "Yes")
 					if(confirm == "Yes" && can_still_topic())
-						if(security_state.set_security_level(target_level))
-							SSstatistics.add_field(target_level.type,1)
+						security_state.set_security_level(target_level)
 			else
 				to_chat(usr, "You press the button, but a red light flashes and nothing happens.") //This should never happen
 
 			current_status = STATE_DEFAULT
 		if("viewmessage")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && ntn_comm)
+			if(is_authenticated(user) && ntn_comm)
 				current_viewing_message_id = text2num(href_list["target"])
 				for(var/list/m in l.messages)
 					if(m["id"] == current_viewing_message_id)
 						current_viewing_message = m
 				current_status = STATE_VIEWMESSAGE
-		if("delmessage")
-			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && ntn_comm && l != global_message_listener)
-				l.Remove(current_viewing_message)
-			current_status = STATE_MESSAGELIST
 		if("printmessage")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && ntn_comm)
+			if(is_authenticated(user) && ntn_comm)
 				if(!program.computer.print_paper(current_viewing_message["contents"],current_viewing_message["title"]))
-					to_chat(usr, "<span class='notice'>Hardware Error: Printer was unable to print the selected file.</span>")
+					to_chat(usr, SPAN_NOTICE("Hardware Error: Printer was unable to print the selected file."))
 		if("unbolt_doors")
 			GLOB.using_map.unbolt_saferooms()
-			to_chat(usr, "<span class='notice'>The console beeps, confirming the signal was sent to have the saferooms unbolted.</span>")
+			to_chat(usr, SPAN_NOTICE("The console beeps, confirming the signal was sent to have the saferooms unbolted."))
 		if("bolt_doors")
 			GLOB.using_map.bolt_saferooms()
-			to_chat(usr, "<span class='notice'>The console beeps, confirming the signal was sent to have the saferooms bolted.</span>")
+			to_chat(usr, SPAN_NOTICE("The console beeps, confirming the signal was sent to have the saferooms bolted."))
 		if("toggle_alert_border")
 			. = TOPIC_HANDLED
-			if(is_autenthicated(user) && ntn_comm)
+			if(is_authenticated(user) && ntn_comm)
 				post_status("toggle_alert_border")
 
 #undef STATE_DEFAULT
@@ -264,41 +250,32 @@
 #undef STATE_STATUSDISPLAY
 #undef STATE_ALERT_LEVEL
 
-/*
-General message handling stuff
-*/
-var/list/comm_message_listeners = list() //We first have to initialize list then we can use it.
-var/datum/comm_message_listener/global_message_listener = new //May be used by admins
-var/last_message_id = 0
-
 /proc/get_comm_message_id()
-	last_message_id = last_message_id + 1
-	return last_message_id
+	var/singleton/comm_message_listener/global_message_listener = GET_SINGLETON(/singleton/comm_message_listener)
+	global_message_listener.last_message_id = global_message_listener.last_message_id + 1
+	return global_message_listener.last_message_id
 
-/proc/post_comm_message(var/message_title, var/message_text)
+/proc/post_comm_message(message_title, message_text)
 	var/list/message = list()
 	message["id"] = get_comm_message_id()
 	message["title"] = message_title
 	message["contents"] = message_text
 
-	for (var/datum/comm_message_listener/l in comm_message_listeners)
-		l.Add(message)
+	var/singleton/comm_message_listener/global_message_listener = GET_SINGLETON(/singleton/comm_message_listener)
+	global_message_listener.Add(message)
 
-/datum/comm_message_listener
+/singleton/comm_message_listener
 	var/list/messages
+	var/last_message_id = 0
 
-/datum/comm_message_listener/New()
+/singleton/comm_message_listener/New()
 	..()
 	messages = list()
-	comm_message_listeners.Add(src)
 
-/datum/comm_message_listener/proc/Add(var/list/message)
-	messages[++messages.len] = message
+/singleton/comm_message_listener/proc/Add(list/message)
+	messages[LIST_PRE_INC(messages)] = message
 
-/datum/comm_message_listener/proc/Remove(var/list/message)
-	messages -= list(message)
-
-/proc/post_status(var/command, var/data1, var/data2)
+/proc/post_status(command, data1, data2)
 
 	var/datum/radio_frequency/frequency = radio_controller.return_frequency(1435)
 
@@ -319,7 +296,7 @@ var/last_message_id = 0
 			status_signal.data["toggle_alert_border"] = TRUE
 	frequency.post_signal(signal = status_signal)
 
-/proc/cancel_call_proc(var/mob/user)
+/proc/cancel_call_proc(mob/user)
 	if (!evacuation_controller)
 		return
 
@@ -330,12 +307,12 @@ var/last_message_id = 0
 
 
 /proc/is_relay_online()
-	for(var/obj/machinery/bluespacerelay/M in SSmachines.machinery)
-		if(M.stat == 0)
+	for(var/obj/machinery/bluespacerelay/M as anything in MACHINES_OF(/obj/machinery/bluespacerelay))
+		if(M.stat == FLAGS_OFF)
 			return 1
 	return 0
 
-/proc/call_shuttle_proc(var/mob/user, var/emergency)
+/proc/call_shuttle_proc(mob/user, emergency)
 	if (!evacuation_controller)
 		return
 
@@ -343,7 +320,7 @@ var/last_message_id = 0
 		emergency = 1
 
 	if(!GLOB.universe.OnShuttleCall(usr))
-		to_chat(user, "<span class='notice'>Cannot establish a bluespace connection.</span>")
+		to_chat(user, SPAN_NOTICE("Cannot establish a bluespace connection."))
 		return
 
 	if(GLOB.deathsquad.deployed)
@@ -362,7 +339,7 @@ var/last_message_id = 0
 		return
 
 	if(evacuation_controller.call_evacuation(user, _emergency_evac = emergency))
-		log_and_message_admins("[user? key_name(user) : "Autotransfer"] has called the shuttle.")
+		log_and_message_admins("has called the shuttle.", user)
 
 /proc/init_autotransfer()
 

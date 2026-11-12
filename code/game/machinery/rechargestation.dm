@@ -1,20 +1,20 @@
 /obj/machinery/recharge_station
 	name = "cyborg recharging station"
 	desc = "A heavy duty rapid charging system, designed to quickly recharge cyborg power reserves."
-	icon = 'icons/obj/objects.dmi'
-	icon_state = "borgcharger0"
+	icon = 'icons/obj/machines/robot_charger.dmi'
+	icon_state = "borgcharger"
 	density = TRUE
 	anchored = TRUE
 	idle_power_usage = 50
 	base_type = /obj/machinery/recharge_station
 	uncreated_component_parts = null
 	stat_immune = 0
-	construct_state = /decl/machine_construction/default/panel_closed
+	construct_state = /singleton/machine_construction/default/panel_closed
 
 	machine_name = "cyborg recharging station"
 	machine_desc = "A station for recharging robots, cyborgs, and silicon-based humanoids such as IPCs and full-body prosthetics."
 
-	var/overlay_icon = 'icons/obj/objects.dmi'
+	var/overlay_icon = 'icons/obj/machines/robot_charger.dmi'
 	var/mob/living/occupant = null
 	var/charging = 0
 	var/last_overlay_state
@@ -31,7 +31,7 @@
 	update_icon()
 
 /obj/machinery/recharge_station/Process()
-	if(stat & (BROKEN | NOPOWER))
+	if(inoperable())
 		return
 
 	//First, recharge/repair/etc the occupant
@@ -63,7 +63,7 @@
 			R.module.respawn_consumable(R, charging_power * CELLRATE / 250) //consumables are magical, apparently
 		// If we are capable of repairing damage, reboot destroyed components and allow them to be repaired for very large power spike.
 		var/list/damaged = R.get_damaged_components(1,1,1)
-		if(damaged.len && wire_rate && weld_rate)
+		if(length(damaged) && wire_rate && weld_rate)
 			for(var/datum/robot_component/C in damaged)
 				if((C.installed == -1) && use_power_oneoff(100 KILOWATTS, LOCAL) <= 0)
 					C.repair()
@@ -87,13 +87,21 @@
 		var/charge_used = diff - use_power_oneoff(diff / CELLRATE, LOCAL) * CELLRATE
 		target.give(charge_used)
 
-/obj/machinery/recharge_station/examine(mob/user)
+/obj/machinery/recharge_station/examine(mob/user, distance)
 	. = ..()
 	var/obj/item/cell/cell = get_cell()
 	if(cell)
 		to_chat(user, "The charge meter reads: [cell.percent()]%")
 	else
 		to_chat(user, "The indicator shows that the cell is missing.")
+
+	if (occupant)
+		if (distance <= 1)
+			to_chat(user, SPAN_NOTICE("It is currently occupied by \the [occupant]."))
+		else
+			to_chat(user, SPAN_NOTICE("It is currently occupied. You have to get closer to see what's inside."))
+	else
+		to_chat(user, SPAN_NOTICE("It is currently empty."))
 
 /obj/machinery/recharge_station/relaymove(mob/user as mob)
 	if(user.stat)
@@ -119,8 +127,8 @@
 
 /obj/machinery/recharge_station/RefreshParts()
 	..()
-	var/man_rating = Clamp(total_component_rating_of_type(/obj/item/stock_parts/manipulator), 0, 10)
-	var/cap_rating = Clamp(total_component_rating_of_type(/obj/item/stock_parts/capacitor), 0, 10)
+	var/man_rating = clamp(total_component_rating_of_type(/obj/item/stock_parts/manipulator), 0, 10)
+	var/cap_rating = clamp(total_component_rating_of_type(/obj/item/stock_parts/capacitor), 0, 10)
 
 	charging_power = 40000 + 40000 * cap_rating
 	weld_rate = max(0, man_rating - 3)
@@ -151,25 +159,76 @@
 
 /obj/machinery/recharge_station/on_update_icon()
 	..()
-	if(stat & BROKEN)
-		icon_state = "borgcharger0"
-		return
+	ClearOverlays()
+
+	if(panel_open)
+		AddOverlays("[icon_state]_panel")
 
 	if(occupant)
-		if(stat & NOPOWER)
-			icon_state = "borgcharger2"
-		else
-			icon_state = "borgcharger1"
+		icon_state = "borgcharger_closed"
+		if(is_powered())
+			AddOverlays("borgcharger_lights_working")
+			AddOverlays(emissive_appearance(icon, "borgcharger_lights_working"))
 	else
-		icon_state = "borgcharger0"
+		icon_state = "borgcharger"
 
 	last_overlay_state = overlay_state()
-	overlays = list(image(overlay_icon, overlay_state()))
+	AddOverlays(list(image(overlay_icon, overlay_state())))
+	AddOverlays(emissive_appearance(icon, "statn_c100"))
 
-/obj/machinery/recharge_station/Bumped(var/mob/living/silicon/robot/R)
+/obj/machinery/recharge_station/Bumped(mob/living/silicon/robot/R)
 	go_in(R)
 
-/obj/machinery/recharge_station/proc/go_in(var/mob/M)
+/obj/machinery/recharge_station/MouseDrop_T(atom/dropped, mob/living/user)
+	if (!issilicon(dropped) && !ishuman(dropped))
+		return ..()
+	if (!CanMouseDrop(dropped, user))
+		return FALSE
+
+	if (!hascell(dropped))
+		to_chat(user, SPAN_WARNING("\The [dropped] has no cell for \the [src] to charge."))
+		return TRUE
+	if (occupant)
+		to_chat(user, SPAN_WARNING("\The [src] is already in use."))
+		return TRUE
+
+	user.visible_message(
+		SPAN_NOTICE("\The [user] starts stuffing \a [dropped] into \the [src]."),
+		SPAN_NOTICE("You start stuffing \the [dropped] into \the [src]"),
+		exclude_mobs = list(dropped)
+	)
+	var/mob/living/living_dropped = dropped
+	living_dropped.show_message(
+		SPAN_NOTICE("\The [user] starts putting you into \the [src]."),
+		VISIBLE_MESSAGE,
+		SPAN_WARNING("Someone is stuffing you into a machine!")
+	)
+
+	if (!do_after(user, 5 SECONDS, src, DO_PUBLIC_UNIQUE))
+		return FALSE
+	if (!CanMouseDrop(dropped, user))
+		return FALSE
+	if (!hascell(dropped))
+		to_chat(user, SPAN_WARNING("\The [dropped] has no cell for \the [src] to charge."))
+		return TRUE
+	if (occupant)
+		to_chat(user, SPAN_WARNING("\The [src] is already in use."))
+		return TRUE
+
+	user.visible_message(
+		SPAN_NOTICE("\The [user] stuffs \a [dropped] into \the [src]."),
+		SPAN_NOTICE("You stuff \the [dropped] into \the [src]"),
+		exclude_mobs = list(dropped)
+	)
+	living_dropped.show_message(
+		SPAN_NOTICE("\The [user] starts stuffing you into \the [src]."),
+		VISIBLE_MESSAGE,
+		SPAN_WARNING("Someone stuffs you into a machine!")
+	)
+	go_in(dropped)
+	return TRUE
+
+/obj/machinery/recharge_station/proc/go_in(mob/M)
 
 
 	if(occupant)
@@ -185,7 +244,7 @@
 	update_icon()
 	return 1
 
-/obj/machinery/recharge_station/proc/hascell(var/mob/M)
+/obj/machinery/recharge_station/proc/hascell(mob/M)
 	if(isrobot(M))
 		var/mob/living/silicon/robot/R = M
 		return (R.cell)

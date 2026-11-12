@@ -43,7 +43,7 @@
 	var/fire_stacks
 
 	var/failed_last_breath = 0 //This is used to determine if the mob failed a breath. If they did fail a brath, they will attempt to breathe each tick, otherwise just once per 4 ticks.
-	var/possession_candidate // Can be possessed by ghosts if unplayed.
+	var/possession_candidate = FALSE // Can be possessed by ghosts if unplayed.
 
 	var/eye_blind = null	//Carbon
 	var/eye_blurry = null	//Carbon
@@ -65,3 +65,13 @@
 	// var/max_nutrition = MAX_NUTRITION
 
 	var/image/selected_image = null // Used for buildmode AI control stuff.
+
+	/// An associative list of /singleton/trait and trait level - See individual traits for valid levels
+	var/list/traits
+	/// Flags set by traits triggering behavior; currently used for allergies.
+	var/trait_flags
+
+	/// Some combination of HAZARD_FLAG_*. When set, the flagged hazard types will not damage the mob.
+	var/ignore_hazard_flags = FLAGS_OFF
+	/// Should this mob subscribe to the weather system for periodic weather effects?
+	var/weather_sensitive = FALSE

@@ -9,7 +9,7 @@
 	requires_ntnet = TRUE
 	available_on_ntnet = FALSE
 	available_on_syndinet = TRUE
-	nanomodule_path = /datum/nano_module/program/computer_dos/
+	nanomodule_path = /datum/nano_module/program/computer_dos
 	var/obj/machinery/ntnet_relay/target = null
 	var/dos_speed = 0
 	var/error = ""
@@ -54,7 +54,7 @@
 		// Probability of 1 is equal of completion percentage of DoS attack on this relay.
 		// Combined with UI updates this adds quite nice effect to the UI
 		var/percentage = PRG.target.dos_overload * 100 / PRG.target.dos_capacity
-		var/list/strings[0]
+		var/list/strings = list()
 		for(var/j, j<10, j++)
 			var/string = ""
 			for(var/i, i<20, i++)
@@ -62,11 +62,11 @@
 			strings.Add(string)
 		data["dos_strings"] = strings
 	else
-		var/list/relays[0]
+		var/list/relays = list()
 		for(var/obj/machinery/ntnet_relay/R in ntnet_global.relays)
-			relays.Add(R.uid)
+			relays += R.relay_id
 		data["relays"] = relays
-		data["focus"] = PRG.target ? PRG.target.uid : null
+		data["focus"] = PRG.target ? PRG.target.relay_id : null
 
 	ui = SSnano.try_update_ui(user, src, ui_key, ui, data, force_open)
 	if (!ui)
@@ -81,7 +81,7 @@
 		return TOPIC_HANDLED
 	if(href_list["PRG_target_relay"])
 		for(var/obj/machinery/ntnet_relay/R in ntnet_global.relays)
-			if("[R.uid]" == href_list["PRG_target_relay"])
+			if("[R.relay_id]" == href_list["PRG_target_relay"])
 				target = R
 		return TOPIC_HANDLED
 	if(href_list["PRG_reset"])
@@ -99,7 +99,7 @@
 		operator_skill = usr.get_skill_value(SKILL_COMPUTER)
 
 		var/list/sources_to_show = list(computer.get_network_tag())
-		var/extra_to_show = 2 * max(operator_skill - SKILL_ADEPT, 0)
+		var/extra_to_show = 2 * max(operator_skill - SKILL_TRAINED, 0)
 		if(extra_to_show)
 			for(var/i = 1, i <= extra_to_show, i++)
 				var/nid = pick(ntnet_global.registered_nids)
@@ -107,5 +107,5 @@
 				if(os.get_ntnet_status())
 					sources_to_show |= os.get_network_tag()
 
-		ntnet_global.add_log_with_ids_check("Excess traffic flood targeting Quantum Relay ([target.uid]) detected from [length(sources_to_show)] device\s: [english_list(sources_to_show)]")
+		ntnet_global.add_log_with_ids_check("Excess traffic flood targeting Quantum Relay ([target.relay_id]) detected from [length(sources_to_show)] device\s: [english_list(sources_to_show)]")
 		return TRUE

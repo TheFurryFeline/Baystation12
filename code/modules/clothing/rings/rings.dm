@@ -6,25 +6,25 @@
 	icon_state = "diamond"
 
 /obj/item/clothing/ring/engagement/attack_self(mob/user)
-	user.visible_message("<span class='warning'>\The [user] gets down on one knee, presenting \the [src].</span>","<span class='warning'>You get down on one knee, presenting \the [src].</span>")
+	user.visible_message(SPAN_WARNING("\The [user] gets down on one knee, presenting \the [src]."),SPAN_WARNING("You get down on one knee, presenting \the [src]."))
 
 /obj/item/clothing/ring/cti
-	name = "CTI ring"
+	name = "\improper CTI ring"
 	desc = "A ring commemorating graduation from CTI."
 	icon_state = "cti-grad"
 
 /obj/item/clothing/ring/mariner
-	name = "Mariner University ring"
+	name = "\improper Mariner University ring"
 	desc = "A ring commemorating graduation from Mariner University."
 	icon_state = "mariner-grad"
 
 /obj/item/clothing/ring/fleet
-	name = "Fleet ring"
+	name = "\improper Fleet ring"
 	desc = "A ring commemorating honorable service with the Sol Government's Fleet."
 	icon_state = "fleet"
 
 /obj/item/clothing/ring/ec
-	name = "Expeditionary Corps ring"
+	name = "\improper Expeditionary Corps ring"
 	desc = "A ring commemorating honorable service with the Sol Government's Expeditionary Corps."
 	icon_state = "ec"
 
@@ -36,12 +36,12 @@
 	desc = "A strange ring with symbols carved on it in some arcane language."
 	icon_state = "magic"
 
-/obj/item/clothing/ring/magic/equipped(var/mob/living/carbon/human/H, var/slot)
+/obj/item/clothing/ring/magic/equipped(mob/living/carbon/human/H, slot)
 	..()
 	if(istype(H) && slot == SLOT_GLOVES)
 		H.add_cloaking_source(src)
 
-/obj/item/clothing/ring/magic/dropped(var/mob/living/carbon/human/H)
+/obj/item/clothing/ring/magic/dropped(mob/living/carbon/human/H)
 	if(!..())
 		return 0
 
@@ -59,10 +59,10 @@
 	..()
 	create_reagents(15)
 
-/obj/item/clothing/ring/reagent/equipped(var/mob/living/carbon/human/H)
+/obj/item/clothing/ring/reagent/equipped(mob/living/carbon/human/H)
 	..()
 	if(istype(H) && H.gloves==src)
-		to_chat(H, "<span class='info'><b>You feel a prick as you slip on the ring.</b></span>")
+		to_chat(H, SPAN_INFO("<b>You feel a prick as you slip on the ring.</b>"))
 
 		if(reagents.total_volume)
 			if(H.reagents)
@@ -87,11 +87,11 @@
 /////////////////////////////////////////
 //Seals and Signet Rings
 
-/obj/item/clothing/ring/seal/
+/obj/item/clothing/ring/seal
 	icon = 'icons/obj/clothing/obj_hands_ring.dmi'
 
 /obj/item/clothing/ring/seal/secgen
-	name = "Secretary-General's official seal"
+	name = "\improper Secretary-General's official seal"
 	desc = "The official seal of the Secretary-General of the Sol Central Government, featured prominently on a silver ring."
 	icon_state = "seal-secgen"
 
@@ -106,12 +106,22 @@
 	icon_state = "seal-signet"
 	var/nameset = 0
 
+/obj/item/clothing/ring/seal/lhossekskull
+	name = "lhossek skull ring"
+	desc = "A golden ring adorned with the Lhossek skull emblem of the Grand Stratagem."
+	icon_state = "seal-lhossek"
+
+/obj/item/clothing/ring/seal/lhossekskull/fruitfullights
+	name = "fruitful lights ring"
+	desc = "A ring adorned with a symbol associated with the Fruitful Lights sect."
+	icon_state = "seal-fruitfullights"
+
 /obj/item/clothing/ring/seal/signet/attack_self(mob/user)
 	if(nameset)
-		to_chat(user, "<span class='notice'>The [src] has already been claimed!</span>")
+		to_chat(user, SPAN_NOTICE("The [src] has already been claimed!"))
 		return
 
 	nameset = 1
-	to_chat(user, "<span class='notice'>You claim the [src] as your own!</span>")
+	to_chat(user, SPAN_NOTICE("You claim the [src] as your own!"))
 	name = "[user]'s signet ring"
 	desc = "A signet ring belonging to [user], for when you're too sophisticated to sign letters."

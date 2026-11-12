@@ -37,14 +37,32 @@
 /datum/fabricator_recipe/tape
 	path = /obj/item/device/tape
 
-/datum/fabricator_recipe/tube/large
-	path = /obj/item/light/tube/large
+/datum/fabricator_recipe/tube/large/warm
+	path = /obj/item/light/tube/large/warm
 
-/datum/fabricator_recipe/tube
-	path = /obj/item/light/tube
+/datum/fabricator_recipe/tube/large/cool
+	path = /obj/item/light/tube/large/cool
 
-/datum/fabricator_recipe/bulb
-	path = /obj/item/light/bulb
+/datum/fabricator_recipe/tube/large/white
+	path = /obj/item/light/tube/large/white
+
+/datum/fabricator_recipe/tube/warm
+	path = /obj/item/light/tube/warm
+
+/datum/fabricator_recipe/tube/cool
+	path = /obj/item/light/tube/cool
+
+/datum/fabricator_recipe/tube/white
+	path = /obj/item/light/tube/white
+
+/datum/fabricator_recipe/bulb/warm
+	path = /obj/item/light/bulb/warm
+
+/datum/fabricator_recipe/bulb/cool
+	path = /obj/item/light/bulb/cool
+
+/datum/fabricator_recipe/bulb/white
+	path = /obj/item/light/bulb/white
 
 /datum/fabricator_recipe/ashtray_glass
 	path = /obj/item/material/ashtray/glass
@@ -66,19 +84,19 @@
 
 /datum/fabricator_recipe/clipboard_steel
 	name = "clipboard, steel"
-	path = /obj/item/material/clipboard/steel
+	path = /obj/item/material/folder/clipboard/steel
 
 /datum/fabricator_recipe/clipboard_alum
 	name = "clipboard, aluminium"
-	path = /obj/item/material/clipboard/aluminium
+	path = /obj/item/material/folder/clipboard/aluminium
 
 /datum/fabricator_recipe/clipboard_glass
 	name = "clipboard, glass"
-	path = /obj/item/material/clipboard/glass
+	path = /obj/item/material/folder/clipboard/glass
 
 /datum/fabricator_recipe/clipboard_alum
 	name = "clipboard, plastic"
-	path = /obj/item/material/clipboard/plastic
+	path = /obj/item/material/folder/clipboard/plastic
 
 /datum/fabricator_recipe/destTagger
 	path = /obj/item/device/destTagger
@@ -95,3 +113,6 @@
 
 /datum/fabricator_recipe/toolbox
 	path = /obj/item/storage/toolbox
+
+/datum/fabricator_recipe/flatpack_orebox
+	path = /obj/item/flatpack/ore_box

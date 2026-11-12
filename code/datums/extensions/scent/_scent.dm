@@ -1,19 +1,21 @@
 #define SCENT_DESC_ODOR        "odour"
 #define SCENT_DESC_SMELL       "smell"
 #define SCENT_DESC_FRAGRANCE   "fragrance"
+#define SCENT_DESC_HAZE        "haze"
+#define SCENT_DESC_PLUME       "plume"
 
 /*****
 Scent intensity
 *****/
 
-/decl/scent_intensity
+/singleton/scent_intensity
 	var/cooldown = 5 MINUTES
 	var/intensity = 1
 
-/decl/scent_intensity/proc/can_smell(mob/living/carbon/human/user)
+/singleton/scent_intensity/proc/can_smell(mob/living/carbon/human/user)
 	return TRUE
 
-/decl/scent_intensity/proc/PrintMessage(mob/living/carbon/human/user, var/descriptor, scent)
+/singleton/scent_intensity/proc/PrintMessage(mob/living/carbon/human/user, descriptor, scent)
 	if(!can_smell(user))
 		return
 	if(!user.isSynthetic())
@@ -22,11 +24,11 @@ Scent intensity
 		to_chat(user, SPAN_NOTICE("Your sensors detect trace amounts of [scent] in the air."))
 
 
-/decl/scent_intensity/normal
+/singleton/scent_intensity/normal
 	cooldown = 4 MINUTES
 	intensity = 2
 
-/decl/scent_intensity/normal/PrintMessage(mob/living/carbon/human/user, var/descriptor, scent)
+/singleton/scent_intensity/normal/PrintMessage(mob/living/carbon/human/user, descriptor, scent)
 	if(!can_smell(user))
 		return
 	if(!user.isSynthetic())
@@ -34,11 +36,11 @@ Scent intensity
 	else
 		to_chat(user, SPAN_NOTICE("Your sensors pick up the presence of [scent] in the air."))
 
-/decl/scent_intensity/strong
+/singleton/scent_intensity/strong
 	cooldown = 3 MINUTES
 	intensity = 3
 
-/decl/scent_intensity/strong/PrintMessage(mob/living/carbon/human/user, var/descriptor, scent)
+/singleton/scent_intensity/strong/PrintMessage(mob/living/carbon/human/user, descriptor, scent)
 	if(!can_smell(user))
 		return
 	if(!user.isSynthetic())
@@ -46,6 +48,17 @@ Scent intensity
 	else
 		to_chat(user, SPAN_WARNING("Your sensors pick up an intense concentration of [scent]."))
 
+/singleton/scent_intensity/overpowering
+	cooldown = 1 MINUTES
+	intensity = 4
+
+/singleton/scent_intensity/overpowering/PrintMessage(mob/living/carbon/human/user, descriptor, scent)
+	if(!can_smell(user))
+		return
+	if(!user.isSynthetic())
+		to_chat(user, SPAN_WARNING("The overwhelming [descriptor] of [scent] assaults your senses. You stifle a gag."))
+	else
+		to_chat(user, SPAN_WARNING("ALERT! Your sensors pick up an overwhelming concentration of [scent]."))
 /*****
  Scent extensions
  Usage:
@@ -62,18 +75,18 @@ Scent intensity
 	flags = EXTENSION_FLAG_IMMEDIATE
 
 	var/scent = "something"
-	var/decl/scent_intensity/intensity = /decl/scent_intensity
+	var/singleton/scent_intensity/intensity = /singleton/scent_intensity
 	var/descriptor = SCENT_DESC_SMELL //unambiguous descriptor of smell; food is generally good, sewage is generally bad. how 'nice' the scent is
 	var/range = 1 //range in tiles
 
 /datum/extension/scent/New()
 	..()
 	if(ispath(intensity))
-		intensity = decls_repository.get_decl(intensity)
-	START_PROCESSING(SSprocessing, src)
+		intensity = GET_SINGLETON(intensity)
+	START_PROCESSING(SSscents, src)
 
 /datum/extension/scent/Destroy()
-	STOP_PROCESSING(SSprocessing, src)
+	STOP_PROCESSING(SSscents, src)
 	. = ..()
 
 /datum/extension/scent/Process()
@@ -83,12 +96,19 @@ Scent intensity
 		return PROCESS_KILL
 	emit_scent()
 
+/proc/can_detect_scents(mob/living/carbon/human/smeller)
+	var/turf/turf = get_turf(smeller)
+	if(!turf)
+		return FALSE
+	if(smeller.stat != CONSCIOUS || smeller.failed_last_breath || smeller.wear_mask || smeller.head && smeller.head.permeability_coefficient < 1 || !turf.return_air())
+		return FALSE
+	return TRUE
+
 /datum/extension/scent/proc/emit_scent()
 	for(var/mob/living/carbon/human/H in all_hearers(holder, range))
-		var/turf/T = get_turf(H.loc)
-		if(!T)
+		if(H.species && !H.species.passive_scent_detection)
 			continue
-		if(H.stat != CONSCIOUS || H.failed_last_breath || H.wear_mask || H.head && H.head.permeability_coefficient < 1 || !T.return_air())
+		if(!can_detect_scents(H))
 			continue
 		if(H.last_smelt < world.time)
 			intensity.PrintMessage(H, descriptor, scent)
@@ -99,12 +119,12 @@ Custom subtype
 	set_extension(atom, /datum/extension/scent/custom, scent = "scent", intensity = SCENT_INTENSITY_, ... etc)
 This will let you set an extension without needing to define it beforehand. Note that all vars are required if generating.
 *****/
-/datum/extension/scent/custom/New(var/datum/holder, var/provided_scent, var/provided_intensity, var/provided_descriptor, var/provided_range)
+/datum/extension/scent/custom/New(datum/holder, provided_scent, provided_intensity, provided_descriptor, provided_range)
 	..()
 	if(provided_scent && provided_intensity && provided_descriptor && provided_range)
 		scent = provided_scent
 		if(ispath(provided_intensity))
-			intensity = decls_repository.get_decl(provided_intensity)
+			intensity = GET_SINGLETON(provided_intensity)
 		descriptor = provided_descriptor
 		range = provided_range
 	else
@@ -119,7 +139,7 @@ Reagents have the following vars, which coorelate to the vars on the standard sc
 To add a scent extension to an atom using a reagent's info, where R. is the reagent, use set_scent_by_reagents().
 *****/
 
-/proc/set_scent_by_reagents(var/atom/smelly_atom)
+/proc/set_scent_by_reagents(atom/smelly_atom)
 	var/datum/reagent/smelliest
 	var/datum/reagent/scent_intensity
 	if(!smelly_atom.reagents || !smelly_atom.reagents.total_volume)
@@ -128,10 +148,56 @@ To add a scent extension to an atom using a reagent's info, where R. is the reag
 		var/datum/reagent/R = reagent_to_compare
 		if(!R.scent)
 			continue
-		var/decl/scent_intensity/SI = decls_repository.get_decl(R.scent_intensity)
+		var/singleton/scent_intensity/SI = GET_SINGLETON(R.scent_intensity)
 		var/r_scent_intensity = R.volume * SI.intensity
 		if(r_scent_intensity > scent_intensity)
 			smelliest = R
 			scent_intensity = r_scent_intensity
 	if(smelliest)
 		set_extension(smelly_atom, /datum/extension/scent/custom, smelliest.scent, smelliest.scent_intensity, smelliest.scent_descriptor, smelliest.scent_range)
+
+/*****
+Active sampling
+	Used by species that do not passively notice scents.
+	See also /singleton/species/passive_scent_detection.
+*****/
+#define SCENT_SAMPLE_RANGE 12
+
+/proc/get_scent_distance_text(distance)
+	if(distance <= 1)
+		return "very close"
+	if(distance <= 4)
+		return "nearby"
+	return "far off"
+
+/proc/sample_scents(mob/living/carbon/human/user)
+	var/turf/user_turf = get_turf(user)
+	if(!user_turf || !can_detect_scents(user))
+		return list()
+
+	var/list/nearest = list()
+	var/list/nearest_dist = list()
+
+	for(var/datum/extension/scent/scent as anything in SSscents.processing)
+		var/turf/source = get_turf(scent.holder)
+		if(!source || source.z != user_turf.z)
+			continue
+		var/distance = get_dist(user_turf, source)
+		if(distance > SCENT_SAMPLE_RANGE)
+			continue
+		if(isnull(nearest_dist[scent.scent]) || distance < nearest_dist[scent.scent])
+			nearest[scent.scent] = scent
+			nearest_dist[scent.scent] = distance
+
+	var/list/by_location = list()
+	for(var/scent_name in nearest)
+		var/datum/extension/scent/scent = nearest[scent_name]
+		var/direction = get_dir(user_turf, get_turf(scent.holder))
+		var/location = direction ? "[get_scent_distance_text(nearest_dist[scent_name])] to the [dir2text(direction)]" : "right where you stand"
+		LAZYADD(by_location[location], "the [scent.descriptor] of [scent.scent]")
+
+	var/list/messages = list()
+	for(var/location in by_location)
+		messages += "You taste [english_list(by_location[location])], [location]."
+
+	return messages

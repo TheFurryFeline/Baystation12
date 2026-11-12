@@ -1,10 +1,11 @@
 /obj/item/clothing/accessory/storage
+	abstract_type = /obj/item/clothing/accessory/storage
 	name = "base storage accessory"
-	icon_state = "webbing"
+	icon_state = null
 	slot = ACCESSORY_SLOT_UTILITY
 	w_class = ITEM_SIZE_NORMAL
 	accessory_flags = ACCESSORY_REMOVABLE | ACCESSORY_HIGH_VISIBILITY
-	on_rolled = list("down" = "none")
+	on_rolled_down = ACCESSORY_ROLLED_NONE
 
 	var/obj/item/storage/internal/container
 	var/max_w_class = ITEM_SIZE_SMALL
@@ -13,8 +14,8 @@
 
 /obj/item/clothing/accessory/storage/Initialize()
 	. = ..()
-	INIT_SKIP_QDELETED
-	INIT_DISALLOW_TYPE(/obj/item/clothing/accessory/storage)
+	if (. == INITIALIZE_HINT_QDEL)
+		return
 	if (!slots)
 		. = INITIALIZE_HINT_QDEL
 		crash_with("[type] created with no slots")
@@ -37,9 +38,10 @@
 		..(over_object)
 
 
-/obj/item/clothing/accessory/storage/attackby(obj/item/I, mob/user)
+/obj/item/clothing/accessory/storage/use_tool(obj/item/tool, mob/living/user, list/click_params)
 	if (container)
-		return container.attackby(I, user)
+		return container.use_tool(tool, user)
+	return ..()
 
 
 /obj/item/clothing/accessory/storage/emp_act(severity)
@@ -147,14 +149,13 @@
 
 /obj/item/clothing/accessory/storage/knifeharness/Initialize()
 	. = ..()
-	INIT_SKIP_QDELETED
 	if (container)
-		container.can_hold = list(
+		container.contents_allowed = list(
 			/obj/item/material/hatchet,
 			/obj/item/material/knife
 		)
 		for (var/i = 1 to abs(slots))
-			new /obj/item/material/knife/table/unathi (container)
+			new /obj/item/material/knife/unathi (container)
 
 
 /obj/item/clothing/accessory/storage/bandolier
@@ -167,16 +168,14 @@
 
 /obj/item/clothing/accessory/storage/bandolier/Initialize()
 	. = ..()
-	INIT_SKIP_QDELETED
 	if (container)
-		container.can_hold = list(
+		container.contents_allowed = list(
 			/obj/item/ammo_casing,
 			/obj/item/grenade,
 			/obj/item/material/knife,
 			/obj/item/material/star,
 			/obj/item/rcd_ammo,
 			/obj/item/reagent_containers/syringe,
-			/obj/item/reagent_containers/hypospray,
 			/obj/item/reagent_containers/hypospray/autoinjector,
 			/obj/item/syringe_cartridge,
 			/obj/item/plastique,
@@ -198,7 +197,6 @@
 
 /obj/item/clothing/accessory/storage/bandolier/safari/Initialize()
 	. = ..()
-	INIT_SKIP_QDELETED
 	if (container)
 		for(var/i = 1 to abs(slots))
 			new /obj/item/net_shell (container)

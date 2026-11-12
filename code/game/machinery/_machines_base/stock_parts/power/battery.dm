@@ -14,11 +14,11 @@
 	qdel(cell)
 	. = ..()
 
-/obj/item/stock_parts/power/battery/on_install(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/on_install(obj/machinery/machine)
 	..()
 	start_processing(machine)
 
-/obj/item/stock_parts/power/battery/on_uninstall(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/on_uninstall(obj/machinery/machine)
 	if(status & PART_STAT_ACTIVE)
 		machine.update_power_channel(cached_channel)
 		unset_status(machine, PART_STAT_ACTIVE)
@@ -28,11 +28,11 @@
 	..()
 
 // None of these helpers actually change the cell's loc. They only manage internal references and state.
-/obj/item/stock_parts/power/battery/proc/add_cell(var/obj/machinery/machine, var/obj/item/cell/new_cell)
+/obj/item/stock_parts/power/battery/proc/add_cell(obj/machinery/machine, obj/item/cell/new_cell)
 	if(cell)
 		return
 	cell = new_cell
-	GLOB.destroyed_event.register(cell, src, .proc/remove_cell)
+	GLOB.destroyed_event.register(cell, src, PROC_REF(remove_cell))
 	if(!machine)
 		machine = loc
 	if(istype(machine))
@@ -60,14 +60,14 @@
 	cell.add_fingerprint(user)
 	cell.update_icon()
 
-	user.visible_message("<span class='warning'>\The [user] removes the power cell from [src]!</span>",\
-							"<span class='notice'>You remove the power cell.</span>")
+	user.visible_message(SPAN_WARNING("\The [user] removes the power cell from [src]!"),\
+							SPAN_NOTICE("You remove the power cell."))
 	. = remove_cell()
 	var/obj/machinery/machine = loc
 	if(machine)
 		machine.update_icon()
 
-/obj/item/stock_parts/power/battery/machine_process(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/machine_process(obj/machinery/machine)
 	last_cell_charge = cell && cell.charge
 
 	if(status & PART_STAT_ACTIVE)
@@ -83,7 +83,7 @@
 				machine.power_change()
 		return // We don't recharge if discharging
 
-	if((machine.stat & NOPOWER) && cell && cell.fully_charged())
+	if((!machine.is_powered()) && cell && cell.fully_charged())
 		machine.power_change()
 		return // This suggests that we should be powering the machine instead, so let's try that
 
@@ -98,31 +98,31 @@
 	var/give = cell.give(charge_rate) / CELLRATE
 	A.use_power_oneoff(give, charge_channel)
 
-/obj/item/stock_parts/power/battery/can_provide_power(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/can_provide_power(obj/machinery/machine)
 	if(cell && cell.check_charge(CELLRATE * machine.get_power_usage()))
 		machine.update_power_channel(LOCAL)
 		set_status(machine, PART_STAT_ACTIVE)
 		return TRUE
 	return FALSE
 
-/obj/item/stock_parts/power/battery/can_use_power_oneoff(var/obj/machinery/machine, var/amount, var/channel)
+/obj/item/stock_parts/power/battery/can_use_power_oneoff(obj/machinery/machine, amount, channel)
 	. = 0
 	if(cell && channel == LOCAL)
 		return min(cell.charge / CELLRATE, amount)
 
-/obj/item/stock_parts/power/battery/use_power_oneoff(var/obj/machinery/machine, var/amount, var/channel)
+/obj/item/stock_parts/power/battery/use_power_oneoff(obj/machinery/machine, amount, channel)
 	. = 0
 	if(cell && channel == LOCAL)
 		. = cell.use(amount * CELLRATE) / CELLRATE
 		charge_wait_counter = initial(charge_wait_counter) // If we are providing power, we wait to start charging.
 
-/obj/item/stock_parts/power/battery/not_needed(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/not_needed(obj/machinery/machine)
 	if(status & PART_STAT_ACTIVE)
 		unset_status(machine, PART_STAT_ACTIVE)
 		charge_wait_counter = initial(charge_wait_counter)
 
 // Find a cell from the machine building materials if possible.
-/obj/item/stock_parts/power/battery/on_refresh(var/obj/machinery/machine)
+/obj/item/stock_parts/power/battery/on_refresh(obj/machinery/machine)
 	if(machine && !cell)
 		var/obj/item/stock_parts/building_material/mat = machine.get_component_of_type(/obj/item/stock_parts/building_material)
 		var/obj/item/cell/cell = mat && mat.remove_material(/obj/item/cell, 1)
@@ -136,23 +136,24 @@
 	icon_state = "battery[!!cell]"
 
 // Cell interaction
-/obj/item/stock_parts/power/battery/attackby(obj/item/I, mob/user)
+/obj/item/stock_parts/power/battery/use_tool(obj/item/I, mob/living/user, list/click_params)
 	var/obj/machinery/machine = loc
 
 	// Interactions with/without machine
 	if(istype(I, /obj/item/cell))
 		if(cell)
-			to_chat(user, "There is a power cell already installed.")
+			to_chat(user, SPAN_WARNING("There is a power cell already installed."))
 			return TRUE
-		if(istype(machine) && (machine.stat & MAINT))
-			to_chat(user, "<span class='warning'>There is no connector for your power cell.</span>")
+		if(istype(machine) && (GET_FLAGS(machine.stat, MACHINE_STAT_MAINT)))
+			to_chat(user, SPAN_WARNING("There is no connector for your power cell."))
 			return TRUE
 		if(I.w_class != ITEM_SIZE_NORMAL)
-			to_chat(user, "\The [I] is too [I.w_class < ITEM_SIZE_NORMAL? "small" : "large"] to fit here.")
+			to_chat(user, SPAN_WARNING("\The [I] is too [I.w_class < ITEM_SIZE_NORMAL? "small" : "large"] to fit here."))
 			return TRUE
 
 		if(!user.unEquip(I, src))
-			return
+			FEEDBACK_UNEQUIP_FAILURE(user, I)
+			return TRUE
 		add_cell(machine, I)
 		user.visible_message(\
 			SPAN_WARNING("\The [user] has inserted the power cell to \the [src]!"),\
@@ -162,6 +163,8 @@
 	// Interactions without machine
 	if(!istype(machine))
 		return ..()
+
+	return ..()
 
 /obj/item/stock_parts/power/battery/attack_self(mob/user)
 	if(cell)

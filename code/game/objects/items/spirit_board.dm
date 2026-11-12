@@ -1,7 +1,7 @@
 /obj/item/spirit_board
 	name = "spirit board"
 	desc = "A wooden board with letters etched into it, used in seances."
-	icon = 'icons/obj/objects.dmi'
+	icon = 'icons/obj/spiritboard.dmi'
 	icon_state = "spirit_board"
 	density = TRUE
 	var/next_use = 0
@@ -20,7 +20,7 @@
 
 
 //ATTACK GHOST IGNORING PARENT RETURN VALUE
-/obj/item/spirit_board/attack_ghost(var/mob/observer/ghost/user)
+/obj/item/spirit_board/attack_ghost(mob/observer/ghost/user)
 	if(GLOB.cult.max_cult_rating >= CULT_GHOSTS_2)
 		spirit_board_pick_letter(user)
 	return ..()

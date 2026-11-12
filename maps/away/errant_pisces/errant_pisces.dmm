@@ -18,13 +18,11 @@
 /area/errant_pisces/bow_port)
 "af" = (
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
 "ag" = (
@@ -35,13 +33,13 @@
 /obj/structure/window/reinforced{
 	dir = 8
 	},
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
 "ah" = (
 /obj/machinery/atmospherics/pipe/manifold/visible/fuel,
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
 "ai" = (
@@ -49,7 +47,7 @@
 	dir = 4
 	},
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
 "aj" = (
@@ -57,11 +55,10 @@
 	dir = 10
 	},
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /obj/machinery/alarm{
 	dir = 8;
-	pixel_x = 25;
-	pixel_y = 0
+	pixel_x = 25
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
@@ -70,12 +67,10 @@
 	dir = 6
 	},
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
 /turf/simulated/floor/plating,
@@ -83,7 +78,7 @@
 "al" = (
 /obj/machinery/atmospherics/pipe/manifold/visible/fuel,
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
 "am" = (
@@ -91,7 +86,7 @@
 	dir = 4
 	},
 /obj/structure/window/reinforced,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
 "an" = (
@@ -102,16 +97,15 @@
 /obj/structure/window/reinforced{
 	dir = 4
 	},
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
 "ao" = (
 /obj/machinery/alarm{
 	dir = 8;
-	pixel_x = 25;
-	pixel_y = 0
+	pixel_x = 25
 	},
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
 "ap" = (
@@ -225,7 +219,6 @@
 /area/errant_pisces/bow_starboard)
 "aF" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -243,7 +236,7 @@
 /obj/machinery/atmospherics/portables_connector{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 9;
 	icon_state = "warning"
 	},
@@ -253,7 +246,7 @@
 /obj/machinery/atmospherics/unary/tank/hydrogen{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 1
 	},
 /turf/simulated/floor/plating,
@@ -262,15 +255,14 @@
 /obj/machinery/atmospherics/unary/tank/hydrogen{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 5
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
 "aJ" = (
 /obj/machinery/atmospherics/unary/heater{
-	dir = 1;
-	icon_state = "heater_0"
+	dir = 1
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_starboard)
@@ -282,8 +274,7 @@
 /area/errant_pisces/bow_starboard)
 "aL" = (
 /obj/machinery/atmospherics/valve{
-	dir = 8;
-	icon_state = "map_valve0"
+	dir = 8
 	},
 /obj/machinery/door/airlock,
 /obj/machinery/door/firedoor,
@@ -297,8 +288,7 @@
 /area/errant_pisces/bow_port)
 "aN" = (
 /obj/machinery/atmospherics/unary/heater{
-	dir = 1;
-	icon_state = "heater_0"
+	dir = 1
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
@@ -306,7 +296,7 @@
 /obj/machinery/atmospherics/unary/tank/hydrogen{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 9;
 	icon_state = "warning"
 	},
@@ -316,7 +306,7 @@
 /obj/machinery/atmospherics/unary/tank/hydrogen{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 1
 	},
 /turf/simulated/floor/plating,
@@ -326,14 +316,13 @@
 /obj/machinery/atmospherics/portables_connector{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 5
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_port)
 "aR" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -448,7 +437,7 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/plating,
@@ -473,10 +462,9 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "bo" = (
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
-/obj/vehicle/train/cargo/trolley,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "bp" = (
@@ -487,11 +475,11 @@
 	desc = "A brightly-colored terminal built from stress-resistant materials. Used to read data from a connected flight recorder.";
 	name = "black box terminal"
 	},
-/obj/effect/computer_file_creator/ahabs_harpoon02,
+/obj/computer_file_creator/ahabs_harpoon02,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "bq" = (
-/obj/machinery/computer/ship/engines,
+/obj/machinery/computer/modular/preset/helm,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "br" = (
@@ -507,7 +495,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/storage_port)
 "bu" = (
-/obj/effect/floor_decal/solarpanel,
+/obj/floor_decal/solarpanel,
 /obj/structure/cable/yellow{
 	d2 = 4;
 	icon_state = "0-4"
@@ -515,7 +503,7 @@
 /obj/machinery/power/solar{
 	id = "XynergySolarStarboard"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bv" = (
 /obj/structure/cable/yellow{
@@ -528,10 +516,10 @@
 	d2 = 8;
 	icon_state = "2-8"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bw" = (
-/obj/effect/floor_decal/solarpanel,
+/obj/floor_decal/solarpanel,
 /obj/structure/cable/yellow{
 	d2 = 8;
 	icon_state = "0-8"
@@ -539,7 +527,7 @@
 /obj/machinery/power/solar{
 	id = "XynergySolarStarboard"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bx" = (
 /obj/machinery/light/small{
@@ -578,15 +566,14 @@
 /obj/machinery/atmospherics/pipe/simple/visible/blue{
 	dir = 10
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
 "bC" = (
 /obj/machinery/atmospherics/pipe/simple/visible/yellow{
-	dir = 5;
-	icon_state = "intact"
+	dir = 5
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
@@ -622,13 +609,9 @@
 /area/errant_pisces/enginering)
 "bJ" = (
 /obj/machinery/portable_atmospherics/canister,
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
-/turf/simulated/floor/plating,
-/area/errant_pisces/enginering)
-"bK" = (
-/obj/vehicle/train/cargo/trolley,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "bL" = (
@@ -672,7 +655,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/storage_port)
 "bQ" = (
-/obj/effect/floor_decal/solarpanel,
+/obj/floor_decal/solarpanel,
 /obj/structure/cable/yellow{
 	d2 = 4;
 	icon_state = "0-4"
@@ -680,10 +663,10 @@
 /obj/machinery/power/solar{
 	id = "XynergySolarPort"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bR" = (
-/obj/effect/floor_decal/solarpanel,
+/obj/floor_decal/solarpanel,
 /obj/structure/cable/yellow{
 	d2 = 8;
 	icon_state = "0-8"
@@ -691,7 +674,7 @@
 /obj/machinery/power/solar{
 	id = "XynergySolarPort"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bS" = (
 /obj/structure/cable/yellow{
@@ -709,7 +692,7 @@
 	d2 = 8;
 	icon_state = "2-8"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "bT" = (
 /obj/machinery/portable_atmospherics/canister/nitrogen,
@@ -728,7 +711,7 @@
 /area/errant_pisces/atmos)
 "bW" = (
 /obj/machinery/atmospherics/binary/pump/on,
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/plating,
@@ -737,8 +720,7 @@
 /obj/machinery/atmospherics/omni/filter{
 	tag_east = 4;
 	tag_north = 2;
-	tag_south = 1;
-	tag_west = 0
+	tag_south = 1
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
@@ -757,16 +739,16 @@
 /area/errant_pisces/atmos)
 "ca" = (
 /obj/machinery/portable_atmospherics/canister,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cb" = (
 /obj/machinery/portable_atmospherics/canister/nitrogen,
-/obj/effect/floor_decal/industrial/warning,
+/obj/floor_decal/industrial/warning,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cc" = (
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 6
 	},
 /turf/simulated/floor/plating,
@@ -803,15 +785,14 @@
 /area/errant_pisces/atmos)
 "ci" = (
 /obj/machinery/atmospherics/pipe/simple/visible/universal,
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
 "cj" = (
 /obj/machinery/atmospherics/pipe/simple/visible/blue{
-	dir = 6;
-	icon_state = "intact"
+	dir = 6
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
@@ -823,7 +804,6 @@
 /area/errant_pisces/atmos)
 "cl" = (
 /obj/machinery/atmospherics/omni/filter{
-	tag_east = 0;
 	tag_north = 2;
 	tag_south = 1;
 	tag_west = 3
@@ -832,8 +812,7 @@
 /area/errant_pisces/atmos)
 "cm" = (
 /obj/machinery/atmospherics/pipe/manifold/visible/red{
-	dir = 8;
-	icon_state = "map"
+	dir = 8
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
@@ -883,8 +862,7 @@
 /area/errant_pisces/atmos)
 "cv" = (
 /obj/machinery/atmospherics/pipe/simple/visible/red{
-	dir = 4;
-	icon_state = "intact"
+	dir = 4
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
@@ -897,10 +875,9 @@
 "cx" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/visible/blue{
-	dir = 6;
-	icon_state = "intact"
+	dir = 6
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 6
 	},
 /turf/simulated/floor/plating,
@@ -917,7 +894,6 @@
 /area/errant_pisces/atmos)
 "cA" = (
 /obj/machinery/atmospherics/omni/filter{
-	tag_east = 0;
 	tag_north = 2;
 	tag_south = 1;
 	tag_west = 5
@@ -929,8 +905,8 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cC" = (
-/obj/effect/landmark/corpse/engineer,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/engineer,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cD" = (
@@ -960,7 +936,6 @@
 /area/errant_pisces/storage_port)
 "cI" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/plating,
@@ -989,15 +964,14 @@
 /area/errant_pisces/atmos)
 "cM" = (
 /obj/machinery/atmospherics/pipe/manifold/visible/blue,
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 6
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/atmos)
 "cN" = (
 /obj/machinery/atmospherics/pipe/simple/visible/blue{
-	dir = 9;
-	icon_state = "intact"
+	dir = 9
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/supply{
 	dir = 8
@@ -1019,13 +993,12 @@
 	dir = 8
 	},
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cR" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "cS" = (
@@ -1043,7 +1016,6 @@
 /area/errant_pisces/storage_port)
 "cU" = (
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/plating,
@@ -1067,8 +1039,7 @@
 "cW" = (
 /obj/machinery/alarm{
 	dir = 8;
-	pixel_x = 25;
-	pixel_y = 0
+	pixel_x = 25
 	},
 /obj/machinery/portable_atmospherics/canister/oxygen,
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
@@ -1086,7 +1057,7 @@
 /obj/machinery/atmospherics/portables_connector{
 	dir = 8
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 4
 	},
 /turf/simulated/floor/plating,
@@ -1126,7 +1097,6 @@
 /area/errant_pisces/atmos)
 "dd" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -1141,9 +1111,7 @@
 /area/errant_pisces/atmos)
 "de" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio3_alarm";
 	dir = 8;
-	icon_state = "alarm0";
 	pixel_x = 24
 	},
 /obj/structure/closet/firecloset,
@@ -1151,10 +1119,8 @@
 /area/errant_pisces/atmos)
 "df" = (
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
 /obj/structure/cable/green{
@@ -1170,7 +1136,6 @@
 /area/errant_pisces/enginering)
 "dg" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -1181,7 +1146,7 @@
 /obj/machinery/atmospherics/unary/vent_scrubber/on{
 	dir = 8
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "dh" = (
@@ -1204,9 +1169,7 @@
 "dl" = (
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
-	pixel_x = -32;
-	pixel_y = 0
+	pixel_x = -32
 	},
 /obj/structure/mopbucket,
 /obj/item/mop,
@@ -1264,7 +1227,7 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/enginering)
 "dq" = (
@@ -1342,10 +1305,6 @@
 /area/errant_pisces/bow_maint)
 "dw" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/structure/cable/green{
@@ -1384,7 +1343,7 @@
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/supply,
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "dy" = (
@@ -1424,13 +1383,14 @@
 	id = "n2_in";
 	use_power = 1
 	},
-/turf/simulated/floor/airless,
-/area/space)
+/turf/simulated/floor{
+	map_airless = 1
+	},
+/area/errant_pisces/bow_maint)
 "dB" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/atmospherics/pipe/simple/visible/red{
-	dir = 4;
-	icon_state = "intact"
+	dir = 4
 	},
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
@@ -1440,10 +1400,9 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "dC" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/atmospherics/pipe/simple/visible/red{
-	dir = 4;
-	icon_state = "intact"
+	dir = 4
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
@@ -1527,9 +1486,7 @@
 	icon_state = "4-8"
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
-	operating = 1;
 	pixel_y = -24
 	},
 /obj/structure/cable/green,
@@ -1557,7 +1514,7 @@
 	d2 = 8;
 	icon_state = "4-8"
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "dO" = (
@@ -1572,12 +1529,12 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "dP" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "dQ" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
@@ -1645,7 +1602,7 @@
 /turf/simulated/wall/r_wall,
 /area/errant_pisces/solar_port)
 "eb" = (
-/obj/effect/shuttle_landmark/automatic,
+/obj/shuttle_landmark/automatic,
 /turf/space,
 /area/space)
 "ec" = (
@@ -1656,7 +1613,7 @@
 /obj/machinery/power/tracker{
 	id = "XynergySolarStarboard"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "ed" = (
 /obj/structure/cable/yellow{
@@ -1664,7 +1621,7 @@
 	d2 = 8;
 	icon_state = "4-8"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "ee" = (
 /obj/structure/cable/yellow{
@@ -1682,7 +1639,7 @@
 	d2 = 4;
 	icon_state = "2-4"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "ef" = (
 /obj/structure/cable/yellow{
@@ -1700,7 +1657,9 @@
 	master_tag = "xyn_solar_starboard_airlock";
 	pixel_y = 20
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor{
+	map_airless = 1
+	},
 /area/errant_pisces/solar_starboard)
 "eg" = (
 /obj/machinery/door/airlock/external{
@@ -1761,24 +1720,20 @@
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "el" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "em" = (
 /obj/machinery/door/airlock,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "en" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
-/obj/effect/landmark/corpse/carp_fisher,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/carp_fisher,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "eo" = (
@@ -1826,10 +1781,6 @@
 /area/errant_pisces/smes_room)
 "et" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/structure/cable/green{
@@ -1838,7 +1789,6 @@
 	icon_state = "4-8"
 	},
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/plating,
@@ -1866,10 +1816,6 @@
 /area/errant_pisces/head_m)
 "ex" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/tiled/white,
@@ -1952,7 +1898,9 @@
 	master_tag = "xyn_solar_port_airlock";
 	pixel_y = 20
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor{
+	map_airless = 1
+	},
 /area/errant_pisces/solar_port)
 "eE" = (
 /obj/structure/cable/yellow{
@@ -1970,7 +1918,7 @@
 	d2 = 8;
 	icon_state = "2-8"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "eF" = (
 /obj/machinery/power/tracker{
@@ -1980,7 +1928,7 @@
 	d2 = 8;
 	icon_state = "0-8"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "eG" = (
 /obj/structure/cable/yellow{
@@ -1998,7 +1946,7 @@
 	d2 = 4;
 	icon_state = "1-4"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "eH" = (
 /obj/machinery/door/airlock/external{
@@ -2016,10 +1964,9 @@
 /area/errant_pisces/solar_starboard)
 "eI" = (
 /obj/structure/hygiene/shower{
-	dir = 4;
-	icon_state = "shower"
+	dir = 4
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "eJ" = (
@@ -2039,7 +1986,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 10
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "eM" = (
@@ -2059,8 +2006,7 @@
 /area/errant_pisces/smes_room)
 "eN" = (
 /obj/machinery/power/terminal{
-	dir = 1;
-	icon_state = "term"
+	dir = 1
 	},
 /obj/structure/cable{
 	d2 = 2;
@@ -2115,7 +2061,7 @@
 	d2 = 8;
 	icon_state = "0-8"
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 9;
 	icon_state = "warning"
 	},
@@ -2142,10 +2088,7 @@
 /area/errant_pisces/head_m)
 "eU" = (
 /obj/structure/hygiene/shower{
-	dir = 8;
-	icon_state = "shower";
-	pixel_x = 0;
-	pixel_y = 0
+	dir = 8
 	},
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_m)
@@ -2193,7 +2136,7 @@
 /obj/machinery/light/small{
 	dir = 4
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /mob/living/simple_animal/hostile/carp/shark,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
@@ -2210,7 +2153,7 @@
 	dir = 10
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
 "fb" = (
@@ -2268,7 +2211,7 @@
 	d2 = 8;
 	icon_state = "0-8"
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 8;
 	icon_state = "warning"
 	},
@@ -2302,7 +2245,7 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/landmark/corpse/engineer,
+/obj/landmark/corpse/engineer,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bow_maint)
 "fk" = (
@@ -2332,7 +2275,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/solar_port)
 "fm" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
 	icon_state = "pdoor0";
@@ -2341,7 +2284,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/solar_starboard)
 "fn" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /turf/simulated/floor/plating,
 /area/errant_pisces/solar_starboard)
 "fo" = (
@@ -2362,8 +2305,7 @@
 /area/errant_pisces/solar_starboard)
 "fp" = (
 /obj/machinery/power/terminal{
-	dir = 1;
-	icon_state = "term"
+	dir = 1
 	},
 /obj/structure/cable/yellow{
 	d2 = 8;
@@ -2447,7 +2389,7 @@
 	d2 = 8;
 	icon_state = "0-8"
 	},
-/obj/effect/floor_decal/industrial/warning{
+/obj/floor_decal/industrial/warning{
 	dir = 10;
 	icon_state = "warning"
 	},
@@ -2490,8 +2432,7 @@
 /area/errant_pisces/solar_port)
 "fC" = (
 /obj/machinery/power/terminal{
-	dir = 1;
-	icon_state = "term"
+	dir = 1
 	},
 /obj/structure/cable/yellow{
 	d2 = 4;
@@ -2535,12 +2476,12 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/solar_port)
 "fE" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/solar_port)
 "fF" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /obj/machinery/door/blast/regular/open{
 	dir = 4;
@@ -2559,13 +2500,10 @@
 /area/errant_pisces/solar_starboard)
 "fH" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio3_alarm";
 	dir = 8;
-	icon_state = "alarm0";
 	pixel_x = 24
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -2614,7 +2552,6 @@
 /area/errant_pisces/smes_room)
 "fM" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -2653,14 +2590,10 @@
 /obj/item/stool,
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
-	pixel_x = -32;
-	pixel_y = 0
+	pixel_x = -32
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
-	operating = 1;
 	pixel_y = -24
 	},
 /obj/structure/cable,
@@ -2677,7 +2610,6 @@
 	},
 /obj/machinery/power/solar_control{
 	dir = 1;
-	icon_state = "solar";
 	id = "XynergySolarPort"
 	},
 /turf/simulated/floor/plating,
@@ -2839,9 +2771,7 @@
 "gk" = (
 /obj/machinery/alarm{
 	dir = 4;
-	icon_state = "alarm0";
-	pixel_x = -32;
-	pixel_y = 0
+	pixel_x = -32
 	},
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/tiled,
@@ -2923,13 +2853,12 @@
 "gw" = (
 /obj/structure/table/woodentable,
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/wood,
 /area/errant_pisces/rooms)
 "gx" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/rooms)
@@ -2961,14 +2890,13 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/hallway)
 "gB" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/dorms)
 "gC" = (
 /obj/machinery/vending/snack,
 /obj/machinery/atmospherics/unary/vent_pump/on{
-	dir = 2;
 	level = 2
 	},
 /turf/simulated/floor/tiled,
@@ -3023,7 +2951,7 @@
 	d2 = 4;
 	icon_state = "1-4"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "gL" = (
 /obj/structure/bed/chair/comfy/green,
@@ -3252,7 +3180,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "hp" = (
-/obj/effect/floor_decal/solarpanel,
+/obj/floor_decal/solarpanel,
 /obj/structure/cable/yellow{
 	d2 = 4;
 	icon_state = "0-4"
@@ -3263,7 +3191,7 @@
 /obj/machinery/power/solar{
 	id = "XynergySolarPort"
 	},
-/turf/simulated/floor/airless,
+/turf/simulated/floor,
 /area/space)
 "hq" = (
 /turf/simulated/wall/r_wall,
@@ -3273,8 +3201,8 @@
 /turf/simulated/floor/wood,
 /area/errant_pisces/rooms)
 "hs" = (
-/obj/effect/landmark/corpse/bridgeofficer,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/bridgeofficer,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/wood,
 /area/errant_pisces/rooms)
 "ht" = (
@@ -3303,7 +3231,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "hx" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/wood,
 /area/errant_pisces/rooms)
 "hy" = (
@@ -3326,7 +3254,6 @@
 /area/errant_pisces/rooms)
 "hA" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -3343,7 +3270,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "hC" = (
-/obj/machinery/vending/assist,
+/obj/machinery/vending/generic,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "hD" = (
@@ -3425,7 +3352,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
 "hR" = (
-/obj/structure/iv_drip,
+/obj/structure/iv_stand,
 /obj/machinery/light/small{
 	dir = 8
 	},
@@ -3436,8 +3363,7 @@
 /area/errant_pisces/infirmary)
 "hT" = (
 /obj/machinery/computer/operating{
-	dir = 4;
-	icon_state = "computer"
+	dir = 4
 	},
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/infirmary)
@@ -3446,7 +3372,7 @@
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/infirmary)
 "hV" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/infirmary)
 "hW" = (
@@ -3500,7 +3426,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/infirmary)
 "if" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
@@ -3509,7 +3435,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "ih" = (
-/obj/item/material/knife/table,
+/obj/item/material/utensil/knife,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "ii" = (
@@ -3522,21 +3448,17 @@
 /area/errant_pisces/dorms)
 "ik" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "il" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "im" = (
-/obj/effect/landmark/corpse/chef,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/chef,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "in" = (
@@ -3587,12 +3509,12 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
-/obj/effect/landmark/corpse/carp_fisher,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/carp_fisher,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
 "iw" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
 "ix" = (
@@ -3605,11 +3527,11 @@
 /area/errant_pisces/infirmary)
 "iz" = (
 /obj/machinery/door/airlock,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/infirmary)
 "iA" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
 "iB" = (
@@ -3635,7 +3557,7 @@
 "iF" = (
 /obj/structure/table/standard,
 /obj/item/trash/plate,
-/obj/item/material/kitchen/utensil/fork,
+/obj/item/material/utensil/fork,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "iG" = (
@@ -3742,8 +3664,8 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
 	},
-/obj/effect/landmark/corpse/doctor,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/doctor,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/infirmary)
 "iV" = (
@@ -3753,7 +3675,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 4
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/infirmary)
 "iW" = (
@@ -3818,7 +3740,7 @@
 /obj/machinery/light/small{
 	dir = 8
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/dorms)
 "jf" = (
@@ -3839,11 +3761,11 @@
 "ji" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/infirmary)
 "jj" = (
-/obj/structure/iv_drip,
+/obj/structure/iv_stand,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/infirmary)
 "jk" = (
@@ -3923,13 +3845,13 @@
 /area/errant_pisces/hallway)
 "js" = (
 /obj/structure/table/standard,
-/obj/item/material/kitchen/utensil/fork/plastic,
+/obj/item/material/utensil/fork/plastic,
 /obj/random/snack,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "jt" = (
 /obj/structure/table/marble,
-/obj/machinery/microwave,
+/obj/machinery/appliance/cooker/microwave,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "ju" = (
@@ -3939,12 +3861,12 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "jv" = (
-/obj/effect/landmark/corpse/carp_fisher,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/carp_fisher,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/dorms)
 "jw" = (
-/obj/structure/closet/secure_closet/freezer/meat,
+/obj/structure/closet/fridge/meat,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/dorms)
 "jx" = (
@@ -3958,8 +3880,7 @@
 /obj/machinery/access_button/airlock_exterior{
 	frequency = 1439;
 	master_tag = "xyn_ls_airlock";
-	pixel_x = -25;
-	pixel_y = 0
+	pixel_x = -25
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/live_storage)
@@ -3971,7 +3892,7 @@
 /obj/machinery/door/firedoor,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/plating,
 /area/errant_pisces/science_wing)
 "jB" = (
@@ -3994,7 +3915,7 @@
 /area/errant_pisces/infirmary)
 "jE" = (
 /obj/structure/table/standard,
-/obj/item/roller,
+/obj/item/roller_bed,
 /obj/machinery/atmospherics/unary/vent_pump/on{
 	dir = 1
 	},
@@ -4043,7 +3964,6 @@
 /area/errant_pisces/infirmary)
 "jJ" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -4056,7 +3976,7 @@
 /area/errant_pisces/infirmary)
 "jK" = (
 /obj/structure/table/standard,
-/obj/item/material/kitchen/utensil/fork,
+/obj/item/material/utensil/fork,
 /obj/machinery/light,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
@@ -4069,17 +3989,15 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "jN" = (
-/obj/machinery/cooker/oven,
+/obj/machinery/appliance/cooker/oven,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/dorms)
 "jO" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/dorms)
 "jP" = (
-/obj/structure/closet/secure_closet/freezer/kitchen{
-	req_access = newlist()
-	},
+/obj/structure/closet/kitchen,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/dorms)
 "jQ" = (
@@ -4099,7 +4017,7 @@
 	dir = 8
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "jT" = (
@@ -4107,10 +4025,6 @@
 	dir = 8
 	},
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/structure/closet,
@@ -4161,8 +4075,7 @@
 /obj/machinery/airlock_sensor{
 	frequency = 1439;
 	id_tag = "xyn_ls_sensor";
-	pixel_x = -25;
-	pixel_y = 0
+	pixel_x = -25
 	},
 /turf/simulated/floor/plating,
 /area/errant_pisces/live_storage)
@@ -4183,7 +4096,7 @@
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers{
 	dir = 8
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "ke" = (
@@ -4232,10 +4145,6 @@
 /area/errant_pisces/cryo)
 "km" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/structure/window/basic{
@@ -4283,7 +4192,6 @@
 /obj/machinery/power/apc{
 	dir = 1;
 	name = "north bump";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/structure/cable/green{
@@ -4336,7 +4244,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 4
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "kx" = (
@@ -4367,10 +4275,6 @@
 	dir = 10
 	},
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/tiled,
@@ -4401,7 +4305,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "kD" = (
-/obj/machinery/vending/assist,
+/obj/machinery/vending/generic,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "kE" = (
@@ -4414,7 +4318,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "kF" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
+/obj/structure/closet/fridge,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "kG" = (
@@ -4494,15 +4398,15 @@
 /turf/simulated/wall,
 /area/errant_pisces/general_storage)
 "kU" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
-/obj/item/reagent_containers/food/snacks/fish/poison,
+/obj/structure/closet/fridge,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "kV" = (
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "kW" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
+/obj/structure/closet/fridge,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "kX" = (
@@ -4537,7 +4441,6 @@
 	frequency = 1439;
 	id_tag = "xyn_ls_airlock";
 	pixel_x = 25;
-	pixel_y = 0;
 	tag_airpump = "xyn_ls_pump";
 	tag_chamber_sensor = "xyn_ls_sensor";
 	tag_exterior_door = "xyn_ls_outer";
@@ -4552,8 +4455,8 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "le" = (
-/obj/effect/landmark/corpse/scientist,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/scientist,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "lf" = (
@@ -4582,14 +4485,14 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/general_storage)
 "lj" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
+/obj/structure/closet/fridge,
 /obj/machinery/light/small{
 	dir = 8
 	},
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "lk" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
+/obj/structure/closet/fridge,
 /obj/item/reagent_containers/food/snacks/cubancarp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
@@ -4602,7 +4505,7 @@
 /area/errant_pisces/prod_storage)
 "lm" = (
 /obj/structure/closet/crate,
-/obj/item/reagent_containers/food/snacks/fish/poison,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "ln" = (
@@ -4664,7 +4567,7 @@
 /area/errant_pisces/science_wing)
 "ly" = (
 /obj/structure/table/standard,
-/obj/item/storage/box/gloves,
+/obj/item/storage/box/latexgloves,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/science_wing)
 "lz" = (
@@ -4810,18 +4713,10 @@
 	},
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/science_wing)
-"lU" = (
-/obj/vehicle/train/cargo/engine,
-/turf/simulated/floor/plating,
-/area/errant_pisces/general_storage)
-"lV" = (
-/obj/vehicle/train/cargo/trolley,
-/turf/simulated/floor/plating,
-/area/errant_pisces/general_storage)
 "lW" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
-/obj/item/reagent_containers/food/snacks/fish/poison,
-/obj/item/reagent_containers/food/snacks/fish/poison,
+/obj/structure/closet/fridge,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "lX" = (
@@ -4829,7 +4724,7 @@
 	dir = 8
 	},
 /obj/structure/closet/crate,
-/obj/item/reagent_containers/food/snacks/fish/poison,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "lY" = (
@@ -4837,14 +4732,13 @@
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "lZ" = (
-/obj/structure/closet/secure_closet/freezer/meat,
+/obj/structure/closet/fridge/meat,
 /turf/simulated/floor/plating,
 /area/errant_pisces/live_storage)
 "ma" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/alarm{
 	dir = 8;
-	icon_state = "alarm0";
 	pixel_x = 24
 	},
 /turf/simulated/floor/plating,
@@ -4876,7 +4770,6 @@
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller{
 	frequency = 1439;
 	id_tag = "xyn_sci_airlock";
-	pixel_x = 0;
 	pixel_y = -25;
 	tag_airpump = "xyn_sci_pump";
 	tag_chamber_sensor = "xyn_sci_sensor";
@@ -4969,8 +4862,7 @@
 	icon_state = "tube1"
 	},
 /obj/machinery/computer/operating{
-	dir = 8;
-	icon_state = "computer"
+	dir = 8
 	},
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/science_wing)
@@ -5064,7 +4956,6 @@
 /area/errant_pisces/science_wing)
 "mD" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -5111,12 +5002,12 @@
 /area/errant_pisces/science_wing)
 "mJ" = (
 /obj/machinery/light,
-/obj/effect/landmark/corpse/carp_fisher,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/carp_fisher,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/cryo)
 "mK" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/cryo)
 "mL" = (
@@ -5163,9 +5054,7 @@
 /area/errant_pisces/prod_storage)
 "mQ" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
-	operating = 1;
 	pixel_y = -24
 	},
 /obj/structure/cable/green{
@@ -5189,7 +5078,7 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
 	dir = 10
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
 "mS" = (
@@ -5246,7 +5135,7 @@
 "mY" = (
 /obj/machinery/door/airlock,
 /obj/machinery/door/firedoor,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/cryo)
 "mZ" = (
@@ -5282,7 +5171,7 @@
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/machinery/door/airlock/freezer,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/prod_storage)
@@ -5311,7 +5200,6 @@
 /obj/machinery/access_button/airlock_interior{
 	frequency = 1439;
 	master_tag = "xyn_dock1_airlock";
-	pixel_x = 0;
 	pixel_y = 25
 	},
 /turf/simulated/floor/plating,
@@ -5338,7 +5226,6 @@
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller{
 	frequency = 1439;
 	id_tag = "xyn_dock1_airlock";
-	pixel_x = 0;
 	pixel_y = -25;
 	tag_airpump = "xyn_dock1_pump";
 	tag_chamber_sensor = "xyn_dock1_sensor";
@@ -5397,10 +5284,6 @@
 	icon_state = "0-8"
 	},
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/plating,
@@ -5479,10 +5362,6 @@
 	icon_state = "4-8"
 	},
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
@@ -5560,10 +5439,6 @@
 /area/errant_pisces/aft_hallway)
 "nx" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
@@ -5611,7 +5486,7 @@
 	icon_state = "1-4"
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nA" = (
@@ -5671,10 +5546,6 @@
 	dir = 4
 	},
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/tiled,
@@ -5714,7 +5585,7 @@
 	icon_state = "1-8"
 	},
 /obj/machinery/atmospherics/pipe/manifold/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nG" = (
@@ -5801,17 +5672,17 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nP" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nQ" = (
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nR" = (
-/obj/effect/landmark/corpse/scientist,
+/obj/landmark/corpse/scientist,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "nS" = (
@@ -5819,9 +5690,7 @@
 /area/errant_pisces/aft_hallway)
 "nU" = (
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
-	operating = 1;
 	pixel_y = -24
 	},
 /obj/structure/cable/green,
@@ -5855,12 +5724,12 @@
 /area/errant_pisces/aft_hallway)
 "nZ" = (
 /obj/machinery/door/firedoor,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "oa" = (
-/obj/effect/landmark/corpse/bridgeofficer,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/bridgeofficer,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/aft_hallway)
 "ob" = (
@@ -5903,7 +5772,7 @@
 /obj/machinery/door/airlock,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/fishing_wing)
 "og" = (
@@ -5929,7 +5798,7 @@
 	icon_state = "1-2"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "ok" = (
@@ -5939,7 +5808,6 @@
 /obj/machinery/access_button/airlock_interior{
 	frequency = 1439;
 	master_tag = "xyn_dock2_airlock";
-	pixel_x = 0;
 	pixel_y = -25
 	},
 /turf/simulated/floor/plating,
@@ -5966,7 +5834,6 @@
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller{
 	frequency = 1439;
 	id_tag = "xyn_dock2_airlock";
-	pixel_x = 0;
 	pixel_y = -25;
 	tag_airpump = "xyn_dock2_pump";
 	tag_chamber_sensor = "xyn_dock2_sensor";
@@ -6062,9 +5929,9 @@
 /area/errant_pisces/fishing_wing)
 "ox" = (
 /obj/structure/table/marble,
-/obj/item/reagent_containers/food/snacks/fish/poison,
-/obj/item/reagent_containers/food/snacks/fish/poison,
-/obj/item/reagent_containers/food/snacks/fish/poison,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
+/obj/item/reagent_containers/food/snacks/fish/space_carp,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/fishing_wing)
 "oy" = (
@@ -6102,7 +5969,7 @@
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/fishing_wing)
 "oF" = (
-/obj/structure/closet/secure_closet/freezer/fridge,
+/obj/structure/closet/fridge,
 /turf/simulated/floor/tiled/freezer,
 /area/errant_pisces/fishing_wing)
 "oG" = (
@@ -6113,7 +5980,7 @@
 	icon_state = "1-2"
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
-/obj/effect/landmark/corpse/bridgeofficer,
+/obj/landmark/corpse/bridgeofficer,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "oH" = (
@@ -6135,10 +6002,8 @@
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers,
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
 /turf/simulated/floor/tiled,
@@ -6148,10 +6013,8 @@
 	dir = 1
 	},
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
 /turf/simulated/floor/tiled/freezer,
@@ -6224,10 +6087,6 @@
 /area/errant_pisces/bridge)
 "oW" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /turf/simulated/floor/wood,
@@ -6250,7 +6109,7 @@
 	dir = 8;
 	name = "command terminal"
 	},
-/obj/effect/computer_file_creator/ahabs_harpoon01,
+/obj/computer_file_creator/ahabs_harpoon01,
 /turf/simulated/floor/wood,
 /area/errant_pisces/bridge)
 "oZ" = (
@@ -6273,7 +6132,7 @@
 	d2 = 8;
 	icon_state = "4-8"
 	},
-/obj/effect/landmark/corpse/carp_fisher,
+/obj/landmark/corpse/carp_fisher,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/fishing_wing)
 "pc" = (
@@ -6321,9 +6180,8 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "pi" = (
-/obj/machinery/computer/ship/navigation{
-	dir = 1;
-	icon_state = "computer"
+/obj/machinery/computer/modular/preset/navigation{
+	dir = 1
 	},
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
@@ -6331,7 +6189,7 @@
 /obj/machinery/computer/modular/preset/filemanager{
 	dir = 1
 	},
-/obj/effect/computer_file_creator/ahabs_harpoon01,
+/obj/computer_file_creator/ahabs_harpoon01,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "pk" = (
@@ -6353,11 +6211,11 @@
 /obj/item/modular_computer/tablet/lease/preset/command{
 	desc = "A small, portable microcomputer. This one has a Xynergy logo in purple, and a serial number stamped into the case."
 	},
-/obj/effect/computer_file_creator/ahabs_harpoon03,
+/obj/computer_file_creator/ahabs_harpoon03,
 /turf/simulated/floor/wood,
 /area/errant_pisces/bridge)
 "po" = (
-/obj/effect/wallframe_spawn/reinforced,
+/obj/wallframe_spawn/reinforced,
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
 /area/errant_pisces/bridge)
@@ -6367,7 +6225,9 @@
 	icon_state = "pdoor0";
 	id_tag = "xynergy_perimeter_blast"
 	},
-/turf/simulated/floor/reinforced/airless,
+/turf/simulated/floor/reinforced{
+	map_airless = 1
+	},
 /area/errant_pisces/bridge)
 "pq" = (
 /obj/structure/lattice,
@@ -6412,10 +6272,8 @@
 /area/space)
 "px" = (
 /obj/machinery/alarm{
-	alarm_id = "petrov1";
 	dir = 4;
 	pixel_x = -25;
-	pixel_y = 0;
 	rcon_setting = 3
 	},
 /turf/simulated/floor/tiled,
@@ -6425,7 +6283,7 @@
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "pz" = (
-/obj/effect/overmap/visitable/ship/errant_pisces,
+/obj/overmap/visitable/ship/errant_pisces,
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "pA" = (
@@ -6472,8 +6330,7 @@
 "pJ" = (
 /obj/machinery/light{
 	dir = 8;
-	icon_state = "tube1";
-	pixel_y = 0
+	icon_state = "tube1"
 	},
 /obj/structure/table/steel,
 /obj/random/snack,
@@ -6552,10 +6409,6 @@
 /area/errant_pisces/fishing_wing)
 "pU" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -6588,10 +6441,6 @@
 /area/errant_pisces/fishing_wing)
 "pX" = (
 /obj/machinery/alarm{
-	alarm_id = "xenobio1_alarm";
-	dir = 2;
-	icon_state = "alarm0";
-	pixel_x = 0;
 	pixel_y = 24
 	},
 /obj/machinery/atmospherics/pipe/simple/hidden/scrubbers{
@@ -6614,9 +6463,8 @@
 /turf/space,
 /area/space)
 "qa" = (
-/obj/machinery/computer/ship/sensors{
-	dir = 4;
-	icon_state = "computer"
+/obj/machinery/computer/modular/preset/sensors{
+	dir = 4
 	},
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
@@ -6650,15 +6498,13 @@
 /area/errant_pisces/bridge)
 "qg" = (
 /obj/machinery/computer/ship/helm{
-	dir = 1;
-	icon_state = "computer"
+	dir = 1
 	},
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
 "qh" = (
-/obj/machinery/computer/ship/engines{
-	dir = 1;
-	icon_state = "computer"
+/obj/machinery/computer/modular/preset/helm{
+	dir = 1
 	},
 /turf/simulated/floor/tiled,
 /area/errant_pisces/bridge)
@@ -6758,7 +6604,9 @@
 /area/errant_pisces/fishing_wing)
 "qx" = (
 /obj/machinery/shipsensors,
-/turf/simulated/floor/reinforced/airless,
+/turf/simulated/floor/reinforced{
+	map_airless = 1
+	},
 /area/errant_pisces/bridge)
 "qy" = (
 /obj/structure/closet/firecloset,
@@ -6843,14 +6691,19 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/fishing_wing)
 "qL" = (
-/obj/effect/landmark/corpse/carp_fisher,
-/obj/effect/decal/cleanable/blood,
+/obj/landmark/corpse/carp_fisher,
+/obj/decal/cleanable/blood,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply,
 /turf/simulated/floor/plating,
 /area/errant_pisces/fishing_wing)
 "qM" = (
-/turf/simulated/wall/r_wall,
-/area/space)
+/obj/machinery/door/blast/regular/open{
+	dir = 2;
+	icon_state = "pdoor0";
+	id_tag = "xynergy_perimeter_blast"
+	},
+/turf/simulated/floor/reinforced,
+/area/errant_pisces/bridge)
 "qN" = (
 /obj/structure/bed/chair,
 /turf/simulated/floor/plating,
@@ -6862,7 +6715,7 @@
 /turf/simulated/floor/plating,
 /area/errant_pisces/fishing_wing)
 "qP" = (
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /obj/machinery/access_button/airlock_interior{
 	frequency = 1439;
 	master_tag = "xyn_fish_airlock";
@@ -6880,7 +6733,7 @@
 	id_tag = "xyn_fish_inner"
 	},
 /obj/machinery/door/firedoor,
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /obj/machinery/atmospherics/pipe/simple/hidden/supply{
 	dir = 4
 	},
@@ -6890,11 +6743,10 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
-/obj/effect/decal/cleanable/blood,
+/obj/decal/cleanable/blood,
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller{
 	frequency = 1439;
 	id_tag = "xyn_fish_airlock";
-	pixel_x = 0;
 	pixel_y = -25;
 	tag_airpump = "xyn_fish_pump";
 	tag_chamber_sensor = "xyn_fish_sensor";
@@ -6924,7 +6776,7 @@
 	},
 /obj/machinery/door/firedoor,
 /turf/simulated/floor/plating,
-/area/space)
+/area/errant_pisces/fishing_wing)
 "qT" = (
 /obj/structure/net,
 /obj/machinery/access_button/airlock_exterior{
@@ -6985,7 +6837,6 @@
 "sb" = (
 /obj/structure/hygiene/sink{
 	dir = 8;
-	icon_state = "sink";
 	pixel_x = -12;
 	pixel_y = 2
 	},
@@ -6994,12 +6845,14 @@
 	},
 /turf/simulated/floor/tiled/white,
 /area/errant_pisces/head_f)
+"si" = (
+/obj/machinery/radio_beacon,
+/turf/simulated/floor/plating,
+/area/errant_pisces/enginering)
 "tb" = (
 /obj/structure/hygiene/sink{
 	dir = 4;
-	icon_state = "sink";
-	pixel_x = 11;
-	pixel_y = 0
+	pixel_x = 11
 	},
 /obj/item/storage/mirror{
 	pixel_x = 30
@@ -7009,15 +6862,12 @@
 "ub" = (
 /obj/structure/hygiene/sink{
 	dir = 4;
-	icon_state = "sink";
-	pixel_x = 11;
-	pixel_y = 0
+	pixel_x = 11
 	},
 /obj/item/storage/mirror{
 	pixel_x = 30
 	},
 /obj/machinery/power/apc{
-	dir = 2;
 	name = "south bump";
 	pixel_y = -24
 	},
@@ -24537,9 +24387,9 @@ aa
 aa
 bc
 aa
-qM
+og
 qS
-qM
+og
 aa
 aa
 pw
@@ -28324,7 +28174,7 @@ aA
 aP
 aZ
 bp
-bK
+bn
 bn
 bn
 bn
@@ -28525,7 +28375,7 @@ at
 aA
 aP
 aZ
-bn
+si
 bn
 bn
 co
@@ -28560,7 +28410,7 @@ ks
 kO
 lh
 kO
-lU
+kP
 mr
 mM
 na
@@ -28762,7 +28612,7 @@ ks
 kO
 kO
 kO
-lV
+kP
 kP
 mN
 kT
@@ -33417,8 +33267,8 @@ Ph
 oi
 oi
 oi
-pp
-pp
+qM
+qM
 oi
 aa
 aa

@@ -12,6 +12,14 @@ This then swaps the window theme automatically
 Thanks to spacemaniac and mcdonald for help with the JS side of this.
 */
 
+/client/var/dark_theme = FALSE
+
+/// Background color to use for the input.
+/client/proc/input_mode_color(hotkey_mode = FALSE)
+	if(dark_theme)
+		return hotkey_mode ? COLOR_DARKMODE_DARKBACKGROUND : "#3b2a2a"
+	return hotkey_mode ? "#f0f0f0" : "#d3b5b5"
+
 /client/proc/force_white_theme() //There's no way round it. We're essentially changing the skin by hand. It's painful but it works, and is the way Lummox suggested.
 	//Main windows
 	winset(src, "infowindow", "background-color = [COLOR_DARKMODE_DARKBACKGROUND];background-color = none")
@@ -34,20 +42,22 @@ Thanks to spacemaniac and mcdonald for help with the JS side of this.
 	winset(src, "textb", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 	winset(src, "infob", "background-color = #494949;background-color = none")
 	winset(src, "infob", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "rulesb", "background-color = #494949;background-color = none")
-	winset(src, "rulesb", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "Lore", "background-color = #494949;background-color = none")
-	winset(src, "Lore", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "wikib", "background-color = #494949;background-color = none")
-	winset(src, "wikib", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "forumb", "background-color = #494949;background-color = none")
-	winset(src, "forumb", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linkrules", "background-color = #494949;background-color = none")
+	winset(src, "linkrules", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linklore", "background-color = #494949;background-color = none")
+	winset(src, "linklore", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linkwiki", "background-color = #494949;background-color = none")
+	winset(src, "linkwiki", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linkforum", "background-color = #494949;background-color = none")
+	winset(src, "linkforum", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linkdiscord", "background-color = #494949;background-color = none")
+	winset(src, "linkdiscord", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 	winset(src, "changelog", "background-color = #494949;background-color = none")
 	winset(src, "changelog", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "github", "background-color = #494949;background-color = none")
-	winset(src, "github", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
-	winset(src, "BugReport", "background-color = #494949;background-color = none")
-	winset(src, "BugReport", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linksource", "background-color = #494949;background-color = none")
+	winset(src, "linksource", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	winset(src, "linkissue", "background-color = #494949;background-color = none")
+	winset(src, "linkissue", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 	winset(src, "hotkey_toggle", "background-color = #494949;background-color = none")
 	winset(src, "hotkey_toggle", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 	//Status and verb tabs
@@ -68,8 +78,9 @@ Thanks to spacemaniac and mcdonald for help with the JS side of this.
 	winset(src, "saybutton", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 	winset(src, "asset_cache_browser", "background-color = [COLOR_DARKMODE_BACKGROUND];background-color = none")
 	winset(src, "asset_cache_browser", "background-color = [COLOR_DARKMODE_BACKGROUND];background-color = none")
-	//winset(src, "input", "background-color = [COLOR_DARKMODE_BACKGROUND];background-color = none")
-	//winset(src, "input", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
+	dark_theme = FALSE
+	winset(src, "input", "background-color = [input_mode_color()];background-color = [input_mode_color()]")
+	winset(src, "input", "text-color = [COLOR_DARKMODE_TEXT];text-color = #000000")
 
 /client/proc/force_dark_theme() //Inversely, if theyre using white theme and want to swap to the superior dark theme, let's get WINSET() ing
 	//Main windows
@@ -93,20 +104,22 @@ Thanks to spacemaniac and mcdonald for help with the JS side of this.
 	winset(src, "textb", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
 	winset(src, "infob", "background-color = none;background-color = #494949")
 	winset(src, "infob", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "rulesb", "background-color = none;background-color = #494949")
-	winset(src, "rulesb", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "Lore", "background-color = none;background-color = #494949")
-	winset(src, "Lore", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "wikib", "background-color = none;background-color = #494949")
-	winset(src, "wikib", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "forumb", "background-color = none;background-color = #494949")
-	winset(src, "forumb", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linkrules", "background-color = none;background-color = #494949")
+	winset(src, "linkrules", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linklore", "background-color = none;background-color = #494949")
+	winset(src, "linklore", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linkwiki", "background-color = none;background-color = #494949")
+	winset(src, "linkwiki", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linkforum", "background-color = none;background-color = #494949")
+	winset(src, "linkforum", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linkdiscord", "background-color = none;background-color = #494949")
+	winset(src, "linkdiscord", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
 	winset(src, "changelog", "background-color = none;background-color = #494949")
 	winset(src, "changelog", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "github", "background-color = none;background-color = #494949")
-	winset(src, "github", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
-	winset(src, "BugReport", "background-color = none;background-color = #494949")
-	winset(src, "BugReport", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linksource", "background-color = none;background-color = #494949")
+	winset(src, "linksource", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	winset(src, "linkissue", "background-color = none;background-color = #494949")
+	winset(src, "linkissue", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
 	winset(src, "hotkey_toggle", "background-color = none;background-color = #494949")
 	winset(src, "hotkey_toggle", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
 	//Status and verb tabs
@@ -128,5 +141,6 @@ Thanks to spacemaniac and mcdonald for help with the JS side of this.
 	winset(src, "asset_cache_browser", "background-color = none;background-color = [COLOR_DARKMODE_BACKGROUND]")
 	winset(src, "asset_cache_browser", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
 
-	//winset(src, "input", "background-color = none;background-color = [COLOR_DARKMODE_BACKGROUND]")
-	//winset(src, "input", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")
+	dark_theme = TRUE
+	winset(src, "input", "background-color = [input_mode_color()];background-color = [input_mode_color()]")
+	winset(src, "input", "text-color = #000000;text-color = [COLOR_DARKMODE_TEXT]")

@@ -1,4 +1,4 @@
-/mob/living/silicon/robot/drone/say(var/message)
+/mob/living/silicon/robot/drone/say(message)
 	if(local_transmit)
 		if (src.client)
 			if(client.prefs.muted & MUTE_IC)
@@ -7,16 +7,16 @@
 
 		message = sanitize(message)
 
-		if (stat == DEAD)
+		if (is_real_dead())
 			return say_dead(message)
 
-		if(copytext_char(message,1,2) == get_prefix_key(/decl/prefix/custom_emote))
+		if(copytext_char(message,1,2) == get_prefix_key(/singleton/prefix/custom_emote))
 			return emote(copytext(message,2))
 
-		if(copytext_char(message,1,2) == get_prefix_key(/decl/prefix/radio_main_channel))
+		if(copytext_char(message,1,2) == get_prefix_key(/singleton/prefix/radio_main_channel))
 			var/datum/language/L = all_languages[LANGUAGE_DRONE_GLOBAL]
 			if(istype(L))
-				return L.broadcast(src,trim(copytext(message,2)))
+				return L.broadcast(src,trimtext(copytext(message,2)))
 
 		//Must be concious to speak
 		if (stat)
@@ -32,7 +32,7 @@
 		for (var/mob/M in GLOB.player_list)
 			if (istype(M, /mob/new_player))
 				continue
-			else if(M.stat == DEAD && M.get_preference_value(/datum/client_preference/ghost_ears) == GLOB.PREF_ALL_SPEECH)
+			else if(M.is_real_dead() && M.get_preference_value(/datum/client_preference/ghost_ears) == GLOB.PREF_ALL_SPEECH)
 				if(M.client) to_chat(M, "<b>[src]</b> transmits, \"[message]\"")
 		return 1
 	return ..(message, 0)

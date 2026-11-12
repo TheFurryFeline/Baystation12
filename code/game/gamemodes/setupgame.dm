@@ -5,8 +5,8 @@
 // Randomize block, assign a reference name, and optionally define difficulty (by making activation zone smaller or bigger)
 // The name is used on /vg/ for species with predefined genetic traits,
 //  and for the DNA panel in the player panel.
-/proc/getAssignedBlock(var/name,var/list/blocksLeft, var/activity_bounds=DNA_DEFAULT_BOUNDS)
-	if(blocksLeft.len==0)
+/proc/getAssignedBlock(name,list/blocksLeft, activity_bounds=DNA_DEFAULT_BOUNDS)
+	if(length(blocksLeft)==0)
 		warning("[name]: No more blocks left to assign!")
 		return 0
 	var/assigned = pick(blocksLeft)
@@ -33,7 +33,7 @@
 	// Standard muts, imported from older code above.
 	GLOB.BLINDBLOCK         = getAssignedBlock("BLINDED",         numsToAssign)
 	GLOB.DEAFBLOCK          = getAssignedBlock("DEAFENED",          numsToAssign)
-	GLOB.HULKBLOCK          = getAssignedBlock("HULK",          numsToAssign, DNA_HARD_BOUNDS)
+	GLOB.FERALBLOCK         = getAssignedBlock("FERAL",         numsToAssign, DNA_HARD_BOUNDS)
 	GLOB.TELEBLOCK          = getAssignedBlock("TELE",          numsToAssign, DNA_HARD_BOUNDS)
 	GLOB.FIREBLOCK          = getAssignedBlock("FIRE",          numsToAssign, DNA_HARDER_BOUNDS)
 	GLOB.XRAYBLOCK          = getAssignedBlock("XRAY",          numsToAssign, DNA_HARDER_BOUNDS)
@@ -76,7 +76,7 @@
 			if(G.block in blocks_assigned)
 				warning("DNA2: Gene [G.name] trying to use already-assigned block [G.block] (used by [english_list(blocks_assigned[G.block])])")
 			dna_genes.Add(G)
-			var/list/assignedToBlock[0]
+			var/list/assignedToBlock = list()
 			if(blocks_assigned[G.block])
 				assignedToBlock=blocks_assigned[G.block]
 			assignedToBlock.Add(G.name)

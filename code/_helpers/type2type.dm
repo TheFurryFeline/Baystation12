@@ -9,6 +9,7 @@
  */
 
 /proc/text2numlist(text, delimiter="\n")
+	RETURN_TYPE(/list)
 	var/list/num_list = list()
 	for(var/x in splittext(text, delimiter))
 		num_list += text2num(x)
@@ -16,6 +17,7 @@
 
 // Splits the text of a file at seperator and returns them in a list.
 /proc/file2list(filename, seperator="\n")
+	RETURN_TYPE(/list)
 	return splittext(file2text(filename) || "", seperator)
 
 // Turns a direction into text
@@ -56,7 +58,7 @@
 		if ("SOUTHWEST") return 10
 
 // Converts an angle (degrees) into an ss13 direction
-/proc/angle2dir(var/degree)
+/proc/angle2dir(degree)
 	degree = (degree + 22.5) % 360 // 22.5 = 45 / 2
 	if (degree < 45)  return NORTH
 	if (degree < 90)  return NORTHEAST
@@ -68,7 +70,7 @@
 	return NORTH|WEST
 
 // Returns the north-zero clockwise angle in degrees, given a direction
-/proc/dir2angle(var/D)
+/proc/dir2angle(D)
 	switch (D)
 		if (NORTH)     return 0
 		if (SOUTH)     return 180
@@ -80,7 +82,7 @@
 		if (SOUTHWEST) return 225
 
 // Returns the angle in english
-/proc/angle2text(var/degree)
+/proc/angle2text(degree)
 	return dir2text(angle2dir(degree))
 
 // Converts a blend_mode constant to one acceptable to icon.Blend()
@@ -109,7 +111,7 @@
 	if (rights & R_MOD)         . += "[seperator]+MODERATOR"
 	return .
 
-// heat2color functions. Adapted from: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
+// heat2color functions. Adapted from: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code
 /proc/heat2color(temp)
 	return rgb(heat2color_r(temp), heat2color_g(temp), heat2color_b(temp))
 
@@ -165,8 +167,8 @@
 	else
 		monthsInDays = list(0,31,59,90,120,151,181,212,243,273,304,334)
 
-	var/mDays = 0;
-	var/monthIndex = 0;
+	var/mDays = 0
+	var/monthIndex = 0
 
 	for(var/m in monthsInDays)
 		monthIndex++
@@ -181,16 +183,19 @@
 /proc/isLeap(y)
 	return ((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
 
-/proc/atomtypes2nameassoclist(var/list/atom_types)
+/proc/atomtypes2nameassoclist(list/atom_types)
+	RETURN_TYPE(/list)
 	. = list()
 	for(var/atom_type in atom_types)
 		var/atom/A = atom_type
 		.[initial(A.name)] = atom_type
 	. = sortAssoc(.)
 
-/proc/atomtype2nameassoclist(var/atom_type)
+/proc/atomtype2nameassoclist(atom_type)
+	RETURN_TYPE(/list)
 	return atomtypes2nameassoclist(typesof(atom_type))
 
 //Splits the text of a file at seperator and returns them in a list.
 /world/proc/file2list(filename, seperator="\n")
+	RETURN_TYPE(/list)
 	return splittext(file2text(filename), seperator)

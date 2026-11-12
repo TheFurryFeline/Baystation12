@@ -1,15 +1,9 @@
-/configuration
-	var/static/list/gamemode_cache
-
+/datum/configuration
 	/// server name (for world name / status)
-	var/static/server_name
-
-	/// generate numeric suffix based on server port
-	var/static/server_suffix = FALSE
+	var/static/server_name = "Space Station 13"
 
 	/// for topic status requests
-	var/static/game_version = "Baystation12"
-
+	var/static/game_version = "Baystation"
 
 	/// log OOC channel
 	var/static/log_ooc = FALSE
@@ -56,6 +50,9 @@
 	/// log world.log to game log
 	var/static/log_world_output = FALSE
 
+	/// log computer commands
+	var/static/log_computer_commands = FALSE
+
 	/// Allows admins with relevant permissions to have their own ooc colour
 	var/static/allow_admin_ooccolor = FALSE
 
@@ -82,14 +79,23 @@
 	/// length of voting period (deciseconds, default 1 minute)
 	var/static/vote_period = 600
 
-	/// Length of time before the first autotransfer vote is called
-	var/static/vote_autotransfer_initial = 120 MINUTES
+	/// Time in minutes after which a round with no living players ends
+	var/static/empty_round_timeout = 0
 
-	/// length of time before next sequential autotransfer vote
-	var/static/vote_autotransfer_interval = 30 MINUTES
+	/// Time in minutes before the first autotransfer vote
+	var/static/vote_autotransfer_initial = 120
+
+	/// Time in minutes before each following autotransfer vote
+	var/static/vote_autotransfer_interval = 30
+
+	/// Time in minutes before transfer votes where antagonists cannot be added
+	var/static/transfer_vote_block_antag_time = 20
 
 	/// Length of time before round start when autogamemode vote is called (in seconds, default 100).
 	var/static/vote_autogamemode_timeleft = 100
+
+	/// Length of time before round start (in seconds)
+	var/static/pre_game_time = 180
 
 	/// vote does not default to nochange/norestart (tbi)
 	var/static/vote_no_default = FALSE
@@ -106,16 +112,8 @@
 	/// if objectives are disabled or not
 	var/static/objectives_disabled = FALSE
 
-	/// If security and such can be traitor/cult/other
-	var/static/protect_roles_from_antagonist = FALSE
-
 	/// Gamemodes which end instantly will instead keep on going until the round ends by escape shuttle or nuke.
 	var/static/continous_rounds = FALSE
-
-	var/static/fps = 20
-
-	/// SSinitialization throttling
-	var/static/tick_limit_mc_init = TICK_LIMIT_MC_INIT_DEFAULT
 
 	var/static/list/resource_urls
 
@@ -125,19 +123,17 @@
 	/// Ghosts that turn on Antagovision cannot rejoin the round.
 	var/static/antag_hud_restricted = FALSE
 
-	var/static/list/mode_names = list()
-
-	/// allowed modes
-	var/static/list/modes = list()
-
-	/// votable modes
-	var/static/list/votable_modes = list()
+	/// modes disallowed from the vote list
+	var/static/list/disallowed_modes = list()
 
 	/// relative probability of each mode
 	var/static/list/probabilities = list()
 
 	/// Whether or not secret modes show list of possible round types
 	var/static/secret_hide_possibilities = FALSE
+
+	/// Whether or not secret - a hidden random pick from available modes - can be voted for
+	var/static/secret_disabled = FALSE
 
 	/// enables random events mid-round when set to 1
 	var/static/allow_random_events = FALSE
@@ -157,10 +153,9 @@
 	/// force disconnect for inactive players after this many minutes, if non-0
 	var/static/kick_inactive = FALSE
 
-	/// determines whether jobs use minimal access or expanded access.
-	var/static/jobs_have_minimal_access = FALSE
-
 	var/static/minimum_player_age = 0
+
+	var/static/maximum_queued_characters = 3
 
 	/// Allows ghosts to write in blood in cult rounds...
 	var/static/cult_ghostwriter = TRUE
@@ -198,19 +193,23 @@
 
 	var/static/debugparanoid = FALSE
 
-	var/static/serverurl
-
-	var/static/server
+	var/static/server_address
 
 	var/static/banappeals
 
-	var/static/wikiurl
+	var/static/wiki_url
 
-	var/static/forumurl
+	var/static/rules_url
 
-	var/static/githuburl
+	var/static/lore_url
 
-	var/static/issuereporturl
+	var/static/forum_url
+
+	var/static/source_url
+
+	var/static/discord_url
+
+	var/static/issue_url
 
 	var/static/list/chat_markup
 
@@ -249,9 +248,6 @@
 
 	var/static/no_click_cooldown = FALSE
 
-	/// optional runtime configuration of http://www.byond.com/docs/ref/#/atom/movable/var/glide_size
-	var/static/glide_size
-
 	/// Modifier for ticks between moves while running
 	var/static/run_delay = 2
 
@@ -288,9 +284,6 @@
 	/// Do antags use account age restrictions? --requires database
 	var/static/use_age_restriction_for_antags = FALSE
 
-	/// Whether the server uses recursive or circular explosions.
-	var/static/use_recursive_explosions = FALSE
-
 	var/static/comms_password
 
 	var/static/ban_comms_password
@@ -298,11 +291,9 @@
 	/// Clients with these byond versions will be banned. "512.1234;513.2345" etc.
 	var/static/list/forbidden_versions = list()
 
-	var/static/minimum_byond_version = 512
+	var/static/minimum_byond_version = 515
 
-	var/static/minimum_byond_build = 1488
-
-	var/static/login_export_addr
+	var/static/minimum_byond_build = 1647
 
 	var/static/enter_allowed = TRUE
 
@@ -310,24 +301,49 @@
 
 	var/static/use_irc_bot = FALSE
 
-	var/static/irc_bot_host = ""
+	var/static/irc_bot_host
 
-	var/static/main_irc = ""
+	var/static/main_irc
 
-	var/static/admin_irc = ""
+	var/static/admin_irc
+
+	var/static/admin_discord
+
+	var/static/excom_address
 
 	var/static/announce_evac_to_irc = FALSE
 
-	var/static/expected_round_length = 3 HOURS
+	var/static/expected_round_length = 2 HOURS
 
 	/// Whether the first delay per level has a custom start time
-	var/static/list/event_first_run = list(EVENT_LEVEL_MUNDANE = null, EVENT_LEVEL_MODERATE = null, EVENT_LEVEL_MAJOR = list("lower" = 80 MINUTES, "upper" = 100 MINUTES), EVENT_LEVEL_EXO = list("lower" = 50 MINUTES, "upper" = 80 MINUTES))
+	var/static/list/event_first_run = alist(
+		EVENT_LEVEL_MUNDANE = null,
+		EVENT_LEVEL_MODERATE = null,
+		EVENT_LEVEL_MAJOR = list(
+			"lower" = 80 MINUTES,
+			"upper" = 100 MINUTES
+		),
+		EVENT_LEVEL_EXO = list(
+			"lower" = 50 MINUTES,
+			"upper" = 80 MINUTES
+		)
+	)
 
 	/// The lowest delay until next event
-	var/static/list/event_delay_lower = list(EVENT_LEVEL_MUNDANE = 10 MINUTES, EVENT_LEVEL_MODERATE = 30 MINUTES, EVENT_LEVEL_MAJOR = 50 MINUTES, EVENT_LEVEL_EXO = 40 MINUTES)
+	var/static/list/event_delay_lower = alist(
+		EVENT_LEVEL_MUNDANE = 10 MINUTES,
+		EVENT_LEVEL_MODERATE = 30 MINUTES,
+		EVENT_LEVEL_MAJOR = 50 MINUTES,
+		EVENT_LEVEL_EXO = 40 MINUTES
+	)
 
 	/// The upper delay until next event
-	var/static/list/event_delay_upper = list(EVENT_LEVEL_MUNDANE = 15 MINUTES, EVENT_LEVEL_MODERATE = 45 MINUTES, EVENT_LEVEL_MAJOR = 70 MINUTES, EVENT_LEVEL_EXO = 60 MINUTES)
+	var/static/list/event_delay_upper = alist(
+		EVENT_LEVEL_MUNDANE = 15 MINUTES,
+		EVENT_LEVEL_MODERATE = 45 MINUTES,
+		EVENT_LEVEL_MAJOR = 70 MINUTES,
+		EVENT_LEVEL_EXO = 60 MINUTES
+	)
 
 	var/static/abandon_allowed = TRUE
 
@@ -341,8 +357,8 @@
 
 	var/static/aooc_allowed = TRUE
 
-	/// Whether space turfs have ambient light or not
-	var/static/starlight = 0
+	/// Whether space turfs and some exterior turfs have ambient light or not default, 0.5, values over 1 may overpower dynamic lights
+	var/static/starlight = 0.5
 
 	var/static/list/ert_species = list(SPECIES_HUMAN)
 
@@ -351,6 +367,8 @@
 	var/static/aggressive_changelog = FALSE
 
 	var/static/ghosts_can_possess_animals = FALSE
+
+	var/static/ghosts_can_possess_zombies = TRUE
 
 	var/static/delist_when_no_admins = FALSE
 
@@ -378,16 +396,16 @@
 	var/static/autostealth = FALSE
 
 	/// The "cooldown" time for each occurrence of a unique error
-	var/static/error_cooldown = 600
+	var/static/error_cooldown = 1 MINUTE
 
 	/// How many occurrences before the next will silence them
 	var/static/error_limit = 50
 
 	/// How long a unique error will be silenced for
-	var/static/error_silence_time = 6000
+	var/static/error_silence_time = 10 MINUTES
 
 	/// How long to wait between messaging admins about occurrences of a unique error
-	var/static/error_msg_delay = 50
+	var/static/error_msg_delay = 5 SECONDS
 
 	/// Used in chargen for accessory loadout limit. 0 disables loadout, negative allows infinite points.
 	var/static/max_gear_cost = 10
@@ -411,9 +429,9 @@
 
 	var/static/hub_visible = FALSE
 
-	var/static/motd = ""
+	var/static/motd
 
-	var/static/event = ""
+	var/static/event
 
 	/// Logs all timers in buckets on automatic bucket reset
 	var/static/log_timers_on_bucket_reset = FALSE
@@ -421,29 +439,93 @@
 	/// The maximum amount of time a round can last before it is forcefully ended.
 	var/static/maximum_round_length
 
+	/// The delay in deciseconds between stat() updates.
+	var/static/stat_delay = 0.5 SECONDS
 
-/configuration/New()
-	build_mode_cache()
+	/// The maximum number of times someone can be warned in a round before they are automatically banned
+	var/static/warn_autoban_threshold = 3
+
+	/// The length in minutes of an automatic ban created by passing the warning threshold
+	var/static/warn_autoban_duration = 30
+
+	var/static/hub_entry = "<b>$SERVER</b> by <b>$HOST</b> &#8212; $ACTIVES of $PLAYERS alive"
+
+	var/static/run_empty_levels = FALSE
+
+	var/static/deletion_starts_paused = TRUE
+
+	var/static/enable_cold_mist = FALSE
+
+	/// Whether we should skip warning about connections with CID collisions
+	var/static/skip_conn_warn_cid_all = FALSE
+
+	/**
+	* If skip_conn_warn_cid_all is falsy, an optional list of CIDs to skip anyway
+	* Set by using the config option skip_conn_warn_cid multiple times:
+	* skip_conn_warn_cid 14138560
+	* skip_conn_warn_cid 10964753
+	* skip_conn_warn_cid 16383642
+	*/
+	var/static/list/skip_conn_warn_cid_list
+
+	/// Whether we should skip warning about connections with address collisions
+	var/static/skip_conn_warn_address_all = FALSE
+
+	/**
+	* If skip_conn_warn_address_all is falsy, an optional list of addresses to skip anyway
+	* Set by using the config option skip_conn_warn_address multiple times:
+	* skip_conn_warn_address 0.0.0.0
+	* skip_conn_warn_address 0.0.0.1
+	* skip_conn_warn_address 0.0.0.2
+	*/
+	var/static/list/skip_conn_warn_address_list
+
+	/**
+	* An optional list of ckeys to skip warning about connection detail collisions
+	* Set by using the config option skip_conn_warn_address multiple times:
+	* skip_conn_warn_ckey loomingwombat2
+	* skip_conn_warn_ckey exadv1
+	* skip_conn_warn_ckey p99gnf
+	*/
+	var/static/list/skip_conn_warn_ckey_list
+
+	/// Whether we should warn the triggering client about connection detail collisions
+	var/static/skip_conn_warn_client = FALSE
+
+	/// The message to display to clients if they have a collision and don't match a skip_conn* rule
+	var/static/conn_warn_client_message = "You share some connection details with another \
+	connected player. Using more than one account at a time is not allowed. If this is your \
+	first time seeing this message, please contact staff by using the AdminHelp command."
+
+
+/datum/configuration/New()
 	load_config()
 	load_options()
 	load_map()
 	load_sql()
+	load_hub_entry()
 	motd = file2text("config/motd.txt") || ""
 	event = file2text("config/event.txt") || ""
-	fps = round(fps)
-	if (fps <= 0)
-		fps = initial(fps)
 
 
-/configuration/proc/read_config(filename)
+/// Read a text file, stripping lines starting with # and empties
+/datum/configuration/proc/read_commentable(filename)
 	var/list/result = list()
 	var/list/lines = file2list(filename)
 	for (var/line in lines)
 		if (!line)
 			continue
-		line = trim(line)
+		line = trimtext(line)
 		if (!line || line[1] == "#")
 			continue
+		result += line
+	return result
+
+
+/datum/configuration/proc/read_config(filename)
+	var/list/result = list()
+	var/lines = read_commentable(filename)
+	for (var/line in lines)
 		var/index = findtext(line, " ")
 		var/name = index ? lowertext(copytext(line, 1, index)) : lowertext(line)
 		if (!name)
@@ -458,7 +540,7 @@
 	return result
 
 
-/configuration/proc/load_config()
+/datum/configuration/proc/load_config()
 	var/list/file = read_config("config/config.txt")
 	for (var/name in file)
 		var/value = file[name]
@@ -473,10 +555,6 @@
 				use_age_restriction_for_jobs = TRUE
 			if ("use_age_restriction_for_antags")
 				use_age_restriction_for_antags = TRUE
-			if ("jobs_have_minimal_access")
-				jobs_have_minimal_access = TRUE
-			if ("use_recursive_explosions")
-				use_recursive_explosions = TRUE
 			if ("log_ooc")
 				log_ooc = TRUE
 			if ("log_access")
@@ -509,6 +587,8 @@
 				log_hrefs = TRUE
 			if ("log_runtime")
 				log_runtime = TRUE
+			if ("log_computer_commands")
+				log_computer_commands = TRUE
 			if ("generate_asteroid")
 				generate_map = TRUE
 			if ("no_click_cooldown")
@@ -539,22 +619,42 @@
 				var/list/values = splittext(value, ";")
 				var/len = length(values)
 				if (len == 7)
-					vote_autotransfer_initial = text2num(values[get_weekday_index()]) MINUTES
+					vote_autotransfer_initial = text2num_or_default(values[get_weekday_index()])
 				else if (len == 1)
-					vote_autotransfer_initial = text2num(value) MINUTES
+					vote_autotransfer_initial = text2num_or_default(value)
 				else
 					log_misc("Invalid vote_autotransfer_initial: [value]")
+					vote_autotransfer_initial = 0
+				if (isnull(vote_autotransfer_initial) || vote_autotransfer_initial < 0)
+					log_misc("Invalid vote_autotransfer_initial: [value]")
+					vote_autotransfer_initial = 0
 			if ("vote_autotransfer_interval")
 				var/list/values = splittext(value, ";")
 				var/len = length(values)
 				if (len == 7)
-					vote_autotransfer_interval = text2num(values[get_weekday_index()]) MINUTES
+					vote_autotransfer_interval = text2num_or_default(values[get_weekday_index()])
 				else if (len == 1)
-					vote_autotransfer_interval = text2num(value) MINUTES
+					vote_autotransfer_interval = text2num_or_default(value)
 				else
 					log_misc("Invalid vote_autotransfer_interval: [value]")
+					vote_autotransfer_interval = 0
+				if (isnull(vote_autotransfer_interval) || vote_autotransfer_interval < 0)
+					log_misc("Invalid vote_autotransfer_interval: [value]")
+					vote_autotransfer_interval = 0
+			if ("transfer_vote_block_antag_time")
+				transfer_vote_block_antag_time = text2num_or_default(value)
+				if (isnull(transfer_vote_block_antag_time) || transfer_vote_block_antag_time < 0)
+					log_misc("Invalid transfer_vote_block_antag_time: [value]")
+					transfer_vote_block_antag_time = 0
+			if ("empty_round_timeout")
+				empty_round_timeout = text2num_or_default(value)
+				if (isnull(empty_round_timeout) || empty_round_timeout < 0)
+					log_misc("Invalid empty_round_timeout: [value]")
+					empty_round_timeout = 0
 			if ("vote_autogamemode_timeleft")
 				vote_autogamemode_timeleft = text2num(value)
+			if ("pre_game_time")
+				pre_game_time = text2num(value)
 			if ("ert_admin_only")
 				ert_admin_call_only = TRUE
 			if ("respawn_delay")
@@ -563,26 +663,30 @@
 			if ("respawn_menu_delay")
 				respawn_menu_delay = text2num(value)
 				respawn_menu_delay = respawn_menu_delay > 0 ? respawn_menu_delay : 0
-			if ("servername")
+			if ("server_name")
 				server_name = value
-			if ("serversuffix")
-				server_suffix = TRUE
 			if ("hostedby")
 				hostedby = value
-			if ("serverurl")
-				serverurl = value
-			if ("server")
-				server = value
+			if ("server_address")
+				server_address = value
+				if (copytext(server_address, 1, 9) != "byond://")
+					server_address = "byond://[server_address]"
 			if ("banappeals")
 				banappeals = value
-			if ("wikiurl")
-				wikiurl = value
-			if ("forumurl")
-				forumurl = value
-			if ("githuburl")
-				githuburl = value
-			if ("issuereporturl")
-				issuereporturl = value
+			if ("wiki_url")
+				wiki_url = value
+			if ("rules_url")
+				rules_url = value
+			if ("lore_url")
+				lore_url = value
+			if ("forum_url")
+				forum_url = value
+			if ("source_url")
+				source_url = value
+			if ("issue_url")
+				issue_url = value
+			if ("discord_url")
+				discord_url = value
 			if ("ghosts_can_possess_animals")
 				ghosts_can_possess_animals = TRUE
 			if ("guest_jobban")
@@ -622,45 +726,35 @@
 						else
 							log_misc("Incorrect objective disabled definition: [value]")
 							objectives_disabled = CONFIG_OBJECTIVE_NONE
-			if ("protect_roles_from_antagonist")
-				protect_roles_from_antagonist = TRUE
 			if ("probability")
 				var/regex/flatten = new (@"\s+", "g")
 				for (var/entry in value)
 					var/list/parts = splittext(replacetext(entry, flatten, " "), " ")
-					var/mode = lowertext(parts[1])
+					var/mode_tag = lowertext(parts[1])
 					var/chance = text2num(parts[2])
 					var/reason
-					if (!mode)
+					if (!mode_tag)
 						reason = "Missing a tag/chance pair."
 					else if (isnull(chance) || chance < 0)
 						reason = "Not a valid probability."
-					else if (!(mode in modes))
-						reason = "Not a valid mode tag."
 					if (reason)
 						log_misc("Invalid probability config: '[value]' - [reason]")
 					else
-						probabilities[mode] = chance
+						probabilities[mode_tag] = chance
 			if ("allow_random_events")
 				allow_random_events = TRUE
 			if ("kick_inactive")
 				kick_inactive = text2num(value)
 			if ("use_irc_bot")
 				use_irc_bot = TRUE
-			if ("ticklag")
-				var/ticklag = text2num(value)
-				if (ticklag > 0)
-					fps = 10 / ticklag
-			if ("fps")
-				fps = text2num(value)
-			if ("tick_limit_mc_init")
-				tick_limit_mc_init = text2num(value)
 			if ("allow_antag_hud")
 				antag_hud_allowed = TRUE
 			if ("antag_hud_restricted")
 				antag_hud_restricted = TRUE
 			if ("secret_hide_possibilities")
 				secret_hide_possibilities = TRUE
+			if ("secret_disabled")
+				secret_disabled = TRUE
 			if ("usealienwhitelist")
 				usealienwhitelist = TRUE
 			if ("usealienwhitelist_sql")
@@ -681,14 +775,16 @@
 				minimum_byond_version = text2num(value)
 			if ("minimum_byond_build")
 				minimum_byond_build = text2num(value)
-			if ("login_export_addr")
-				login_export_addr = value
 			if ("irc_bot_host")
 				irc_bot_host = value
 			if ("main_irc")
 				main_irc = value
 			if ("admin_irc")
 				admin_irc = value
+			if ("admin_discord")
+				admin_discord = value
+			if ("excom_address")
+				excom_address = value
 			if ("announce_evac_to_irc")
 				announce_evac_to_irc = TRUE
 			if ("allow_cult_ghostwriter")
@@ -737,7 +833,7 @@
 				starlight = value >= 0 ? value : 0
 			if ("ert_species")
 				ert_species = splittext(value, ";")
-				if (!ert_species.len)
+				if (!length(ert_species))
 					ert_species += SPECIES_HUMAN
 			if ("law_zero")
 				law_zero = value
@@ -809,9 +905,11 @@
 			if ("forbidden_message_hide_details")
 				forbidden_message_hide_details = TRUE
 			if ("disallow_votable_mode")
-				votable_modes -= value
+				disallowed_modes += value
 			if ("minimum_player_age")
 				minimum_player_age = text2num(value)
+			if ("maximum_queued_characters")
+				maximum_queued_characters = text2num(value)
 			if ("max_explosion_range")
 				max_explosion_range = text2num_or_default(value, max_explosion_range)
 			if ("game_version")
@@ -819,12 +917,49 @@
 			if ("log_timers_on_bucket_reset")
 				log_timers_on_bucket_reset = TRUE
 			if ("maximum_round_length")
-				maximum_round_length = text2num(value) MINUTES
+				maximum_round_length = text2num_or_default(value)
+				if (isnull(maximum_round_length) || maximum_round_length < 0)
+					log_misc("Invalid maximum_round_length: [value]")
+					maximum_round_length = 0
+			if ("stat_delay")
+				stat_delay = floor(text2num(value))
+			if ("warn_autoban_threshold")
+				warn_autoban_threshold = max(0, text2num(value))
+			if ("warn_autoban_duration")
+				warn_autoban_duration = max(1, text2num(value))
+			if ("run_empty_levels")
+				run_empty_levels = TRUE
+			if ("deletion_starts_paused")
+				deletion_starts_paused = TRUE
+			if ("enable_cold_mist")
+				enable_cold_mist = TRUE
+			if ("skip_conn_warn_cid_all")
+				skip_conn_warn_cid_all = TRUE
+			if ("skip_conn_warn_cid")
+				if (!islist(value))
+					value = list(value)
+				skip_conn_warn_cid_list = value
+			if ("skip_conn_warn_address_all")
+				skip_conn_warn_address_all = TRUE
+			if ("skip_conn_warn_address")
+				if (!islist(value))
+					value = list(value)
+				skip_conn_warn_address_list = value
+			if ("skip_conn_warn_ckey")
+				if (!islist(value))
+					value = list(value)
+				for (var/i = 1 to length(value))
+					value[i] = ckey(value[i])
+				skip_conn_warn_ckey_list = value
+			if ("skip_conn_warn_client")
+				skip_conn_warn_client = TRUE
+			if ("conn_warn_client_message")
+				conn_warn_client_message = value
 			else
 				log_misc("Unknown setting in config/config.txt: '[name]'")
 
 
-/configuration/proc/load_options()
+/datum/configuration/proc/load_options()
 	var/list/file = read_config("config/game_options.txt")
 	for (var/name in file)
 		var/value = file[name]
@@ -854,8 +989,6 @@
 				walk_delay = value
 			if ("creep_delay")
 				creep_delay = value
-			if ("glide_size")
-				glide_size = value
 			if ("minimum_sprint_cost")
 				minimum_sprint_cost = value
 			if ("skill_sprint_cost_range")
@@ -872,7 +1005,7 @@
 				log_misc("Unknown setting in config/game_options.txt: '[name]'")
 
 
-/configuration/proc/load_map()
+/datum/configuration/proc/load_map()
 	if (!GLOB.using_map?.config_path)
 		return
 	var/list/file = read_config(GLOB.using_map.config_path)
@@ -881,7 +1014,7 @@
 		GLOB.using_map.setup_config(name, value, GLOB.using_map.config_path)
 
 
-/configuration/proc/load_sql()
+/datum/configuration/proc/load_sql()
 	var/list/file = read_config("config/dbconfig.txt")
 	for (var/name in file)
 		var/value = file[name]
@@ -908,36 +1041,49 @@
 				log_misc("Unknown setting in config/dbconfig.txt: '[name]'")
 
 
-/configuration/proc/build_mode_cache()
-	gamemode_cache = list()
-	FOR_BLIND(datum/game_mode/M, subtypesof(/datum/game_mode))
-		var/tag = initial(M.config_tag)
-		if (!tag)
-			continue
-		gamemode_cache[tag] = (M = new M)
-		if (tag in modes)
-			continue
-		modes += tag
-		mode_names[tag] = M.name
-		probabilities[tag] = M.probability
-		if (M.votable)
-			votable_modes += tag
-	votable_modes += "secret"
-
-
-/configuration/proc/pick_mode(mode_name)
-	if (!mode_name)
+/datum/configuration/proc/load_hub_entry()
+	var/list/file = read_commentable("config/hub.txt")
+	if (!length(file))
 		return
-	for (var/tag in gamemode_cache)
-		var/datum/game_mode/M = gamemode_cache[tag]
-		if (M.config_tag == mode_name)
-			return M
+	hub_entry = file.Join("<br>")
 
 
-/configuration/proc/get_runnable_modes()
-	var/list/result = list()
-	for (var/tag in gamemode_cache)
-		var/datum/game_mode/M = gamemode_cache[tag]
-		if (probabilities[tag] > 0 && !M.startRequirements())
-			result[tag] = probabilities[tag]
-	return result
+/datum/configuration/proc/generate_hub_entry()
+	var/static/regex/replace_server = new (@"\$SERVER", "g")
+	var/static/regex/replace_host = new (@"\$HOST", "g")
+	var/static/regex/replace_wiki = new (@"\$WIKI", "g")
+	var/static/regex/replace_rules = new (@"\$RULES", "g")
+	var/static/regex/replace_source = new (@"\$SOURCE", "g")
+	var/static/regex/replace_discord = new (@"\$DISCORD", "g")
+	var/static/regex/replace_forum = new (@"\$FORUM", "g")
+	var/static/regex/replace_mode = new (@"\$MODE", "g")
+	var/static/regex/replace_station = new (@"\$STATION", "g")
+	var/static/regex/replace_players = new (@"\$PLAYERS", "g")
+	var/static/regex/replace_actives = new (@"\$ACTIVES", "g")
+	var/entry = "[hub_entry]"
+	if (entry)
+		var/player_count = 0
+		var/active_count = 0
+		for (var/client/client as anything in GLOB.clients)
+			if (client.inactivity < 5 MINUTES && isliving(client.mob))
+				var/mob/living/living = client.mob
+				if (living.stat != DEAD)
+					++active_count
+			++player_count
+		entry = replacetext_char(entry, replace_server, server_name)
+		entry = replacetext_char(entry, replace_host, hostedby)
+		entry = replacetext_char(entry, replace_wiki, wiki_url)
+		entry = replacetext_char(entry, replace_rules, rules_url)
+		entry = replacetext_char(entry, replace_source, source_url)
+		entry = replacetext_char(entry, replace_discord, discord_url)
+		entry = replacetext_char(entry, replace_forum, forum_url)
+		entry = replacetext_char(entry, replace_mode, SSticker?.master_mode || "LOBBY")
+		entry = replacetext_char(entry, replace_station, station_name())
+		entry = replacetext_char(entry, replace_players, "[player_count]")
+		entry = replacetext_char(entry, replace_actives, "[active_count]")
+	else
+		entry = "It Is A Mystery"
+	var/entry_size = length(entry)
+	if (entry_size > 255)
+		log_debug("The generated hub entry was [entry_size] bytes long! It will be truncated by the hub to 255.")
+	return entry
